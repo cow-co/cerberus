@@ -1,0 +1,1 @@
+// Handles beacon requests from implants
