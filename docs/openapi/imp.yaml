@@ -1,0 +1,44 @@
+openapi: 3.0.0
+info:
+  title: CERBERUS API
+  description: API definition for the CERBERUS C2 REST API
+  version: 0.0.1
+paths:
+  /imp/beacon/{id}/{pass}:
+    get:
+      summary: Gets the command queue for the implant sending the request
+      tags: 
+        - Implant
+      parameters:
+        - name: id
+          in: path
+          description: The unique ID of the implant
+          required: true
+          schema:
+            type: string
+        - name: pass
+          in: path
+          description: The password to access the API
+          required: false
+          schema:
+            type: string
+      responses:
+        "400":
+          description: Incorrect ID
+        "403":
+          description: Incorrect password
+        "200":
+          description: Successful beacon
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    command:
+                      type: string
+                    args:
+                      type: array
+                      items:
+                        type: string

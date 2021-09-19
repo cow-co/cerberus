@@ -4,20 +4,23 @@
   "description": "http c2 server for the RICE BOWL suite",
   "main": "app.js",
   "scripts": {
-    "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json"
+    "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cow-co/cerberus.git"
   },
   "author": "cow-co",
-  "license": "MIT",
+  "license": "Modified MIT",
   "bugs": {
     "url": "https://github.com/cow-co/cerberus/issues"
   },
   "homepage": "https://github.com/cow-co/cerberus#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "swagger-ui-express": "^4.1.6",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "chai": "^4.3.4",
