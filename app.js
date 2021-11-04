@@ -1,7 +1,7 @@
 const express = require("express");
 const swaggerUI = require("swagger-ui-express");
 const YAML = require("yamljs");
-const swaggerDocImp = YAML.load("docs/openapi/imp.yaml");
+const swaggerDocImp = YAML.load("docs/openapi/api/v1/imp.yaml");
 const beacon = require("./api/v1/imp/beacon");
 
 const app = express();

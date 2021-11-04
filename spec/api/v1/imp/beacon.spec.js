@@ -7,4 +7,8 @@ describe("Beacon endpoint tests", () => {
         const beaconRes = await request(server).post("/api/v1/imp/beacon").send({id: 101});
         expect(beaconRes.status).to.equal(200);
     });
+    it("should return 400 for an improperly-formatted request", async () => {
+        const beaconRes = await request(server).post("/api/v1/imp/beacon").send({id: 102});
+        expect(beaconRes.status).to.equal(400);
+    });
 });
