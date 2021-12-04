@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  title: CERBERUS API
+  description: API definition for the CERBERUS C2 REST API
+  version: 0.0.1
+paths:
+  /imp/beacon:
+    post:
+      summary: Updates the server with the details of the implant, and returns the command queue for the implant
+      tags: 
+        - Implant
+      requestBody:
+        description: Details of the implant/host
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ipAddress:
+                  type: string
+                  description: The IP address of the host
+                  required: true
+                id:
+                  type: string
+                  description: The UUID (generated on initialisation) of the implant
+                  required: true
+                password:
+                  type: string
+                  description: "[OPTIONAL] The password for the implant to authenticate with the C2 server"
+                  required: false
+                os:
+                  type: string
+                  description: The operating system running on the host
+                  required: true
+                isAdmin:
+                  type: boolean
+                  description: Whether or not the implant is running as an administrative account
+                  required: true
+      responses:
+        "400":
+          description: Incorrect ID
+        "403":
+          description: Incorrect password
+        "200":
+          description: Successful beacon
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    command:
+                      type: string
+                    args:
+                      type: array
+                      items:
+                        type: string
