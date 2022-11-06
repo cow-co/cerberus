@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - lts/*
+  - node
+
+branches:
+  only:
+    - main
+
+script:
+  - npm run test
