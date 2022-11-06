@@ -4,8 +4,17 @@
   "description": "admin interface for RICE BOWL suite",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "start": "node index.js"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "cow-co",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "jasmine": "^4.5.0",
+    "mocha": "^10.1.0"
+  }
 }
