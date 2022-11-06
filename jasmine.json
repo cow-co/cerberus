@@ -3,5 +3,8 @@
   "spec_files": [
     "**/*.spec.js"
   ],
-  "random": false
+  "random": false,
+  "env": {
+    "failSpecWithNoExpectations": false
+  }
 }
