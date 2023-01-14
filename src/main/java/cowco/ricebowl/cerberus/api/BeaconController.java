@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import cowco.ricebowl.cerberus.api.representation.BeaconDTO;
@@ -18,8 +19,8 @@ public class BeaconController {
 	@Autowired
 	private ActiveImplantsRepository activeImplantsRepository;
 	
-	@PostMapping("/api/beacon")
-	public TasksListDTO beacon(BeaconDTO beaconDto) {
+	@PostMapping(path="/api/beacon", consumes="application/json", produces="application/json")
+	public TasksListDTO beacon(@RequestBody BeaconDTO beaconDto) {
 		LOGGER.debug("Received beacon " + beaconDto.toString());
 		ActiveImplant existingImplant = activeImplantsRepository.findImplantByImplantId(beaconDto.getImplantId());
 		if (existingImplant == null) {
@@ -30,7 +31,7 @@ public class BeaconController {
 		activeImplantsRepository.save(existingImplant);
 		
 		TasksListDTO tasks = new TasksListDTO();
-		tasks.appendTask("Task 1");
+		tasks.appendTask("Task 1");	// TODO Populate with actual tasks
 		return tasks;
 	}
 }
