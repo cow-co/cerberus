@@ -27,12 +27,57 @@ public class BeaconControllerTests {
 	@Test
 	public void testReturnsTasksList() throws Exception {
 		BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "Linux", 300000L);
-		System.out.println(beacon.toString());
 		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(content().json("{\"tasks\": [\"Task 1\"]}"));
 	}
 	
-	// TODO Invalid beacon (missing fields) test
-	// TODO Missing beacon content (calling the endpoint without a request body)
+	@Test
+	public void testReturns200ForEmptyOptionalFieldsIP() throws Exception {
+		BeaconDTO beacon = new BeaconDTO("Implant", "", "Linux", 300000L);
+		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+	}
+	
+	@Test
+	public void testReturns200ForEmptyOptionalFieldsOS() throws Exception {
+		BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "", 300000L);
+		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+	}
+	
+	@Test
+	public void testReturns400ForMissingOptionalFieldsIP() throws Exception {
+		BeaconDTO beacon = new BeaconDTO("Implant", null, "Linux", 300000L);
+		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	public void testReturns400ForMissingOptionalFieldsOS() throws Exception {
+		BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", null, 300000L);
+		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	public void testReturns400ForMissingMandatoryFieldsID() throws Exception {
+		BeaconDTO beacon = new BeaconDTO(null, "192.168.0.1", "Linux", 300000L);
+		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	public void testReturns400ForMissingMandatoryFieldsInterval() throws Exception {
+		BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "Linux", null);
+		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	public void testReturns400ForEmptyMandatoryFieldsID() throws Exception {
+		BeaconDTO beacon = new BeaconDTO("", "192.168.0.1", "Linux", 300000L);
+		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	public void testReturns400ForZeroInterval() throws Exception {
+		BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "Linux", 0L);
+		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+	}
+	
 	// TODO Beacon with existing entry for implant
 	// TODO Beacon with no existing entry for implant (test that implant is added to the DB)
 }

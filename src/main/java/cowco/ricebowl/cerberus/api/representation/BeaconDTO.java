@@ -2,6 +2,8 @@ package cowco.ricebowl.cerberus.api.representation;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.validation.Validator;
+import org.springframework.validation.annotation.Validated;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +17,7 @@ public class BeaconDTO {
 	private final String implantId;
 	private final String ip;
 	private final String os;
-	private final Long beaconIntervalSeconds;
+	private final Long beaconIntervalSeconds;	// TODO Implement configuration for the shortest allowable beacon time?
 	
 	public BeaconDTO() {
 		this.implantId = "PLACEHOLDER";
@@ -45,6 +47,15 @@ public class BeaconDTO {
 	
 	public Long getBeaconIntervalSeconds() {
 		return beaconIntervalSeconds;
+	}
+	
+	// TODO Instead, put validation annotations on the fields?
+	public boolean isValid() {
+		boolean isIdValid = (implantId != null) && (!implantId.isEmpty());
+		boolean isIpValid = (ip != null);	// We're ok with the IP being empty, since maybe we don't have that information
+		boolean isOsValid = (os != null);	// As above
+		boolean isIntervalValid = (beaconIntervalSeconds > 30);	// XXX Hardcoded to 30s for now - config it later (see TODO item above)
+		return isIdValid && isIpValid && isOsValid && isIntervalValid;
 	}
 	
 	@Override
