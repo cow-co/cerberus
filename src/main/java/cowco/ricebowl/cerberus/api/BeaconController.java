@@ -36,6 +36,8 @@ public class BeaconController {
 			activeImplantsRepository.save(existingImplant);
 			
 			TasksListDTO tasks = new TasksListDTO();
+			// TODO Design the database structure for the tasks - separate table presumably, but what's the schema?
+			// TODO Overall, have a big ol design sesh to hash out the system as a whole; document in a `docs/` dir?
 			tasks.appendTask("Task 1");	// TODO Populate with actual tasks
 			response = ResponseEntity.ok(tasks);
 		} else {

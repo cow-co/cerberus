@@ -77,7 +77,4 @@ public class BeaconControllerTests {
 		BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "Linux", 0L);
 		mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
 	}
-	
-	// TODO Beacon with existing entry for implant
-	// TODO Beacon with no existing entry for implant (test that implant is added to the DB)
 }
