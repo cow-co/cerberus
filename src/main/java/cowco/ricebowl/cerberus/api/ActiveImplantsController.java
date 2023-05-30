@@ -13,10 +13,11 @@ import cowco.ricebowl.cerberus.api.services.ActiveImplantsService;
 @RestController
 public class ActiveImplantsController {
     @Autowired
-	private ActiveImplantsService activeImplantsService;
-	
-	@GetMapping("/api/active-implants")
-	public ResponseEntity<List<ActiveImplantDTO>> getActiveImplants() {
-	    return ResponseEntity.ok(activeImplantsService.allImplants());  // TODO Implement this on the repo
-	}
+    private ActiveImplantsService activeImplantsService;
+
+    // TODO This needs authz of course
+    @GetMapping("/api/active-implants")
+    public ResponseEntity<List<ActiveImplantDTO>> getActiveImplants() {
+        return ResponseEntity.ok(activeImplantsService.allImplants());
+    }
 }
