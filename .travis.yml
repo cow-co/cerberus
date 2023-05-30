@@ -1,11 +1,5 @@
-language: node_js
-node_js:
-  - lts/*
-  - node
+language: java
 
 branches:
   only:
     - main
-
-script:
-  - npm run test
