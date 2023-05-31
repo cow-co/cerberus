@@ -1,7 +1,6 @@
-package cowco.ricebowl.cerberus.api;
+package cowco.ricebowl.cerberus.api.controllers;
 
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,7 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest
 public class ActiveImplantsControllerTests {
     @Autowired

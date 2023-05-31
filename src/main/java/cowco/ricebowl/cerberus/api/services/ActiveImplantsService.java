@@ -41,11 +41,14 @@ public class ActiveImplantsService {
                     implant = new ActiveImplantEntity(beacon);
                 }
                 ActiveImplantEntity saved = activeImplantsRepository.save(implant);
-                // TODO Null-check
+                if (saved == null) {
+                    throw new NullPointerException(
+                            "Repository returned null entity on save! This can happen if the database connection does not exist.");
+                }
                 success = true;
                 LOGGER.info(saved.getId());
             }
-        } catch (IllegalArgumentException | OptimisticLockingFailureException ex) {
+        } catch (IllegalArgumentException | OptimisticLockingFailureException | NullPointerException ex) {
             LOGGER.error(ex.getMessage());
         }
 

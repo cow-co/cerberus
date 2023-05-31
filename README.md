@@ -1,6 +1,7 @@
 # CERBERUS
 
 [![CircleCI Status](https://dl.circleci.com/status-badge/img/gh/cow-co/cerberus/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/cow-co/cerberus/tree/main)
+[![Snyk](https://snyk.io/test/github/cow-co/cerberus/badge.svg)](https://snyk.io/test/github/cow-co/cerberus)
 
 Frontend server for administering implants as part of the RICE BOWL suite.
 
