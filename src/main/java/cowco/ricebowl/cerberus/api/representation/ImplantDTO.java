@@ -1,14 +1,15 @@
 package cowco.ricebowl.cerberus.api.representation;
 
-import cowco.ricebowl.cerberus.db.ActiveImplantEntity;
+import cowco.ricebowl.cerberus.db.ImplantEntity;
 
-public class ActiveImplantDTO {
+public class ImplantDTO {
     private String implantId;
     private String ip;
     private String os;
     private Long beaconIntervalSeconds;
-    
-    public ActiveImplantDTO(ActiveImplantEntity dbEntity) {
+    // TODO Should also output the isActive and lastCheckinTime vars
+
+    public ImplantDTO(ImplantEntity dbEntity) {
         this.implantId = dbEntity.getImplantId();
         this.ip = dbEntity.getIp();
         this.os = dbEntity.getOs();
@@ -30,6 +31,5 @@ public class ActiveImplantDTO {
     public Long getBeaconIntervalSeconds() {
         return beaconIntervalSeconds;
     }
-    
-    
+
 }

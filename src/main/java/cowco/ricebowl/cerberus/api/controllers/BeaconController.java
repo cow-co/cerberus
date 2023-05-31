@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import cowco.ricebowl.cerberus.api.representation.BeaconDTO;
 import cowco.ricebowl.cerberus.api.representation.TasksListDTO;
-import cowco.ricebowl.cerberus.api.services.ActiveImplantsService;
+import cowco.ricebowl.cerberus.api.services.ImplantsService;
 
 @RestController
 public class BeaconController {
     private final Logger LOGGER = LogManager.getLogger(getClass());
 
     @Autowired
-    private ActiveImplantsService activeImplantService;
+    private ImplantsService activeImplantService;
 
     @PostMapping(path = "/api/beacon", consumes = "application/json", produces = "application/json")
     public ResponseEntity<TasksListDTO> beacon(@RequestBody BeaconDTO beaconDto) {

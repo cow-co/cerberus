@@ -30,6 +30,8 @@
   - `ipv4`
   - `ipv6`
   - `beaconIntervalSeconds`: So we can keep track of whether any implants have gone dead
+  - `lastCheckinTime`
+  - `isActive`
 - `Task`
   - `taskType`
   - `order`: So that dependent tasks can be executed in the correct order
