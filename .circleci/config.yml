@@ -1,10 +1,14 @@
 version: 2.1
-orbs:
-  maven: circleci/maven@1.4.1
+jobs:
+  test:
+    docker:
+      - image: cimg/openjdk:17.0
+    steps:
+      - checkout
+      - run:
+        name: Test
+        command: mvn clean test
 workflows:
-  maven_test:
+  test:
     jobs:
-      - maven/test:
-          matrix:
-            parameters:
-              executor: 17.0
+      - test
