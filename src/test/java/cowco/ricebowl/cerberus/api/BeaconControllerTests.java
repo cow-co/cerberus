@@ -22,58 +22,70 @@ public class BeaconControllerTests {
     private MockMvc mockMvc;
     @MockBean
     private ActiveImplantsRepository activeImplantsRepository;
-	
+
+    // TODO Mock out the save() method on the active implant repo, so we don't run
+    // afoul of the null-check
+
     @Test
     public void testReturnsTasksList() throws Exception {
         BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "Linux", 300000L);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(content().json("{\"tasks\": [\"Task 1\"]}"));
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andExpect(content().json("{\"tasks\": [\"Task 1\"]}"));
     }
-    
+
     @Test
     public void testReturns200ForEmptyOptionalFieldsIP() throws Exception {
         BeaconDTO beacon = new BeaconDTO("Implant", "", "Linux", 300000L);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
-    
+
     @Test
     public void testReturns200ForEmptyOptionalFieldsOS() throws Exception {
         BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "", 300000L);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
-    
+
     @Test
-    public void testReturns400ForMissingOptionalFieldsIP() throws Exception {
+    public void testReturns400ForMissingMandatoryFieldsIP() throws Exception {
         BeaconDTO beacon = new BeaconDTO("Implant", null, "Linux", 300000L);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
-    
+
     @Test
-    public void testReturns400ForMissingOptionalFieldsOS() throws Exception {
+    public void testReturns400ForMissingMandatoryOptionalFieldsOS() throws Exception {
         BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", null, 300000L);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
-    
+
     @Test
     public void testReturns400ForMissingMandatoryFieldsID() throws Exception {
         BeaconDTO beacon = new BeaconDTO(null, "192.168.0.1", "Linux", 300000L);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
-    
+
     @Test
     public void testReturns400ForMissingMandatoryFieldsInterval() throws Exception {
         BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "Linux", null);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
-    
+
     @Test
     public void testReturns400ForEmptyMandatoryFieldsID() throws Exception {
         BeaconDTO beacon = new BeaconDTO("", "192.168.0.1", "Linux", 300000L);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
-    
+
     @Test
     public void testReturns400ForZeroInterval() throws Exception {
         BeaconDTO beacon = new BeaconDTO("Implant", "192.168.0.1", "Linux", 0L);
-        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/beacon").content(beacon.toString()).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }
