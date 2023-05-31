@@ -5,6 +5,4 @@ workflows:
   maven_test:
     jobs:
       - maven/test:
-          matrix:
-            parameters:
-              executor: 17.0
+          executor: 17.0
