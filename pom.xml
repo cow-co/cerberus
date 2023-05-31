@@ -79,6 +79,7 @@
                 <version>8.2.1</version>
                 <configuration>
                     <failBuildOnCVSS>8</failBuildOnCVSS>
+                    <suppressionFiles>suppressions.xml</suppressionFiles>
                 </configuration>
                 <executions>
                     <execution>
