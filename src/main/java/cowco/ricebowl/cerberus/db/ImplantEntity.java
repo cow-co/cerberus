@@ -13,7 +13,7 @@ public class ImplantEntity {
     private String id;
 
     private String implantId; // Different than the MongoDB ID, which may vary if the implant becomes
-                              // temporarily inactive
+    // temporarily inactive
     private String ip;
     private String os;
     private long beaconIntervalSeconds; // TODO implement logic that makes an implant inactive if it has missed a
@@ -25,14 +25,23 @@ public class ImplantEntity {
         updateFromBeacon(beacon);
     }
 
-    // TODO Default the last checkin time and active status to now and true
-    // respectively?
+    // TODO Default the last checkin time to now
+    public ImplantEntity(String implantId, String ip, String os, long beaconIntervalSeconds) {
+        this.implantId = implantId;
+        this.ip = ip;
+        this.os = os;
+        this.beaconIntervalSeconds = beaconIntervalSeconds;
+        isActive = true;
+    }
+
     public ImplantEntity(String implantId, String ip, String os, long beaconIntervalSeconds,
             long lastCheckinTimeSeconds, boolean isActive) {
         this.implantId = implantId;
         this.ip = ip;
         this.os = os;
         this.beaconIntervalSeconds = beaconIntervalSeconds;
+        this.lastCheckinTimeSeconds = lastCheckinTimeSeconds;
+        this.isActive = isActive;
     }
 
     public String getId() {
@@ -55,9 +64,18 @@ public class ImplantEntity {
         return beaconIntervalSeconds;
     }
 
+    public long getLastCheckinTimeSeconds() {
+        return lastCheckinTimeSeconds;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
     public void updateFromBeacon(BeaconDTO beacon) {
         ip = beacon.getIp();
         os = beacon.getOs();
         beaconIntervalSeconds = beacon.getBeaconIntervalSeconds();
+        // TODO set lastCheckinTime to now
     }
 }

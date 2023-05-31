@@ -27,15 +27,35 @@ public class ImplantsControllerTests {
 
     @Test
     public void testReturnsEmptyList() throws Exception {
-        mockMvc.perform(get("/api/active-implants")).andExpect(status().isOk())
+        mockMvc.perform(get("/api/implants")).andExpect(status().isOk())
                 .andExpect(content().json("[]"));
     }
 
     @Test
-    public void testReturnsOneEntry() throws Exception {
+    public void testReturnsOneActiveImplant() throws Exception {
         ImplantEntity implant = new ImplantEntity("Implant", "192.168.0.1", "Linux", 300000L);
         Mockito.when(activeImplantsRepository.findAll()).thenReturn(Arrays.asList(implant));
-        mockMvc.perform(get("/api/active-implants")).andExpect(status().isOk())
+        mockMvc.perform(get("/api/implants")).andExpect(status().isOk())
+                .andExpect(content().json(
+                        "[{\"implantId\":\"Implant\",\"ip\":\"192.168.0.1\",\"os\":\"Linux\",\"beaconIntervalSeconds\":300000}]"));
+    }
+
+    @Test
+    public void testDoesNotReturnInactiveImplant() throws Exception {
+        ImplantEntity activeImplant = new ImplantEntity("Implant", "192.168.0.1", "Linux", 300000L, 30000000L, true);
+        ImplantEntity inactiveImplant = new ImplantEntity("Implant", "192.168.0.1", "Linux", 300000L, 30000000L, false);
+        Mockito.when(activeImplantsRepository.findAll()).thenReturn(Arrays.asList(activeImplant, inactiveImplant));
+        mockMvc.perform(get("/api/implants")).andExpect(status().isOk())
+                .andExpect(content().json(
+                        "[{\"implantId\":\"Implant\",\"ip\":\"192.168.0.1\",\"os\":\"Linux\",\"beaconIntervalSeconds\":300000}]"));
+    }
+
+    @Test
+    public void testReturnsInactiveImplant() throws Exception {
+        ImplantEntity activeImplant = new ImplantEntity("Implant", "192.168.0.1", "Linux", 300000L, 30000000L, true);
+        ImplantEntity inactiveImplant = new ImplantEntity("Implant", "192.168.0.1", "Linux", 300000L, 30000000L, false);
+        Mockito.when(activeImplantsRepository.findAll()).thenReturn(Arrays.asList(activeImplant, inactiveImplant));
+        mockMvc.perform(get("/api/implants?includeInactive=true")).andExpect(status().isOk())
                 .andExpect(content().json(
                         "[{\"implantId\":\"Implant\",\"ip\":\"192.168.0.1\",\"os\":\"Linux\",\"beaconIntervalSeconds\":300000}]"));
     }

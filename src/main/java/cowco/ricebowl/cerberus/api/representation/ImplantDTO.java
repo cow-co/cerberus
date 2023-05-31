@@ -7,6 +7,7 @@ public class ImplantDTO {
     private String ip;
     private String os;
     private Long beaconIntervalSeconds;
+    // TODO Should also output the isActive and lastCheckinTime vars
 
     public ImplantDTO(ImplantEntity dbEntity) {
         this.implantId = dbEntity.getImplantId();

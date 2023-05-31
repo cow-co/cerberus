@@ -32,9 +32,8 @@ public class ImplantsService {
 
                 // TODO Later down the line, we'll want to take more of a "merging" approach
                 // so that if, say, beacon 1 contains the implant's ipv4 but beacon 2 doesn't,
-                // then
-                // the DB will keep the existing ipv4 address (ie. empty fields in the beacon
-                // get ignored)
+                // then the DB will keep the existing ipv4 address (ie. empty fields in the
+                // beacon get ignored)
                 if (implant != null) {
                     implant.updateFromBeacon(beacon);
                 } else {
@@ -55,10 +54,14 @@ public class ImplantsService {
         return success;
     }
 
-    public List<ImplantDTO> allImplants() {
+    public List<ImplantDTO> allImplants(boolean includeInactive) {
         List<ImplantDTO> implants = new ArrayList<>();
         List<ImplantEntity> entities = activeImplantsRepository.findAll();
-        entities.forEach(entity -> implants.add(new ImplantDTO(entity)));
+        entities.forEach(entity -> {
+            if (entity.isActive() || includeInactive) {
+                implants.add(new ImplantDTO(entity));
+            }
+        });
         return implants;
     }
 }
