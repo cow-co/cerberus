@@ -1,4 +1,4 @@
-package cowco.ricebowl.cerberus.api;
+package cowco.ricebowl.cerberus.api.controllers;
 
 import java.util.List;
 
