@@ -54,6 +54,7 @@
                 <version>8.2.1</version>
                 <executions>
                     <execution>
+                        <phase>test</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
