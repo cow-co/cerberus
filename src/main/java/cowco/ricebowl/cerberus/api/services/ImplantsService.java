@@ -9,17 +9,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
-import cowco.ricebowl.cerberus.api.representation.ActiveImplantDTO;
+import cowco.ricebowl.cerberus.api.representation.ImplantDTO;
 import cowco.ricebowl.cerberus.api.representation.BeaconDTO;
-import cowco.ricebowl.cerberus.db.ActiveImplantEntity;
-import cowco.ricebowl.cerberus.db.ActiveImplantsRepository;
+import cowco.ricebowl.cerberus.db.ImplantEntity;
+import cowco.ricebowl.cerberus.db.ImplantsRepository;
 
 @Service
-public class ActiveImplantsService {
-    private static final Logger LOGGER = LogManager.getLogger(ActiveImplantsService.class);
+public class ImplantsService {
+    private static final Logger LOGGER = LogManager.getLogger(ImplantsService.class);
 
     @Autowired
-    private ActiveImplantsRepository activeImplantsRepository;
+    private ImplantsRepository activeImplantsRepository;
 
     public boolean pushImplantDetailsToDb(BeaconDTO beacon) {
         LOGGER.info("Pushing implant deets to DB");
@@ -28,7 +28,7 @@ public class ActiveImplantsService {
             if (beacon.isValid()) {
                 // TODO fill this out - create new if not existing, update if existing, return
                 // true/false for success
-                ActiveImplantEntity implant = activeImplantsRepository.findImplantByImplantId(beacon.getImplantId());
+                ImplantEntity implant = activeImplantsRepository.findImplantByImplantId(beacon.getImplantId());
 
                 // TODO Later down the line, we'll want to take more of a "merging" approach
                 // so that if, say, beacon 1 contains the implant's ipv4 but beacon 2 doesn't,
@@ -38,9 +38,9 @@ public class ActiveImplantsService {
                 if (implant != null) {
                     implant.updateFromBeacon(beacon);
                 } else {
-                    implant = new ActiveImplantEntity(beacon);
+                    implant = new ImplantEntity(beacon);
                 }
-                ActiveImplantEntity saved = activeImplantsRepository.save(implant);
+                ImplantEntity saved = activeImplantsRepository.save(implant);
                 if (saved == null) {
                     throw new NullPointerException(
                             "Repository returned null entity on save! This can happen if the database connection does not exist.");
@@ -55,10 +55,10 @@ public class ActiveImplantsService {
         return success;
     }
 
-    public List<ActiveImplantDTO> allImplants() {
-        List<ActiveImplantDTO> implants = new ArrayList<>();
-        List<ActiveImplantEntity> entities = activeImplantsRepository.findAll();
-        entities.forEach(entity -> implants.add(new ActiveImplantDTO(entity)));
+    public List<ImplantDTO> allImplants() {
+        List<ImplantDTO> implants = new ArrayList<>();
+        List<ImplantEntity> entities = activeImplantsRepository.findAll();
+        entities.forEach(entity -> implants.add(new ImplantDTO(entity)));
         return implants;
     }
 }

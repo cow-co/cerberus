@@ -10,8 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import cowco.ricebowl.cerberus.db.ActiveImplantEntity;
-import cowco.ricebowl.cerberus.db.ActiveImplantsRepository;
+import cowco.ricebowl.cerberus.db.ImplantEntity;
+import cowco.ricebowl.cerberus.db.ImplantsRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -19,11 +19,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest
-public class ActiveImplantsControllerTests {
+public class ImplantsControllerTests {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private ActiveImplantsRepository activeImplantsRepository;
+    private ImplantsRepository activeImplantsRepository;
 
     @Test
     public void testReturnsEmptyList() throws Exception {
@@ -33,7 +33,7 @@ public class ActiveImplantsControllerTests {
 
     @Test
     public void testReturnsOneEntry() throws Exception {
-        ActiveImplantEntity implant = new ActiveImplantEntity("Implant", "192.168.0.1", "Linux", 300000L);
+        ImplantEntity implant = new ImplantEntity("Implant", "192.168.0.1", "Linux", 300000L);
         Mockito.when(activeImplantsRepository.findAll()).thenReturn(Arrays.asList(implant));
         mockMvc.perform(get("/api/active-implants")).andExpect(status().isOk())
                 .andExpect(content().json(
