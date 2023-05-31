@@ -1,5 +1,7 @@
 # CERBERUS
 
+[![Build Status](https://circleci.com/gh/cow-co/cerberus.svg?style=svg)](https://app.circleci.com/pipelines/github/cow-co/cerberus)
+
 Frontend server for administering implants as part of the RICE BOWL suite.
 
 ## Disclaimery Type Things
