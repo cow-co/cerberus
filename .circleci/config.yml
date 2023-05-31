@@ -5,4 +5,5 @@ workflows:
   maven_test:
     jobs:
       - maven/test:
-          executor: "17.0"
+          executor:
+            tag: "17.0"
