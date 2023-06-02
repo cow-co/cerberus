@@ -1,13 +1,8 @@
 import "./App.css";
+import MainPage from "./components/pages/MainPage";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <p>PLACEHOLDER - Working on design for layout</p>
-      </header>
-    </div>
-  );
+  return <MainPage />;
 }
 
 export default App;
