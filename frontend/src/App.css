@@ -36,3 +36,16 @@
     transform: rotate(360deg);
   }
 }
+
+.listElement {
+  background-color: rgb(77, 77, 77);
+  margin: 5px;
+}
+
+.implant.active {
+  background-color: rgb(36, 138, 41);
+}
+
+.implant.inactive {
+  background-color: rgb(138, 36, 36);
+}
