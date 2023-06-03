@@ -6,13 +6,13 @@ function ImplantsPane() {
     <Container fixed>
       <h2>Implants</h2>
       <List>
-        <ListItem>
+        <ListItem className='listElement'>
           <h4>Implant 1</h4>
         </ListItem>
-        <ListItem>
+        <ListItem className='listElement'>
           <h4>Implant 2</h4>
         </ListItem>
-        <ListItem>
+        <ListItem className='listElement'>
           <h4>Implant 3</h4>
         </ListItem>
       </List>
