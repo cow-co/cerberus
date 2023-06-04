@@ -1,5 +1,6 @@
 package cowco.ricebowl.cerberus.api.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,11 @@ public class ImplantsController {
     // TODO This needs authz of course
     @GetMapping(value = { "/api/implants", "/api/implants?includeInactive={includeInactive}" })
     public ResponseEntity<List<ImplantDTO>> getImplants(@PathVariable(required = false) boolean includeInactive) {
-        return ResponseEntity.ok(implantsService.allImplants(includeInactive));
+        try {
+            List<ImplantDTO> implants = implantsService.allImplants(includeInactive);
+            return ResponseEntity.ok(implants);
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body(new ArrayList<>());
+        }
     }
 }

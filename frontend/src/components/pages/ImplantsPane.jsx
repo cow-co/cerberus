@@ -5,7 +5,6 @@ import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 
 // TODO Make the list items into buttons, which populate the task list (placeholder for now)
-// TODO "Refresh" button
 // TODO Un-hardcode the backend url
 
 const defaultImplants = [
@@ -46,8 +45,8 @@ const ImplantsPane = () => {
 
   const refresh = async () => {
     // TODO try/catch and error handling
-    // TODO Sort out the 401 error
-    const receivedImplants = await fetch("http://localhost:8080/api/implants?includeInactive=true")
+    const response = await fetch("http://localhost:8080/api/implants?includeInactive=true")
+    const receivedImplants = await response.json()
     console.log(receivedImplants)
     setImplants(receivedImplants)
   }
