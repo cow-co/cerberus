@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,7 @@ public class BeaconController {
     @Autowired
     private ImplantsService activeImplantService;
 
+    @CrossOrigin
     @PostMapping(path = "/api/beacon", consumes = "application/json", produces = "application/json")
     public ResponseEntity<TasksListDTO> beacon(@RequestBody BeaconDTO beaconDto) {
         LOGGER.debug("Received beacon " + beaconDto.toString());
