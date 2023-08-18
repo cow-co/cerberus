@@ -26,7 +26,6 @@ public class ImplantsService {
         boolean success = false;
         try {
             if (beacon.isValid()) {
-                // TODO fill this out - create new if not existing, update if existing, return
                 // true/false for success
                 ImplantEntity implant = activeImplantsRepository.findImplantByImplantId(beacon.getImplantId());
 

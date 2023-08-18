@@ -14,6 +14,7 @@ import cowco.ricebowl.cerberus.api.representation.BeaconDTO;
 import cowco.ricebowl.cerberus.api.representation.TasksListDTO;
 import cowco.ricebowl.cerberus.api.services.ImplantsService;
 
+@CrossOrigin
 @RestController
 public class BeaconController {
     private final Logger LOGGER = LogManager.getLogger(getClass());
@@ -21,7 +22,6 @@ public class BeaconController {
     @Autowired
     private ImplantsService activeImplantService;
 
-    @CrossOrigin
     @PostMapping(path = "/api/beacon", consumes = "application/json", produces = "application/json")
     public ResponseEntity<TasksListDTO> beacon(@RequestBody BeaconDTO beaconDto) {
         LOGGER.debug("Received beacon " + beaconDto.toString());

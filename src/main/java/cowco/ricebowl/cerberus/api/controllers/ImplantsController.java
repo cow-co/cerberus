@@ -27,6 +27,7 @@ public class ImplantsController {
             List<ImplantDTO> implants = implantsService.allImplants(includeInactive);
             return ResponseEntity.ok(implants);
         } catch (Exception ex) {
+            System.out.println(ex.getMessage());
             return ResponseEntity.status(500).body(new ArrayList<>());
         }
     }
