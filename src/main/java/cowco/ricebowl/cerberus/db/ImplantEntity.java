@@ -25,6 +25,10 @@ public class ImplantEntity {
         updateFromBeacon(beacon);
     }
 
+    public ImplantEntity() {
+
+    }
+
     // TODO Default the last checkin time to now
     public ImplantEntity(String implantId, String ip, String os, long beaconIntervalSeconds) {
         this.implantId = implantId;

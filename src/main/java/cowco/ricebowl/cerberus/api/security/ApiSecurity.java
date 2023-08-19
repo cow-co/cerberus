@@ -10,7 +10,7 @@ public class ApiSecurity {
     // TODO Will need to actually make auth checks
     @Bean
     public SecurityFilterChain webAuthZ(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll());
+        http.authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll()).csrf((csrf) -> csrf.disable());
         return http.build();
     }
 }
