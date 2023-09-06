@@ -4,7 +4,7 @@ const statusCodes = require("../config/statusCodes");
 const logger = require("../utils/logger");
 const { validateBeacon } = require("../validation/request-validation");
 
-router.get("/beacon", async (req, res) => {
+router.post("/", async (req, res) => {
   logger.log("/beacon", `Received beacon: ${req.body}`, logger.levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = {}; // TODO make the response DTOs into their own classes
