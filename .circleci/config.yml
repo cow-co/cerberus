@@ -1,12 +1,16 @@
 version: 2.1
+orbs:
+  node: circleci/node@5.1.0
 jobs:
-  test:
-    docker:
-      - image: cimg/openjdk:17.0
+  test_backend:
+    executor: node/default
     steps:
       - checkout
-      - run: mvn clean test
-workflows:
-  test:
-    jobs:
-      - test
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          command: cd backend && npm test
+          name: Run backend tests
+      - run:
+          command: cd ../frontend && npm run build
+          name: Build frontend
