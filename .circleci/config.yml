@@ -11,6 +11,19 @@ jobs:
       - run:
           command: cd backend && npm test
           name: Run backend tests
+  build_frontend:
+    executor: node/default
+    steps:
       - run:
-          command: cd ../frontend && npm run build
+          command: cd frontend && npm run build
           name: Build frontend
+workflows:
+  test_and_build:
+    jobs:
+      - test_backend
+      - build_frontend:
+          requires:
+            - test_backend
+          filters:
+            branches:
+              only: main
