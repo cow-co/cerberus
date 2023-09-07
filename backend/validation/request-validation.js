@@ -13,12 +13,17 @@ const validateBeacon = (beacon) => {
   // We simple fail out at the first invalid field.
   // TODO We may wish later on to validate everything and return an array of errors...
   let isValid = true;
+
   if (!beacon.id) {
     isValid = false;
-  } else if (beacon.ip) {
+  }
+
+  if (beacon.ip && isValid) {
     matches = beacon.ip.match(ip_regex);
     isValid = matches !== null && matches.length > 0;
-  } else if (beacon.beaconIntervalSeconds === undefined) {
+  }
+
+  if (beacon.beaconIntervalSeconds === undefined && isValid) {
     isValid = false;
   } else if (beacon.beaconIntervalSeconds <= 0) {
     isValid = false;
