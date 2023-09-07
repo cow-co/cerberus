@@ -5,7 +5,11 @@ const logger = require("../utils/logger");
 const { validateBeacon } = require("../validation/request-validation");
 
 router.post("/", async (req, res) => {
-  logger.log("/beacon", `Received beacon: ${req.body}`, logger.levels.DEBUG);
+  logger.log(
+    "/beacon",
+    `Received beacon: ${JSON.stringify(req.body)}`,
+    logger.levels.DEBUG
+  );
   let returnStatus = statusCodes.OK;
   let responseJSON = {}; // TODO make the response DTOs into their own classes
   if (validateBeacon(req.body)) {
@@ -18,7 +22,7 @@ router.post("/", async (req, res) => {
     };
     returnStatus = statusCodes.BAD_REQUEST;
   }
-  res.json(responseJSON).status(returnStatus);
+  return res.status(returnStatus).json(responseJSON);
 });
 
 module.exports = router;
