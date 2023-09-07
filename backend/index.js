@@ -29,6 +29,5 @@ const stop = () => {
   });
 };
 
-server = shutdown(server);
 module.exports = server;
 module.exports.stop = stop;
