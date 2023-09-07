@@ -6,14 +6,18 @@ jobs:
     executor: node/default
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: npm
+      - run:
+          command: cd backend && npm i
+          name: Install packages
       - run:
           command: cd backend && npm test
           name: Run backend tests
   build_frontend:
     executor: node/default
     steps:
+      - run:
+          command: cd frontend && npm i
+          name: Install packages
       - run:
           command: cd frontend && npm run build
           name: Build frontend
