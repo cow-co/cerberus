@@ -6,9 +6,13 @@ const findImplantById = async (id) => {
   return implant;
 };
 
-const getAllImplants = async () => {
+const getAllImplants = async (includeInactive) => {
   let implants = [];
-  implants = await Implant.find();
+  if (includeInactive === "true") {
+    implants = await Implant.find();
+  } else {
+    implants = await Implant.find({ isActive: true });
+  }
   return implants;
 };
 
