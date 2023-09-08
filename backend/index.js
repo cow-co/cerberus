@@ -1,9 +1,11 @@
 const express = require("express");
 const beacons = require("./api/beaconing");
+const implants = require("./api/implants");
 const swaggerUI = require("swagger-ui-express");
 const logger = require("./utils/logger");
 const YAML = require("yamljs");
 const swaggerDocBeaconing = YAML.load("openapi/beaconing.yaml");
+const swaggerDocImplants = YAML.load("openapi/implants.yaml");
 
 const app = express();
 app.use(express.json());
@@ -15,6 +17,12 @@ app.use(
   swaggerUI.setup(swaggerDocBeaconing)
 );
 app.use("/api/beacon", beacons);
+app.use(
+  "/api-docs/implants",
+  swaggerUI.serve,
+  swaggerUI.setup(swaggerDocImplants)
+);
+app.use("/api/implants", implants);
 
 const port = process.env.PORT || 5000;
 let server = app.listen(port, async () => {
