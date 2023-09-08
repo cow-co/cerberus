@@ -11,6 +11,22 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Only connect to the database if we are in prod
+if (process.env.NODE_ENV === "production") {
+  const db = require("./config/dbConfig").mongo_uri;
+  mongoose
+    .connect(db, { useNewUrlParser: true })
+    .then(() =>
+      logger.log(
+        "index.js",
+        "MongoDB connection successful",
+        logger.levels.INFO
+      )
+    )
+    .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
+  seedAircraft();
+}
+
 app.use(
   "/api-docs/beaconing",
   swaggerUI.serve,
@@ -31,6 +47,10 @@ let server = app.listen(port, async () => {
 
 const stop = () => {
   logger.log("index.js", "Closing server...", logger.levels.INFO);
+
+  if (process.env.NODE_ENV === "production") {
+    mongoose.disconnect();
+  }
 
   server.shutdown(() => {
     logger.log("index.js", "Server closed...", logger.levels.INFO);
