@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: CERBERUS API
+  description: API definition for the CERBERUS implant-management API.
+  version: 0.0.1
+paths:
+  /beacon/:
+    post:
+      summary: Reports in to the CERBERUS server, to receive C2 tasking.
+      tags:
+        - Beacon
+      requestBody:
+        description: Details of the implant host
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: The ID of the implant
+                os:
+                  type: string
+                  description: The OS of the implant host
+                ip:
+                  type: string
+                  description: The IP of the implant host
+                beaconIntervalSeconds:
+                  type: long
+                  description: The interval, in seconds, between checkins for the implant - configured in the implant code to start off, but may be updated by C2
+        required: true
+      responses:
+        "200": # status code
+          description: Tasking details.
+          content:
+            application/json:
+              schema:
+                type: object
+        "400": # status code
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    description: This will be empty
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    description: This will be empty
+                  errors:
+                    type: array
+                    items:
+                      type: string
