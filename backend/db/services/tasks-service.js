@@ -8,6 +8,17 @@ const getTasksForImplant = async (implantId, history) => {
   return tasks;
 };
 
+const createTask = async (task) => {
+  await Task.create({
+    order: task.order,
+    implantId: task.implantId,
+    taskType: task.type,
+    params: task.params,
+    sent: false,
+  });
+};
+
 module.exports = {
   getTasksForImplant,
+  createTask,
 };

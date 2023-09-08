@@ -1,5 +1,8 @@
 const express = require("express");
-const { getTasksForImplant } = require("../db/services/tasks-service");
+const {
+  getTasksForImplant,
+  createTask,
+} = require("../db/services/tasks-service");
 const router = express.Router();
 const logger = require("../utils/logger");
 const statusCodes = require("../config/statusCodes");
@@ -31,3 +34,26 @@ router.get("/:implantId", async (req, res) => {
 
   return res.status(returnStatus).json(responseJSON);
 });
+
+router.post("", async (req, res) => {
+  logger.log("/tasks", `Creating task ${req.body}`, logger.levels.DEBUG);
+  let returnStatus = statusCodes.OK;
+  let responseJSON = {};
+
+  try {
+    await createTask(req.body);
+    responseJSON = {
+      errors: [],
+    };
+  } catch (err) {
+    logger.log("/tasks", err, logger.levels.ERROR);
+    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+    responseJSON = {
+      errors: ["Internal Server Error"],
+    };
+  }
+
+  return res.status(returnStatus).json(responseJSON);
+});
+
+module.exports = router;
