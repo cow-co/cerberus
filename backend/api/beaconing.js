@@ -4,7 +4,7 @@ const statusCodes = require("../config/statusCodes");
 const logger = require("../utils/logger");
 const { validateBeacon } = require("../validation/request-validation");
 
-router.post("/", async (req, res) => {
+router.post("", async (req, res) => {
   logger.log(
     "/beacon",
     `Received beacon: ${JSON.stringify(req.body)}`,
