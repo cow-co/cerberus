@@ -25,7 +25,7 @@ router.post("", async (req, res) => {
         ip: req.body.ip,
         os: req.body.os,
         beaconIntervalSeconds: req.body.beaconIntervalSeconds,
-        lastCheckinTimeSeconds: Date.now() / 1000,
+        lastCheckinTimeSeconds: Date.now(),
       };
 
       if ((await findImplantById(beacon.id)) === null) {

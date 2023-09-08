@@ -1,13 +1,13 @@
 const Task = require("../models/Task");
 
-const getCurrentTasksForImplant = async (implantId) => {
+const getTasksForImplant = async (implantId, history) => {
   const tasks = await Task.find({
     implantId: implantId,
-    sent: false,
+    sent: history,
   });
   return tasks;
 };
 
 module.exports = {
-  getCurrentTasksForImplant,
+  getTasksForImplant,
 };

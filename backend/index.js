@@ -2,6 +2,7 @@ const express = require("express");
 const beacons = require("./api/beaconing");
 const implants = require("./api/implants");
 const swaggerUI = require("swagger-ui-express");
+const mongoose = require("mongoose");
 const logger = require("./utils/logger");
 const YAML = require("yamljs");
 const swaggerDocBeaconing = YAML.load("openapi/beaconing.yaml");
@@ -11,7 +12,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Only connect to the database if we are in prod
 if (process.env.NODE_ENV === "production") {
   const db = require("./config/dbConfig").mongo_uri;
   mongoose
@@ -24,7 +24,6 @@ if (process.env.NODE_ENV === "production") {
       )
     )
     .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
-  seedAircraft();
 }
 
 app.use(
