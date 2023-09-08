@@ -7,9 +7,8 @@ const findImplantById = async (id) => {
 };
 
 const getAllImplants = async () => {
-  console.log("jjjjjjjjjjjjjjjjjjjjjjjjjj");
   let implants = [];
-  implants = Implant.find();
+  implants = await Implant.find();
   return implants;
 };
 

@@ -11,7 +11,7 @@ const sinon = require("sinon");
 //  Also requires authz
 //  Also requires an optional path variable includeInactive
 router.get("/", async (req, res) => {
-  const implants = getAllImplants();
+  const implants = await getAllImplants();
   const responseJSON = {
     implants: implants,
     errors: [],
