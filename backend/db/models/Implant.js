@@ -10,8 +10,14 @@ const implantSchema = new Schema({
   },
   ip: String,
   os: String,
-  beaconIntervalSeconds: Long,
-  lastCheckinTimeSeconds: Long,
+  beaconIntervalSeconds: {
+    type: Number,
+    min: 1,
+  },
+  lastCheckinTimeSeconds: {
+    type: Number,
+    min: 1,
+  },
   isActive: Boolean,
 });
 
