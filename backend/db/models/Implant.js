@@ -15,7 +15,7 @@ const implantSchema = new Schema({
     min: 1,
   },
   lastCheckinTimeSeconds: {
-    type: Number,
+    type: BigInt,
     min: 1,
   },
   isActive: Boolean,
