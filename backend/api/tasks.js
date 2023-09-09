@@ -9,7 +9,7 @@ const statusCodes = require("../config/statusCodes");
 
 router.get("/:implantId", async (req, res) => {
   logger.log(
-    `/tasks/${req.implantId}`,
+    `/tasks/${req.params.implantId}`,
     "Getting tasks for implant...",
     logger.levels.DEBUG
   );
@@ -18,13 +18,16 @@ router.get("/:implantId", async (req, res) => {
 
   try {
     const includeHistory = req.query.includeHistory === "true";
-    const tasks = await getTasksForImplant(req.implantId, includeHistory);
+    const tasks = await getTasksForImplant(
+      req.params.implantId,
+      includeHistory
+    );
     responseJSON = {
       tasks: tasks,
       errors: [],
     };
   } catch (err) {
-    logger.log(`/tasks/${req.implantId}`, err, logger.levels.ERROR);
+    logger.log(`/tasks/${req.params.implantId}`, err, logger.levels.ERROR);
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
       tasks: [],

@@ -1,10 +1,17 @@
 const Task = require("../models/Task");
 
 const getTasksForImplant = async (implantId, history) => {
-  const tasks = await Task.find({
-    implantId: implantId,
-    sent: history,
-  });
+  let tasks = [];
+  if (history) {
+    tasks = await Task.find({
+      implantId: implantId,
+    });
+  } else {
+    tasks = await Task.find({
+      implantId: implantId,
+      sent: false,
+    });
+  }
   return tasks;
 };
 

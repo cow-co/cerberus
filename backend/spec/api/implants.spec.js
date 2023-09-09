@@ -60,7 +60,6 @@ describe("Implant API Tests", () => {
     expect(res.body.implants.length).to.equal(1);
   });
 
-  // TODO Tests for the includeInactive flag
   it("should get all implants (including inactive)", async () => {
     const res = await request(server).get("/api/implants?includeInactive=true");
     expect(res.statusCode).to.equal(200);

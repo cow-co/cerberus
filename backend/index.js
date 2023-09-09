@@ -1,6 +1,7 @@
 const express = require("express");
 const beacons = require("./api/beaconing");
 const implants = require("./api/implants");
+const tasks = require("./api/tasks");
 const swaggerUI = require("swagger-ui-express");
 const mongoose = require("mongoose");
 const logger = require("./utils/logger");
@@ -38,6 +39,8 @@ app.use(
   swaggerUI.setup(swaggerDocImplants)
 );
 app.use("/api/implants", implants);
+
+app.use("/api/tasks", tasks);
 
 const port = process.env.PORT || 5000;
 let server = app.listen(port, async () => {
