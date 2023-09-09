@@ -22,6 +22,7 @@ const log = (location, message, level) => {
       break;
 
     default:
+      console.info(message);
       break;
   }
 };

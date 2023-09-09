@@ -1,9 +1,33 @@
 const request = require("supertest");
 const server = require("../../index");
 const expect = require("chai").expect;
+const sinon = require("sinon");
+const Implant = require("../../db/models/Implant");
+const Task = require("../../db/models/Task");
 
 describe("Beacon API tests", () => {
   it("should succeed", async () => {
+    sinon.stub(Implant, "findOne").callsFake(async () => {
+      return null;
+    });
+    sinon.stub(Implant, "create").callsFake(async () => {
+      return null;
+    });
+    sinon.stub(Task, "find").callsFake(async () => {
+      return [
+        {
+          _id: "some-mongo-id",
+          order: 1,
+          implantId: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+          taskType: "Task2",
+          params: [],
+          sent: false,
+        },
+      ];
+    });
+    sinon.stub(Task, "findByIdAndUpdate").callsFake(async () => {
+      return {};
+    });
     const res = await request(server).post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",
@@ -12,6 +36,19 @@ describe("Beacon API tests", () => {
     });
 
     expect(res.statusCode).to.equal(200);
+    expect(res.body).to.deep.equal({
+      tasks: [
+        {
+          _id: "some-mongo-id",
+          order: 1,
+          implantId: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+          taskType: "Task2",
+          params: [],
+          sent: false,
+        },
+      ],
+      errors: [],
+    });
   });
 
   it("should fail - no ID", async () => {
