@@ -1,8 +1,8 @@
 import Button from '@mui/material/Button';
-import { Checkbox, FormControlLabel, List, ListItem } from '@mui/material';
+import { Checkbox, FormControlLabel, List } from '@mui/material';
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
 import { useState } from 'react';
+import ImplantItem from '../elements/ImplantItem';
 
 // TODO Make the list items into buttons, which populate the task list (placeholder for now)
 // TODO Un-hardcode the backend url
@@ -33,7 +33,7 @@ const defaultImplants = [
 
 
 const ImplantsPane = () => {
-  console.debug("Rendering")
+  // TODO Do we want the API to do the active/inactive filtering, or the frontend to do it?
   const [showInactive, setShowInactive] = useState(false);
   const [implants, setImplants] = useState(defaultImplants);
 
@@ -57,20 +57,7 @@ const ImplantsPane = () => {
   }
 
   const implantsItems = filtered.map(implant => {
-    const implantClass = (implant.isActive ? "implant active" : "implant inactive")
-    return (
-      <ListItem className={`listElement ${implantClass}`} key={implant.implantId}>
-        <Grid item xs={4}>
-          <h4>IP: {implant.ip}</h4>
-        </Grid>
-        <Grid item xs={4}>
-          <h4>OS: {implant.os}</h4>
-        </Grid>
-        <Grid item xs={4}>
-          <h4>Beacon Interval: {implant.beaconIntervalSeconds} seconds</h4>
-        </Grid>
-      </ListItem>
-    )
+    return <ImplantItem implant={implant} />
   })
   return (
     <Container fixed>
