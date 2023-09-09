@@ -25,6 +25,9 @@ describe("Beacon API tests", () => {
         },
       ];
     });
+    sinon.stub(Task, "findByIdAndUpdate").callsFake(async () => {
+      return {};
+    });
     const res = await request(server).post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",

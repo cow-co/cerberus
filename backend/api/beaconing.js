@@ -45,7 +45,7 @@ router.post("", async (req, res) => {
       };
 
       await tasks.forEach(async (task) => {
-        await taskSent(beacon.id, task.order);
+        await taskSent(task._id);
       });
     } else {
       responseJSON = {

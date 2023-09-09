@@ -15,16 +15,10 @@ const getTasksForImplant = async (implantId, history) => {
   return tasks;
 };
 
-const taskSent = async (implantId, taskOrdinal) => {
-  await Task.findOneAndUpdate(
-    {
-      implantId: implantId,
-      order: taskOrdinal,
-    },
-    {
-      sent: true,
-    }
-  );
+const taskSent = async (mongoId) => {
+  await Task.findByIdAndUpdate(mongoId, {
+    sent: true,
+  });
 };
 
 const createTask = async (task) => {
