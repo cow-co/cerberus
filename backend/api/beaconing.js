@@ -8,6 +8,10 @@ const {
   addImplant,
   updateImplant,
 } = require("../db/services/implant-service");
+const {
+  getTasksForImplant,
+  taskSent,
+} = require("../db/services/tasks-service");
 
 router.post("", async (req, res) => {
   logger.log(
@@ -34,19 +38,27 @@ router.post("", async (req, res) => {
         await updateImplant(beacon);
       }
 
+      const tasks = await getTasksForImplant(beacon.id, false);
       responseJSON = {
-        message: "Success",
+        tasks,
+        errors: [],
       };
+
+      await tasks.forEach(async (task) => {
+        await taskSent(beacon.id, task.order);
+      });
     } else {
       responseJSON = {
-        message: "Validation Error",
+        tasks: [],
+        errors: ["Validation Error"],
       };
       returnStatus = statusCodes.BAD_REQUEST;
     }
   } catch (err) {
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
-      message: "ERROR",
+      tasks: [],
+      errors: ["Internal Server Error"],
     };
     logger.log("/beacon", err, logger.levels.ERROR);
   }
