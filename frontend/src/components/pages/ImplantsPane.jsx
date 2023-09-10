@@ -4,9 +4,8 @@ import Container from '@mui/material/Container';
 import { useState } from 'react';
 import ImplantItem from '../elements/ImplantItem';
 
-// TODO Make the list items into buttons, which populate the task list (placeholder for now)
-
-const ImplantsPane = () => {
+const ImplantsPane = ({selectImplant}) => {
+  console.log("Rendering implants")
   const [showInactive, setShowInactive] = useState(false);
   const [implants, setImplants] = useState([]);
 
@@ -23,7 +22,7 @@ const ImplantsPane = () => {
   }
 
   const implantsItems = implants.map(implant => {
-    return <ImplantItem implant={implant} key={implant.implantId} />
+    return <ImplantItem implant={implant} key={implant.id} chooseImplant={selectImplant}/>
   })
 
   return (
