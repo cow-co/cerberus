@@ -3,6 +3,7 @@ import { Checkbox, FormControlLabel, List } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useState } from 'react';
 import ImplantItem from './ImplantItem';
+import { fetchImplants } from '../../functions/apiCalls';
 
 const ImplantsPane = ({selectImplant}) => {
   console.log("Rendering implants")
@@ -14,11 +15,7 @@ const ImplantsPane = ({selectImplant}) => {
   }
 
   const refresh = async () => {
-    // TODO try/catch and error handling
-    // TODO Make the backend URL configurable
-    const response = await fetch("http://localhost:5000/api/implants")
-    const json = await response.json()
-    setImplants(json.implants.filter(implant => implant.isActive))
+    setImplants(await fetchImplants(showInactive))
   }
 
   const implantsItems = implants.map(implant => {

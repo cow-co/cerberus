@@ -17,11 +17,8 @@ router.get("/:implantId", async (req, res) => {
   let responseJSON = {};
 
   try {
-    const includeHistory = req.query.includeHistory === "true";
-    const tasks = await getTasksForImplant(
-      req.params.implantId,
-      includeHistory
-    );
+    const includeSent = req.query.includeSent === "true";
+    const tasks = await getTasksForImplant(req.params.implantId, includeSent);
     responseJSON = {
       tasks: tasks,
       errors: [],
