@@ -1,8 +1,8 @@
-import Button from '@mui/material/Button';
 import { Checkbox, FormControlLabel, List } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
+import { fetchTasks } from '../../functions/apiCalls';
 
 // TODO Perhaps move all the backend-interaction code to its own file?
 function TasksPane({selectedImplant}) {
@@ -15,23 +15,21 @@ function TasksPane({selectedImplant}) {
   }
 
   useEffect(() => {
-    async function fetchTasks() {
-      // TODO try/catch and error handling
-      // TODO Make the backend URL configurable#
-      const response = await fetch("http://localhost:5000/api/implants?includeSent=true")
-      const json = await response.json()
-      if (showSent) {
-        setTasks(json.tasks)
-      } else {
-        setTasks(json.tasks.filter(task => task.sent === false))
-      }
+    async function callFetcher() {
+      const received = await fetchTasks(showSent)
+      setTasks(received)
     }
-    fetchTasks()
-  }, [selectedImplant])
+    callFetcher()
+  }, [selectedImplant, showSent])
 
-  const tasksItems = tasks.map(task => {
-    return <TaskItem task={task} />
-  })
+  let tasksItems = null
+
+  if (tasks !== undefined && tasks !== null) {
+    console.log(tasks)
+    tasksItems = tasks.map(task => {
+      return <TaskItem task={task} />
+    })
+  }
 
   return (
     <Container fixed>
