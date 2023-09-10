@@ -8,8 +8,7 @@ const statusCodes = require("../config/statusCodes");
 
 // TODO requires authz
 router.get("", async (req, res) => {
-  const showInactive = req.query.includeInactive;
-  const implants = await getAllImplants(showInactive);
+  const implants = await getAllImplants();
   const responseJSON = {
     implants: implants,
     errors: [],

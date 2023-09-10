@@ -29,20 +29,6 @@ describe("Implant API Tests", () => {
         },
       ];
     });
-
-    findStub.withArgs({ isActive: true }).callsFake(async () => {
-      return [
-        {
-          _id: "some-mongo-id",
-          id: "some-uuid",
-          ip: "192.168.0.1",
-          os: "Windows",
-          beaconIntervalSeconds: 300,
-          lastCheckinTimeSeconds: 0,
-          isActive: true,
-        },
-      ];
-    });
   });
   it("should get all implants (empty array)", async () => {
     sinon.restore();
@@ -57,20 +43,6 @@ describe("Implant API Tests", () => {
   it("should get all implants (non-empty array)", async () => {
     const res = await request(server).get("/api/implants");
     expect(res.statusCode).to.equal(200);
-    expect(res.body.implants.length).to.equal(1);
-  });
-
-  it("should get all implants (including inactive)", async () => {
-    const res = await request(server).get("/api/implants?includeInactive=true");
-    expect(res.statusCode).to.equal(200);
     expect(res.body.implants.length).to.equal(2);
-  });
-
-  it("should get all implants (explicitly excluding inactive)", async () => {
-    const res = await request(server).get(
-      "/api/implants?includeInactive=false"
-    );
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.implants.length).to.equal(1);
   });
 });
