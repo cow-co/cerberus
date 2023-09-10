@@ -18,7 +18,11 @@ const ImplantsPane = ({selectImplant}) => {
     // TODO Make the backend URL configurable
     const response = await fetch("http://localhost:5000/api/implants")
     const json = await response.json()
-    setImplants(json.implants.filter(implant => implant.isActive))
+    if (showInactive) {
+      setImplants(json.implants)
+    } else {
+      setImplants(json.implants.filter(implant => implant.isActive))
+    }
   }
 
   const implantsItems = implants.map(implant => {
