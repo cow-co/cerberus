@@ -21,6 +21,10 @@ function TasksPane({selectedImplant}) {
     }
   }
 
+  const handleToggle = () => {
+    setShowSent(!showSent)
+  }
+
   useEffect(() => {
     refresh()
   }, [selectedImplant])
@@ -33,7 +37,7 @@ function TasksPane({selectedImplant}) {
     <Container fixed>
       <h2>Tasks for {selectedImplant.id}</h2>
       <Button variant='contained' onClick={refresh}>Refresh</Button>
-      <FormControlLabel control={<Checkbox checked={showInactive} onClick={handleToggle}/>} label="Show Sent" />
+      <FormControlLabel control={<Checkbox checked={showSent} onClick={handleToggle}/>} label="Show Sent" />
       <List>
         {tasksItems}
       </List>
