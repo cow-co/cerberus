@@ -77,17 +77,13 @@ describe("Tasks API Tests", () => {
   });
 
   it("should get all tasks for an implant (including sent)", async () => {
-    const res = await request(server).get(
-      "/api/tasks/id-1?includeHistory=true"
-    );
+    const res = await request(server).get("/api/tasks/id-1?includeSent=true");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(2);
   });
 
   it("should get all tasks for an implant (explicitly excluding sent)", async () => {
-    const res = await request(server).get(
-      "/api/tasks/id-1?includeHistory=false"
-    );
+    const res = await request(server).get("/api/tasks/id-1?includeSent=false");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(1);
   });
