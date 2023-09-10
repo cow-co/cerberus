@@ -1,6 +1,6 @@
 import { useState } from "react";
-import ImplantsPane from "./ImplantsPane";
-import TasksPane from "./TasksPane";
+import ImplantsPane from "../elements/ImplantsPane";
+import TasksPane from "../elements/TasksPane";
 import Grid from '@mui/material/Grid';
 
 function MainPage() {

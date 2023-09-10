@@ -32,6 +32,3 @@ workflows:
       - build_frontend:
           requires:
             - test_backend
-          filters:
-            branches:
-              only: main
