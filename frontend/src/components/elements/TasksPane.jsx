@@ -1,9 +1,11 @@
-import { List } from '@mui/material';
+import Button from '@mui/material/Button';
+import { Checkbox, FormControlLabel, List } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
 
 function TasksPane({selectedImplant}) {
+  const [showSent, setShowSent] = useState(false);
   const [tasks, setTasks] = useState([]);
   console.log("Rendering with implant: " + JSON.stringify(selectedImplant))
 
@@ -12,7 +14,11 @@ function TasksPane({selectedImplant}) {
     // TODO Make the backend URL configurable#
     const response = await fetch("http://localhost:5000/api/implants?includeSent=true")
     const json = await response.json()
-    setTasks(json.tasks)
+    if (showSent) {
+      setTasks(json.tasks)
+    } else {
+      setTasks(json.tasks.filter(task => task.sent === false))
+    }
   }
 
   useEffect(() => {
@@ -23,11 +29,11 @@ function TasksPane({selectedImplant}) {
     return <TaskItem task={task} />
   })
 
-  // TODO Checkbox for whether to show sent tasks
   return (
     <Container fixed>
       <h2>Tasks for {selectedImplant.id}</h2>
       <Button variant='contained' onClick={refresh}>Refresh</Button>
+      <FormControlLabel control={<Checkbox checked={showInactive} onClick={handleToggle}/>} label="Show Sent" />
       <List>
         {tasksItems}
       </List>
