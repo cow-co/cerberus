@@ -3,7 +3,6 @@ import Grid from '@mui/material/Grid';
 
 const ImplantItem = ({implant, chooseImplant}) => {
   const implantClass = (implant.isActive ? "implant active" : "implant inactive")
-  // TODO Implement the click --> populate tasks functionality
   return (
       <ListItemButton className={`listElement ${implantClass}`} key={implant.id} onClick={() => chooseImplant(implant)}>
         <Grid item xs={4}>

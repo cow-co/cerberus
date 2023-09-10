@@ -1,6 +1,7 @@
 import { List, ListItem } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
+import TaskItem from '../elements/TaskItem';
 
 function TasksPane({selectedImplant}) {
   const [tasks, setTasks] = useState([]);
@@ -15,7 +16,7 @@ function TasksPane({selectedImplant}) {
   }, [selectedImplant])
 
   const tasksItems = tasks.map(task => {
-    return <ListItem key={task.order}>{task.taskType}</ListItem>
+    return <TaskItem task={task} />
   })
 
   return (
