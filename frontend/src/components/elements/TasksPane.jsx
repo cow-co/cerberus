@@ -1,7 +1,7 @@
-import { List, ListItem } from '@mui/material';
+import { List } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
-import TaskItem from '../elements/TaskItem';
+import TaskItem from './TaskItem';
 
 function TasksPane({selectedImplant}) {
   const [tasks, setTasks] = useState([]);
