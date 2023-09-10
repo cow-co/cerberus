@@ -15,12 +15,16 @@ jobs:
   build_frontend:
     executor: node/default
     steps:
+      - checkout
       - run:
           command: cd frontend && npm i
           name: Install packages
       - run:
           command: cd frontend && npm run build
           name: Build frontend
+      - run:
+          command: mv build/ ../backend/
+          name: Move built files to backend dir
 workflows:
   test_and_build:
     jobs:
