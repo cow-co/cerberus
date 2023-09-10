@@ -2,7 +2,7 @@ import Button from '@mui/material/Button';
 import { Checkbox, FormControlLabel, List } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useState } from 'react';
-import ImplantItem from '../elements/ImplantItem';
+import ImplantItem from './ImplantItem';
 
 const ImplantsPane = ({selectImplant}) => {
   console.log("Rendering implants")
