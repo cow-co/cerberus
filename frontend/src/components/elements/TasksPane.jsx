@@ -16,7 +16,7 @@ function TasksPane({selectedImplant}) {
 
   useEffect(() => {
     async function callFetcher() {
-      const received = await fetchTasks(showSent)
+      const received = await fetchTasks(selectedImplant.id, showSent)
       setTasks(received)
     }
     callFetcher()
@@ -27,7 +27,7 @@ function TasksPane({selectedImplant}) {
   if (tasks !== undefined && tasks !== null) {
     console.log(tasks)
     tasksItems = tasks.map(task => {
-      return <TaskItem task={task} />
+      return <TaskItem task={task} key={task.order} />
     })
   }
 

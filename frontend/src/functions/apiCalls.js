@@ -1,8 +1,8 @@
-const fetchTasks = async (showSent) => {
+const fetchTasks = async (implantId, showSent) => {
   // TODO try/catch and error handling
   // TODO Make the backend URL configurable#
   const response = await fetch(
-    "http://localhost:5000/api/implants?includeSent=true"
+    `http://localhost:5000/api/tasks/${implantId}?includeSent=true`
   );
   const json = await response.json();
   if (showSent) {

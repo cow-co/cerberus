@@ -15,7 +15,7 @@ const ImplantsPane = ({selectImplant}) => {
   }
 
   const refresh = async () => {
-    setImplants(fetchImplants(showInactive))
+    setImplants(await fetchImplants(showInactive))
   }
 
   const implantsItems = implants.map(implant => {
