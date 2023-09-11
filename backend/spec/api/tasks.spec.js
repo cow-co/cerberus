@@ -3,6 +3,7 @@ const server = require("../../index");
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Task = require("../../db/models/Task");
+const TaskType = require("../../db/models/TaskType");
 
 describe("Tasks API Tests", () => {
   beforeEach(() => {
@@ -92,5 +93,23 @@ describe("Tasks API Tests", () => {
     const res = await request(server).get("/api/tasks/id-2");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(1);
+  });
+
+  it("should get all task types", async () => {
+    sinon.stub(TaskType, "find").callsFake(() => {
+      return [
+        {
+          name: "Name",
+          params: [],
+        },
+        {
+          name: "Name 2",
+          params: ["param1", "param2"],
+        },
+      ];
+    });
+    const res = await request(server).get("/api/task-types");
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.taskTypes.length).to.equal(2);
   });
 });

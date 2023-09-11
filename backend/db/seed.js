@@ -1,4 +1,4 @@
-import { createTaskType } from "./services/tasks-service";
+const { createTaskType } = require("./services/tasks-service");
 
 const seedTaskTypes = async () => {
   const defaultTaskTypes = [

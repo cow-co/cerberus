@@ -9,6 +9,7 @@ const YAML = require("yamljs");
 const swaggerDocBeaconing = YAML.load("openapi/beaconing.yaml");
 const swaggerDocImplants = YAML.load("openapi/implants.yaml");
 const path = require("path");
+const { seedTaskTypes } = require("./db/seed");
 
 const app = express();
 app.use(express.json());
@@ -16,15 +17,20 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "build")));
 
-// if (process.env.NODE_ENV === "production") {
-const db = require("./config/dbConfig").mongo_uri;
-mongoose
-  .connect(db, { useNewUrlParser: true })
-  .then(() =>
-    logger.log("index.js", "MongoDB connection successful", logger.levels.INFO)
-  )
-  .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
-// }
+if (process.env.NODE_ENV === "production") {
+  const db = require("./config/dbConfig").mongo_uri;
+  mongoose
+    .connect(db, { useNewUrlParser: true })
+    .then(() =>
+      logger.log(
+        "index.js",
+        "MongoDB connection successful",
+        logger.levels.INFO
+      )
+    )
+    .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
+  seedTaskTypes();
+}
 
 app.use(
   "/api-docs/beaconing",
@@ -39,7 +45,7 @@ app.use(
 );
 app.use("/api/implants", implants);
 
-app.use("/api/tasks", tasks);
+app.use("/api", tasks);
 
 const port = process.env.PORT || 5000;
 let server = app.listen(port, async () => {
@@ -49,9 +55,9 @@ let server = app.listen(port, async () => {
 const stop = () => {
   logger.log("index.js", "Closing server...", logger.levels.INFO);
 
-  // if (process.env.NODE_ENV === "production") {
-  mongoose.disconnect();
-  // }
+  if (process.env.NODE_ENV === "production") {
+    mongoose.disconnect();
+  }
 
   server.shutdown(() => {
     logger.log("index.js", "Server closed...", logger.levels.INFO);
