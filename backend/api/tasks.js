@@ -2,6 +2,7 @@ const express = require("express");
 const {
   getTasksForImplant,
   createTask,
+  getTaskTypes,
 } = require("../db/services/tasks-service");
 const router = express.Router();
 const logger = require("../utils/logger");
@@ -25,6 +26,29 @@ router.get("/:implantId", async (req, res) => {
     };
   } catch (err) {
     logger.log(`/tasks/${req.params.implantId}`, err, logger.levels.ERROR);
+    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+    responseJSON = {
+      tasks: [],
+      errors: ["Internal Server Error"],
+    };
+  }
+
+  return res.status(returnStatus).json(responseJSON);
+});
+
+router.get("/types", async (req, res) => {
+  logger.log(`/tasks/types`, "Getting task types...", logger.levels.DEBUG);
+  let returnStatus = statusCodes.OK;
+  let responseJSON = {};
+
+  try {
+    const taskTypes = await getTaskTypes();
+    responseJSON = {
+      taskTypes: taskTypes,
+      errors: [],
+    };
+  } catch (err) {
+    logger.log(`/tasks/types`, err, logger.levels.ERROR);
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
       tasks: [],

@@ -1,4 +1,5 @@
 const Task = require("../models/Task");
+const TaskType = require("../models/TaskType");
 
 const getTasksForImplant = async (implantId, history) => {
   let tasks = [];
@@ -13,6 +14,11 @@ const getTasksForImplant = async (implantId, history) => {
     });
   }
   return tasks;
+};
+
+const getTaskTypes = async () => {
+  const taskTypes = await TaskType.find();
+  return taskTypes;
 };
 
 const taskSent = async (mongoId) => {
@@ -31,8 +37,17 @@ const createTask = async (task) => {
   });
 };
 
+const createTaskType = async (taskType) => {
+  await TaskType.create({
+    name: taskType.name,
+    params: taskType.params,
+  });
+};
+
 module.exports = {
   getTasksForImplant,
   taskSent,
   createTask,
+  getTaskTypes,
+  createTaskType,
 };
