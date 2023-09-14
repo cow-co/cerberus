@@ -1,10 +1,9 @@
-import { Checkbox, FormControlLabel, IconButton, List } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
 import { fetchTasks } from '../../functions/apiCalls';
 import CreateTaskDialogue from './CreateTaskDialogue';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 function TasksPane({selectedImplant}) {
   const [showSent, setShowSent] = useState(false);
@@ -46,16 +45,17 @@ function TasksPane({selectedImplant}) {
 
   return (
     <Container fixed>
-      <h2>Tasks for {selectedImplant.id}</h2>
-      <FormControlLabel control={<Checkbox checked={showSent} onClick={handleToggle}/>} label="Show Sent" />
+      <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <FormControlLabel control={<Checkbox checked={showSent} onClick={handleToggle}/>} label="Show Sent" />
+        <Button variant='contained' onClick={handleFormOpen}>Create Task</Button>
+      </Box>
       <List>
         {tasksItems}
       </List>
-      <IconButton onClick={handleFormOpen}>
-        <AddCircleIcon />
-      </IconButton>
       <CreateTaskDialogue open={dialogueOpen} onClose={handleFormClose} />
     </Container>
+      
   )
 }
 
