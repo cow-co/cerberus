@@ -1,4 +1,8 @@
-const { createTaskType } = require("./services/tasks-service");
+const {
+  getNumDbVersions,
+  updateDBVersion,
+} = require("./services/db-state-service");
+const { createTaskType, getTaskTypes } = require("./services/tasks-service");
 
 const seedTaskTypes = async () => {
   const defaultTaskTypes = [
@@ -16,7 +20,13 @@ const seedTaskTypes = async () => {
     },
   ];
 
-  defaultTaskTypes.forEach(async (taskType) => await createTaskType(taskType));
+  const numDbVersions = await getNumDbVersions();
+  if (numDbVersions === 0) {
+    defaultTaskTypes.forEach(
+      async (taskType) => await createTaskType(taskType)
+    );
+    await updateDBVersion();
+  }
 };
 
 module.exports = {

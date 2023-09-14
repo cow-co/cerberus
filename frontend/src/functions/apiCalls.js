@@ -12,6 +12,14 @@ const fetchTasks = async (implantId, showSent) => {
   }
 };
 
+const fetchTaskTypes = async () => {
+  // TODO try/catch and error handling
+  // TODO Make the backend URL configurable#
+  const response = await fetch("http://localhost:5000/api/task-types");
+  const json = await response.json();
+  return json.taskTypes;
+};
+
 const fetchImplants = async (showInactive) => {
   // TODO try/catch and error handling
   // TODO Make the backend URL configurable
@@ -24,4 +32,4 @@ const fetchImplants = async (showInactive) => {
   }
 };
 
-export { fetchImplants, fetchTasks };
+export { fetchImplants, fetchTasks, fetchTaskTypes };

@@ -38,6 +38,7 @@ const createTask = async (task) => {
 };
 
 const createTaskType = async (taskType) => {
+  // TODO De-duplicate by validating that names are unique
   await TaskType.create({
     name: taskType.name,
     params: taskType.params,
