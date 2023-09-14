@@ -64,14 +64,16 @@ const CreateTaskDialogue = (props) => {
     console.log(taskType._id)
     return <MenuItem value={taskType.name} key={taskType._id}>{taskType.name}</MenuItem>
   })
-  const paramsSettings = task.params.map(param => (<TextField label={param.name} variant="outlined" key={param.name} id={param.name} value={param.value} onChange={handleParamUpdate} />))
+  const paramsSettings = task.params.map(param => (
+    <TextField className='text-input' label={param.name} variant="outlined" key={param.name} id={param.name} value={param.value} onChange={handleParamUpdate} />
+  ))
 
   return (
-    <Dialog onClose={handleClose} open={open} fullWidth maxWidth="md">
+    <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Create New Task</DialogTitle>
       <FormControl fullWidth>
         <InputLabel id="task-type-label">Task Type</InputLabel>
-        <Select labelId="task-type-label" value={task.type} label="Task Type" onChange={handleChange}>
+        <Select className="select-list" labelId="task-type-label" value={task.type} label="Task Type" onChange={handleChange}>
           {taskTypeSelects}
         </Select>
         {paramsSettings}

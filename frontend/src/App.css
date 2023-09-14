@@ -49,3 +49,15 @@
 .implant.inactive {
   background-color: rgb(138, 36, 36);
 }
+
+.text-input {
+  margin: 10px 0 !important;
+}
+
+.select-list {
+  margin: 10px 0 !important;
+}
+
+.form-dialog>.MuiDialog-container>.MuiPaper-root {
+  padding: 0 10px 10px 10px;
+}

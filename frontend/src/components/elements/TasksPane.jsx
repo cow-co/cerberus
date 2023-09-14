@@ -24,9 +24,9 @@ function TasksPane({selectedImplant}) {
     setDialogueOpen(false);
   }
 
-  const handleFormSubmit = (data) => {
-    
-  }
+  // const handleFormSubmit = (data) => {
+
+  // }
 
   useEffect(() => {
     async function callFetcher() {
