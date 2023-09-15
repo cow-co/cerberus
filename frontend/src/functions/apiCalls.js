@@ -5,11 +5,7 @@ const fetchTasks = async (implantId, showSent) => {
     `http://localhost:5000/api/tasks/${implantId}?includeSent=true`
   );
   const json = await response.json();
-  if (showSent) {
-    return json.tasks;
-  } else {
-    return json.tasks.filter((task) => task.sent === false);
-  }
+  return json.tasks;
 };
 
 const fetchTaskTypes = async () => {

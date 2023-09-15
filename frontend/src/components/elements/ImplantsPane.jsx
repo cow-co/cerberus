@@ -14,6 +14,7 @@ const ImplantsPane = ({selectImplant}) => {
     setShowInactive(!showInactive)
   }
 
+  // TODO do this on page-load as well
   const refresh = async () => {
     setImplants(await fetchImplants(showInactive))
   }

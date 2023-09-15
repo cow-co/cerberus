@@ -4,20 +4,14 @@ const TaskType = require("../models/TaskType");
 const getTasksForImplant = async (implantId, history) => {
   let tasks = [];
   if (history) {
-    tasks = await Task.find(
-      {
-        implantId: implantId,
-      },
-      { sort: { order: -1 } }
-    );
+    tasks = await Task.find({
+      implantId: implantId,
+    }).sort({ order: -1 });
   } else {
-    tasks = await Task.find(
-      {
-        implantId: implantId,
-        sent: false,
-      },
-      { sort: { order: -1 } }
-    );
+    tasks = await Task.find({
+      implantId: implantId,
+      sent: false,
+    }).sort({ order: -1 });
   }
   return tasks;
 };
