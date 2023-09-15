@@ -60,7 +60,11 @@ router.get("/task-types", async (req, res) => {
 });
 
 router.post("/tasks", async (req, res) => {
-  logger.log("/tasks", `Creating task ${req.body}`, logger.levels.DEBUG);
+  logger.log(
+    "/tasks",
+    `Creating task ${JSON.stringify(req.body)}`,
+    logger.levels.DEBUG
+  );
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 

@@ -24,9 +24,11 @@ function TasksPane({selectedImplant}) {
   }
 
   const handleFormSubmit = async (data) => {
+    data.implantId = selectedImplant.id
     await createTask(data)
   }
 
+  // TODO Perhaps always get all tasks, and do the filtering on the frontend - reduces number of network calls
   useEffect(() => {
     async function callFetcher() {
       const received = await fetchTasks(selectedImplant.id, showSent);
@@ -38,6 +40,7 @@ function TasksPane({selectedImplant}) {
   let tasksItems = null
 
   if (tasks !== undefined && tasks !== null) {
+    console.log(JSON.stringify(tasks))
     tasksItems = tasks.map(task => {
       return <TaskItem task={task} key={task.order} />
     })

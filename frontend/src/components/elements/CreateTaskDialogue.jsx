@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { fetchTaskTypes } from '../../functions/apiCalls';
 import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 
+// FIXME Somewhere in here (on first-load) there is a unique-key error
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props
   const [taskTypes, setTaskTypes] = useState([""])
-  const [task, setTask] = useState({type: "", params: []})
+  const [task, setTask] = useState({type: {id: "", name: ""}, params: []})
 
   useEffect(() => {
     const getData = async () => {
@@ -22,11 +23,14 @@ const CreateTaskDialogue = (props) => {
       type: task.type,
       params: task.params
     }
+
     // The length *should* be precisely 1, but we cover off the scenario where we might have accidentally 
     // seeded multiple identical task types.
     if (selectedTaskTypes.length > 0) {
+      const id = selectedTaskTypes[0]._id
       const name = selectedTaskTypes[0].name
-      updated.type = name
+      updated.type.id = id
+      updated.type.name = name
       updated.params = selectedTaskTypes[0].params
       updated.params = selectedTaskTypes[0].params.map(param => {
         return {
@@ -48,7 +52,6 @@ const CreateTaskDialogue = (props) => {
 
   const handleParamUpdate = (event) => {
     const {id, value} = event.target
-    console.log(`Updating param ${id}...`)
     let updated = {
       type: task.type,
       params: task.params
@@ -62,7 +65,7 @@ const CreateTaskDialogue = (props) => {
   }
   
   const taskTypeSelects = taskTypes.map(taskType => {
-    return <MenuItem value={taskType.name} key={taskType._id}>{taskType.name}</MenuItem>
+    return <MenuItem value={taskType.name} key={taskType._id} id={taskType._id}>{taskType.name}</MenuItem>
   })
   const paramsSettings = task.params.map(param => (
     <TextField className='text-input' label={param.name} variant="outlined" key={param.name} id={param.name} value={param.value} onChange={handleParamUpdate} />
@@ -73,7 +76,7 @@ const CreateTaskDialogue = (props) => {
       <DialogTitle>Create New Task</DialogTitle>
       <FormControl fullWidth>
         <InputLabel id="task-type-label">Task Type</InputLabel>
-        <Select className="select-list" labelId="task-type-label" value={task.type} label="Task Type" onChange={handleChange}>
+        <Select className="select-list" labelId="task-type-label" value={task.type.name} label="Task Type" onChange={handleChange}>
           {taskTypeSelects}
         </Select>
         {paramsSettings}

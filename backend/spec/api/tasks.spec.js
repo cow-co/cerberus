@@ -112,4 +112,32 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).to.equal(200);
     expect(res.body.taskTypes.length).to.equal(2);
   });
+
+  it("should create a task", async () => {
+    sinon.stub(TaskType, "find").callsFake(() => {
+      return [
+        {
+          _id: "tasktypeid1",
+          name: "Name",
+          params: [],
+        },
+        {
+          _id: "tasktypeid2",
+          name: "Name 2",
+          params: ["param1", "param2"],
+        },
+      ];
+    });
+    const res = await request(server)
+      .post("/api/tasks")
+      .send({
+        type: {
+          id: "tasktypeid1",
+          name: "Name",
+        },
+        implantId: "id-1",
+        params: [],
+      });
+    expect(res.statusCode).to.equal(200);
+  });
 });

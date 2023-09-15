@@ -37,7 +37,8 @@ const createTask = async (task) => {
   // TODO Make the backend URL configurable
   const response = await fetch("http://localhost:5000/api/tasks", {
     method: "POST",
-    body: task,
+    headers: new Headers({ "content-type": "application/json" }),
+    body: JSON.stringify(task),
   });
   const json = await response.json();
   const success = json.errors.length === 0;
