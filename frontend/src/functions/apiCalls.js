@@ -32,4 +32,16 @@ const fetchImplants = async (showInactive) => {
   }
 };
 
-export { fetchImplants, fetchTasks, fetchTaskTypes };
+const createTask = async (task) => {
+  // TODO try/catch and error handling
+  // TODO Make the backend URL configurable
+  const response = await fetch("http://localhost:5000/api/tasks", {
+    method: "POST",
+    body: task,
+  });
+  const json = await response.json();
+  const success = json.errors.length === 0;
+  return success;
+};
+
+export { fetchImplants, fetchTasks, fetchTaskTypes, createTask };

@@ -2,7 +2,7 @@ import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
-import { fetchTasks } from '../../functions/apiCalls';
+import { createTask, fetchTasks } from '../../functions/apiCalls';
 import CreateTaskDialogue from './CreateTaskDialogue';
 
 function TasksPane({selectedImplant}) {
@@ -23,9 +23,9 @@ function TasksPane({selectedImplant}) {
     setDialogueOpen(false);
   }
 
-  // const handleFormSubmit = (data) => {
-
-  // }
+  const handleFormSubmit = async (data) => {
+    await createTask(data)
+  }
 
   useEffect(() => {
     async function callFetcher() {
@@ -53,7 +53,7 @@ function TasksPane({selectedImplant}) {
       <List>
         {tasksItems}
       </List>
-      <CreateTaskDialogue open={dialogueOpen} onClose={handleFormClose} />
+      <CreateTaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
     </Container>
       
   )
