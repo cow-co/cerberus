@@ -2,12 +2,13 @@ const express = require("express");
 const {
   getTasksForImplant,
   createTask,
+  getTaskTypes,
 } = require("../db/services/tasks-service");
 const router = express.Router();
 const logger = require("../utils/logger");
 const statusCodes = require("../config/statusCodes");
 
-router.get("/:implantId", async (req, res) => {
+router.get("/tasks/:implantId", async (req, res) => {
   logger.log(
     `/tasks/${req.params.implantId}`,
     "Getting tasks for implant...",
@@ -35,8 +36,35 @@ router.get("/:implantId", async (req, res) => {
   return res.status(returnStatus).json(responseJSON);
 });
 
-router.post("", async (req, res) => {
-  logger.log("/tasks", `Creating task ${req.body}`, logger.levels.DEBUG);
+router.get("/task-types", async (req, res) => {
+  logger.log("/task-types", "Getting task types...", logger.levels.DEBUG);
+  let returnStatus = statusCodes.OK;
+  let responseJSON = {};
+
+  try {
+    const taskTypes = await getTaskTypes();
+    responseJSON = {
+      taskTypes: taskTypes,
+      errors: [],
+    };
+  } catch (err) {
+    logger.log("/task-types", err, logger.levels.ERROR);
+    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+    responseJSON = {
+      taskTypes: [],
+      errors: ["Internal Server Error"],
+    };
+  }
+
+  return res.status(returnStatus).json(responseJSON);
+});
+
+router.post("/tasks", async (req, res) => {
+  logger.log(
+    "/tasks",
+    `Creating task ${JSON.stringify(req.body)}`,
+    logger.levels.DEBUG
+  );
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 

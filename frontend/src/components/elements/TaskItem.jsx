@@ -5,7 +5,7 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 
 const TaskItem = ({task}) => {
   const paramsList = task.params.map(param => {
-    return <ListItem key={param}>{param}</ListItem>
+    return <ListItem key={param.name}>{param.value}</ListItem>
   })
   const sentIcon = task.sent ? (<CheckBoxIcon />) : (<CheckBoxOutlineBlankIcon />)
   return (

@@ -1,23 +1,38 @@
-import { Checkbox, FormControlLabel, List } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
-import { fetchTasks } from '../../functions/apiCalls';
+import { createTask, fetchTasks } from '../../functions/apiCalls';
+import CreateTaskDialogue from './CreateTaskDialogue';
 
-// TODO Perhaps move all the backend-interaction code to its own file?
 function TasksPane({selectedImplant}) {
   const [showSent, setShowSent] = useState(false);
+  const [dialogueOpen, setDialogueOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
-  console.log("Rendering with implant: " + JSON.stringify(selectedImplant))
+  console.log("Rendering with implant: " + JSON.stringify(selectedImplant));
 
   const handleToggle = () => {
-    setShowSent(!showSent)
+    setShowSent(!showSent);
   }
 
+  const handleFormOpen = () => {
+    setDialogueOpen(true);
+  }
+
+  const handleFormClose = () => {
+    setDialogueOpen(false);
+  }
+
+  const handleFormSubmit = async (data) => {
+    data.implantId = selectedImplant.id
+    await createTask(data)
+  }
+
+  // TODO Perhaps always get all tasks, and do the filtering on the frontend - reduces number of network calls
   useEffect(() => {
     async function callFetcher() {
-      const received = await fetchTasks(selectedImplant.id, showSent)
-      setTasks(received)
+      const received = await fetchTasks(selectedImplant.id, showSent);
+      setTasks(received);
     }
     callFetcher()
   }, [selectedImplant, showSent])
@@ -25,7 +40,7 @@ function TasksPane({selectedImplant}) {
   let tasksItems = null
 
   if (tasks !== undefined && tasks !== null) {
-    console.log(tasks)
+    console.log(JSON.stringify(tasks))
     tasksItems = tasks.map(task => {
       return <TaskItem task={task} key={task.order} />
     })
@@ -33,12 +48,17 @@ function TasksPane({selectedImplant}) {
 
   return (
     <Container fixed>
-      <h2>Tasks for {selectedImplant.id}</h2>
-      <FormControlLabel control={<Checkbox checked={showSent} onClick={handleToggle}/>} label="Show Sent" />
+      <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <FormControlLabel control={<Checkbox checked={showSent} onClick={handleToggle}/>} label="Show Sent" />
+        <Button variant='contained' onClick={handleFormOpen}>Create Task</Button>
+      </Box>
       <List>
         {tasksItems}
       </List>
+      <CreateTaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
     </Container>
+      
   )
 }
 

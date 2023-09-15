@@ -1,5 +1,5 @@
 import Button from '@mui/material/Button';
-import { Checkbox, FormControlLabel, List } from '@mui/material';
+import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useState } from 'react';
 import ImplantItem from './ImplantItem';
@@ -24,9 +24,11 @@ const ImplantsPane = ({selectImplant}) => {
 
   return (
     <Container fixed>
-      <h2>Implants</h2>
-      <Button variant='contained' onClick={refresh}>Refresh</Button>
-      <FormControlLabel control={<Checkbox checked={showInactive} onClick={handleToggle}/>} label="Show Inactive" />
+      <Typography align="center" variant="h3">Implants</Typography>
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <FormControlLabel control={<Checkbox checked={showInactive} onClick={handleToggle}/>} label="Show Inactive" />
+        <Button variant='contained' onClick={refresh}>Refresh</Button>
+      </Box>
       <List>
         {implantsItems}
       </List>

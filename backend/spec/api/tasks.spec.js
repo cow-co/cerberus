@@ -3,6 +3,7 @@ const server = require("../../index");
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Task = require("../../db/models/Task");
+const TaskType = require("../../db/models/TaskType");
 
 describe("Tasks API Tests", () => {
   beforeEach(() => {
@@ -12,19 +13,19 @@ describe("Tasks API Tests", () => {
       return [
         {
           _id: "some-mongo-id",
-          order: 0,
-          implantId: "id-1",
-          taskType: "Task",
-          params: ["param1"],
-          sent: true,
-        },
-        {
-          _id: "some-mongo-id",
           order: 1,
           implantId: "id-1",
           taskType: "Task2",
           params: [],
           sent: false,
+        },
+        {
+          _id: "some-mongo-id",
+          order: 0,
+          implantId: "id-1",
+          taskType: "Task",
+          params: ["param1"],
+          sent: true,
         },
       ];
     });
@@ -92,5 +93,52 @@ describe("Tasks API Tests", () => {
     const res = await request(server).get("/api/tasks/id-2");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(1);
+  });
+
+  it("should get all task types", async () => {
+    sinon.stub(TaskType, "find").callsFake(() => {
+      return [
+        {
+          name: "Name",
+          params: [],
+        },
+        {
+          name: "Name 2",
+          params: ["param1", "param2"],
+        },
+      ];
+    });
+    const res = await request(server).get("/api/task-types");
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.taskTypes.length).to.equal(2);
+  });
+
+  it("should create a task", async () => {
+    sinon.stub(TaskType, "find").callsFake(() => {
+      return [
+        {
+          _id: "tasktypeid1",
+          name: "Name",
+          params: [],
+        },
+        {
+          _id: "tasktypeid2",
+          name: "Name 2",
+          params: ["param1", "param2"],
+        },
+      ];
+    });
+    sinon.stub(Task, "create");
+    const res = await request(server)
+      .post("/api/tasks")
+      .send({
+        type: {
+          id: "tasktypeid1",
+          name: "Name",
+        },
+        implantId: "id-1",
+        params: [],
+      });
+    expect(res.statusCode).to.equal(200);
   });
 });
