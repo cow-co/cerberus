@@ -4,14 +4,20 @@ const TaskType = require("../models/TaskType");
 const getTasksForImplant = async (implantId, history) => {
   let tasks = [];
   if (history) {
-    tasks = await Task.find({
-      implantId: implantId,
-    }).sort({ order: -1 });
+    tasks = await Task.find(
+      {
+        implantId: implantId,
+      },
+      { sort: { order: -1 } }
+    );
   } else {
-    tasks = await Task.find({
-      implantId: implantId,
-      sent: false,
-    }).sort({ order: -1 });
+    tasks = await Task.find(
+      {
+        implantId: implantId,
+        sent: false,
+      },
+      { sort: { order: -1 } }
+    );
   }
   return tasks;
 };
@@ -32,12 +38,11 @@ const createTask = async (task) => {
   //  Will an invalid task type cause security issues or anything major like that?
   const existing = await getTasksForImplant(task.implantId, true);
   let order = 0;
-  console.log(JSON.stringify(existing));
-
   // getTasksForImplant returns the list sorted by order value
   if (existing.length > 0) {
     order = existing[0].order + 1;
   }
+
   await Task.create({
     order: order,
     implantId: task.implantId,

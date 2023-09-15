@@ -13,19 +13,19 @@ describe("Tasks API Tests", () => {
       return [
         {
           _id: "some-mongo-id",
-          order: 0,
-          implantId: "id-1",
-          taskType: "Task",
-          params: ["param1"],
-          sent: true,
-        },
-        {
-          _id: "some-mongo-id",
           order: 1,
           implantId: "id-1",
           taskType: "Task2",
           params: [],
           sent: false,
+        },
+        {
+          _id: "some-mongo-id",
+          order: 0,
+          implantId: "id-1",
+          taskType: "Task",
+          params: ["param1"],
+          sent: true,
         },
       ];
     });
@@ -128,6 +128,7 @@ describe("Tasks API Tests", () => {
         },
       ];
     });
+    sinon.stub(Task, "create");
     const res = await request(server)
       .post("/api/tasks")
       .send({
