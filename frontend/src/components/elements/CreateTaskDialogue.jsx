@@ -16,7 +16,6 @@ const CreateTaskDialogue = (props) => {
   }, [])
 
   const handleChange = (event) => {
-    console.log("Selected " + event.target.value)
     const selectedTaskTypes = taskTypes.filter(val => val.name === event.target.value)
     // Needs to be a new object, else React does not realise a change has been made, it seems
     let updated = {
@@ -48,20 +47,21 @@ const CreateTaskDialogue = (props) => {
   }
 
   const handleParamUpdate = (event) => {
-    const {key, value} = event.target
-    let updated = task
+    const {id, value} = event.target
+    console.log(`Updating param ${id}...`)
+    let updated = {
+      type: task.type,
+      params: task.params
+    }
     updated.params.forEach(param => {
-      if (param.name === key) {
+      if (param.name === id) {
         param.value = value
       }
     })
-    updated.params[key] = value
     setTask(updated)
   }
   
-  console.log(taskTypes.length)
   const taskTypeSelects = taskTypes.map(taskType => {
-    console.log(taskType._id)
     return <MenuItem value={taskType.name} key={taskType._id}>{taskType.name}</MenuItem>
   })
   const paramsSettings = task.params.map(param => (
