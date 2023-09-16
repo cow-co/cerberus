@@ -1,7 +1,7 @@
 import Button from '@mui/material/Button';
 import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
 import { fetchImplants } from '../../functions/apiCalls';
 
@@ -14,7 +14,6 @@ const ImplantsPane = ({selectImplant}) => {
     setShowInactive(!showInactive)
   }
 
-  // TODO do this on page-load as well
   const refresh = async () => {
     const result = await fetchImplants();
     if (result.errors.length === 0) {
@@ -28,6 +27,13 @@ const ImplantsPane = ({selectImplant}) => {
       alert(errors[0])
     }
   }
+
+  useEffect(() => {
+    async function callRefresh() {
+      await refresh();
+    }
+    callRefresh()
+  }, [])
 
   const implantsItems = implants.map(implant => {
     return <ImplantItem implant={implant} key={implant.id} chooseImplant={selectImplant}/>
