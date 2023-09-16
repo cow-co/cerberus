@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
+import { Alert, Box, Button, Checkbox, FormControlLabel, List, Snackbar, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
@@ -9,6 +9,7 @@ function TasksPane({selectedImplant}) {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [alerts, setAlerts] = useState([])
   console.log("Rendering with implant: " + JSON.stringify(selectedImplant));
 
   const handleToggle = () => {
@@ -27,11 +28,12 @@ function TasksPane({selectedImplant}) {
     data.implantId = selectedImplant.id
     const errors = await createTask(data)
     if (errors.length > 0) {
-      alert(errors[0]); // TODO Make this into a proper error-popup
+      setAlerts(errors.map(error => { return {type: "error", message: error} }))
     } else {
       handleFormClose()
-      const newList = await fetchTasks(selectedImplant.id, showSent)
+      const newList = await fetchTasks(selectedImplant.id, showSent)  // TODO Set a success-alert
       setTasks(newList)
+      setAlerts([{type: "success", message: "Task Created"}])
     }
   }
 
@@ -46,7 +48,6 @@ function TasksPane({selectedImplant}) {
   let tasksItems = null
 
   if (tasks !== undefined && tasks !== null) {
-    console.log(JSON.stringify(tasks))
     if (showSent) {
       tasksItems = tasks.map(task => {
         return <TaskItem task={task} key={task.order} />
@@ -59,6 +60,13 @@ function TasksPane({selectedImplant}) {
     }
   }
 
+  let alertItems = null
+
+  if (alerts.length > 0) {
+    alertItems = alerts.map(alert => <Alert severity={alert.type}>{alert.message}</Alert>)
+  }
+
+  // TODO move the alerts snackbar out to the mainpage component, so that it applies across everything
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
@@ -70,6 +78,9 @@ function TasksPane({selectedImplant}) {
         {tasksItems}
       </List>
       <CreateTaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={snackbarClose}>
+        {alertItems}
+      </Snackbar>
     </Container>
       
   )
