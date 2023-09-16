@@ -21,6 +21,11 @@ const getTaskTypes = async () => {
   return taskTypes;
 };
 
+const getTaskTypeById = async (id) => {
+  const taskType = await TaskType.findById(id);
+  return taskType;
+};
+
 const taskSent = async (mongoId) => {
   await Task.findByIdAndUpdate(mongoId, {
     sent: true,
@@ -58,5 +63,6 @@ module.exports = {
   taskSent,
   createTask,
   getTaskTypes,
+  getTaskTypeById,
   createTaskType,
 };

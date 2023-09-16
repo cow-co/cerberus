@@ -1,5 +1,6 @@
 const logger = require("../utils/logger");
 const net = require("net");
+const { getTaskTypeById } = require("../db/services/tasks-service");
 
 const validateBeacon = (beacon) => {
   logger.log(
@@ -36,7 +37,8 @@ const validateBeacon = (beacon) => {
   return validity;
 };
 
-const validateTask = (task) => {
+// TODO Validate that all params are populated
+const validateTask = async (task) => {
   logger.log(
     "validateTask",
     `Validating task ${JSON.stringify(task)}`,
@@ -54,6 +56,15 @@ const validateTask = (task) => {
   } else if (!task.type.id || !task.type.name) {
     validity.isValid = false;
     validity.errors.push("Task type must have an ID and name");
+  } else {
+    const taskType = await getTaskTypeById(task.type.id);
+    if (taskType === undefined || taskType === null) {
+      validity.isValid = false;
+      validity.errors.push("Invalid task type");
+    } else if (taskType.params.length !== task.params.length) {
+      validity.isValid = false;
+      validity.errors.push("Task must populate all available parameters");
+    }
   }
 
   if (!task.implantId) {

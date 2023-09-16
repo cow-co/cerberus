@@ -25,10 +25,14 @@ function TasksPane({selectedImplant}) {
 
   const handleFormSubmit = async (data) => {
     data.implantId = selectedImplant.id
-    await createTask(data)
-    handleFormClose()
-    const newList = await fetchTasks(selectedImplant.id, showSent)
-    setTasks(newList)
+    const errors = await createTask(data)
+    if (errors.length > 0) {
+      alert(errors[0]); // TODO Make this into a proper error-popup
+    } else {
+      handleFormClose()
+      const newList = await fetchTasks(selectedImplant.id, showSent)
+      setTasks(newList)
+    }
   }
 
   useEffect(() => {

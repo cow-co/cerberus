@@ -55,6 +55,18 @@ describe("Tasks API Tests", () => {
         },
       ]),
     });
+
+    const byIdStub = sinon.stub(TaskType, "findById");
+    byIdStub.withArgs("tasktypeid1").returns({
+      _id: "tasktypeid1",
+      name: "Name",
+      params: [],
+    });
+    byIdStub.withArgs("tasktypeid2").returns({
+      _id: "tasktypeid2",
+      name: "Name 2",
+      params: ["param1", "param2"],
+    });
   });
 
   it("should get all tasks for an implant (empty array)", async () => {

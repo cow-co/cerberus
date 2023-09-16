@@ -16,7 +16,17 @@ const ImplantsPane = ({selectImplant}) => {
 
   // TODO do this on page-load as well
   const refresh = async () => {
-    setImplants(await fetchImplants(showInactive))
+    const result = await fetchImplants();
+    if (result.errors.length === 0) {
+      if (showInactive) {
+        setImplants(result.implants)
+      } else {
+        const filtered = result.implants.filter(implant => implant.isActive)
+        setImplants(filtered)
+      }
+    } else {
+      alert(errors[0])
+    }
   }
 
   const implantsItems = implants.map(implant => {
