@@ -1,7 +1,5 @@
 const logger = require("../utils/logger");
-
-const ip_regex =
-  "((^s*((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]).){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))s*$)|(^s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:)))(%.+)?s*$))";
+const net = require("net");
 
 const validateBeacon = (beacon) => {
   logger.log(
@@ -10,28 +8,63 @@ const validateBeacon = (beacon) => {
     logger.levels.DEBUG
   );
 
-  // We simple fail out at the first invalid field.
-  // TODO We may wish later on to validate everything and return an array of errors...
-  let isValid = true;
+  let validity = {
+    isValid: true,
+    errors: [],
+  };
 
   if (!beacon.id) {
-    isValid = false;
+    validity.isValid = false;
+    validity.errors.push("Beacon must have an ID");
   }
 
-  if (beacon.ip && isValid) {
-    matches = beacon.ip.match(ip_regex);
-    isValid = matches !== null && matches.length > 0;
+  if (beacon.ip) {
+    if (!net.isIP(beacon.ip)) {
+      validity.isValid = false;
+      validity.errors.push("Beacon IP Format Invalid");
+    }
   }
 
-  if (beacon.beaconIntervalSeconds === undefined && isValid) {
-    isValid = false;
+  if (beacon.beaconIntervalSeconds === undefined) {
+    validity.isValid = false;
+    validity.errors.push("Beacon must specify an interval");
   } else if (beacon.beaconIntervalSeconds <= 0) {
-    isValid = false;
+    validity.isValid = false;
+    validity.errors.push("Beacon interval must be strictly positive");
   }
 
-  return isValid;
+  return validity;
+};
+
+const validateTask = (task) => {
+  logger.log(
+    "validateTask",
+    `Validating task ${JSON.stringify(task)}`,
+    logger.levels.DEBUG
+  );
+
+  let validity = {
+    isValid: true,
+    errors: [],
+  };
+
+  if (!task.type) {
+    validity.isValid = false;
+    validity.errors.push("Task must have a type");
+  } else if (!task.type.id || !task.type.name) {
+    validity.isValid = false;
+    validity.errors.push("Task type must have an ID and name");
+  }
+
+  if (!task.implantId) {
+    validity.isValid = false;
+    validity.errors.push("Task must contain an implant ID");
+  }
+
+  return validity;
 };
 
 module.exports = {
   validateBeacon,
+  validateTask,
 };

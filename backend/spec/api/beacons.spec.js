@@ -54,6 +54,7 @@ describe("Beacon API tests", () => {
 
     expect(res.statusCode).to.equal(400);
   });
+
   it("should fail - empty ID", async () => {
     const res = await request(server).post("/api/beacon").send({
       id: "",
@@ -64,6 +65,7 @@ describe("Beacon API tests", () => {
 
     expect(res.statusCode).to.equal(400);
   });
+
   it("should fail - invalid IP", async () => {
     const res = await request(server).post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
@@ -74,6 +76,7 @@ describe("Beacon API tests", () => {
 
     expect(res.statusCode).to.equal(400);
   });
+
   it("should fail - negative interval", async () => {
     const res = await request(server).post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",

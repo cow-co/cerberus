@@ -137,4 +137,58 @@ describe("Tasks API Tests", () => {
       });
     expect(res.statusCode).to.equal(200);
   });
+
+  it("should fail to create a task - missing task type name", async () => {
+    sinon.stub(TaskType, "find").callsFake(() => {
+      return [
+        {
+          _id: "tasktypeid1",
+          name: "Name",
+          params: [],
+        },
+        {
+          _id: "tasktypeid2",
+          name: "Name 2",
+          params: ["param1", "param2"],
+        },
+      ];
+    });
+    sinon.stub(Task, "create");
+    const res = await request(server)
+      .post("/api/tasks")
+      .send({
+        type: {
+          id: "tasktypeid1",
+        },
+        implantId: "id-1",
+        params: [],
+      });
+    expect(res.statusCode).to.equal(400);
+  });
+
+  it("should fail to create a task - missing implant ID", async () => {
+    sinon.stub(TaskType, "find").returns([
+      {
+        _id: "tasktypeid1",
+        name: "Name",
+        params: [],
+      },
+      {
+        _id: "tasktypeid2",
+        name: "Name 2",
+        params: ["param1", "param2"],
+      },
+    ]);
+    sinon.stub(Task, "create");
+    const res = await request(server)
+      .post("/api/tasks")
+      .send({
+        type: {
+          id: "tasktypeid1",
+          name: "Name",
+        },
+        params: [],
+      });
+    expect(res.statusCode).to.equal(400);
+  });
 });
