@@ -7,6 +7,7 @@ const {
 const router = express.Router();
 const logger = require("../utils/logger");
 const statusCodes = require("../config/statusCodes");
+const { validateTask } = require("../validation/request-validation");
 
 router.get("/tasks/:implantId", async (req, res) => {
   logger.log(
@@ -68,16 +69,24 @@ router.post("/tasks", async (req, res) => {
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
-  try {
-    await createTask(req.body);
+  const validationResult = await validateTask(req.body);
+  if (validationResult.isValid) {
+    try {
+      await createTask(req.body);
+      responseJSON = {
+        errors: [],
+      };
+    } catch (err) {
+      logger.log("/tasks", err, logger.levels.ERROR);
+      returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+      responseJSON = {
+        errors: ["Internal Server Error"],
+      };
+    }
+  } else {
+    returnStatus = statusCodes.BAD_REQUEST;
     responseJSON = {
-      errors: [],
-    };
-  } catch (err) {
-    logger.log("/tasks", err, logger.levels.ERROR);
-    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON = {
-      errors: ["Internal Server Error"],
+      errors: validationResult.errors,
     };
   }
 

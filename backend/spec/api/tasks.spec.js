@@ -9,8 +9,8 @@ describe("Tasks API Tests", () => {
   beforeEach(() => {
     sinon.restore();
     const findStub = sinon.stub(Task, "find");
-    findStub.withArgs({ implantId: "id-1" }).callsFake(async () => {
-      return [
+    findStub.withArgs({ implantId: "id-1" }).returns({
+      sort: sinon.stub().returns([
         {
           _id: "some-mongo-id",
           order: 1,
@@ -27,44 +27,52 @@ describe("Tasks API Tests", () => {
           params: ["param1"],
           sent: true,
         },
-      ];
+      ]),
     });
 
-    findStub
-      .withArgs({ implantId: "id-1", sent: false })
-      .callsFake(async () => {
-        return [
-          {
-            _id: "some-mongo-id",
-            order: 1,
-            implantId: "id-1",
-            taskType: "Task2",
-            params: [],
-            sent: false,
-          },
-        ];
-      });
+    findStub.withArgs({ implantId: "id-1", sent: false }).returns({
+      sort: sinon.stub().returns([
+        {
+          _id: "some-mongo-id",
+          order: 1,
+          implantId: "id-1",
+          taskType: "Task2",
+          params: [],
+          sent: false,
+        },
+      ]),
+    });
 
-    findStub
-      .withArgs({ implantId: "id-2", sent: false })
-      .callsFake(async () => {
-        return [
-          {
-            _id: "some-mongo-id",
-            order: 0,
-            implantId: "id-2",
-            taskType: "Task",
-            params: ["param1"],
-            sent: false,
-          },
-        ];
-      });
+    findStub.withArgs({ implantId: "id-2", sent: false }).returns({
+      sort: sinon.stub().returns([
+        {
+          _id: "some-mongo-id",
+          order: 0,
+          implantId: "id-2",
+          taskType: "Task",
+          params: ["param1"],
+          sent: false,
+        },
+      ]),
+    });
+
+    const byIdStub = sinon.stub(TaskType, "findById");
+    byIdStub.withArgs("tasktypeid1").returns({
+      _id: "tasktypeid1",
+      name: "Name",
+      params: [],
+    });
+    byIdStub.withArgs("tasktypeid2").returns({
+      _id: "tasktypeid2",
+      name: "Name 2",
+      params: ["param1", "param2"],
+    });
   });
 
   it("should get all tasks for an implant (empty array)", async () => {
     sinon.restore();
-    sinon.stub(Task, "find").callsFake(async () => {
-      return [];
+    sinon.stub(Task, "find").returns({
+      sort: sinon.stub().returns([]),
     });
     const res = await request(server).get("/api/tasks/id-1");
     expect(res.statusCode).to.equal(200);
@@ -140,5 +148,59 @@ describe("Tasks API Tests", () => {
         params: [],
       });
     expect(res.statusCode).to.equal(200);
+  });
+
+  it("should fail to create a task - missing task type name", async () => {
+    sinon.stub(TaskType, "find").callsFake(() => {
+      return [
+        {
+          _id: "tasktypeid1",
+          name: "Name",
+          params: [],
+        },
+        {
+          _id: "tasktypeid2",
+          name: "Name 2",
+          params: ["param1", "param2"],
+        },
+      ];
+    });
+    sinon.stub(Task, "create");
+    const res = await request(server)
+      .post("/api/tasks")
+      .send({
+        type: {
+          id: "tasktypeid1",
+        },
+        implantId: "id-1",
+        params: [],
+      });
+    expect(res.statusCode).to.equal(400);
+  });
+
+  it("should fail to create a task - missing implant ID", async () => {
+    sinon.stub(TaskType, "find").returns([
+      {
+        _id: "tasktypeid1",
+        name: "Name",
+        params: [],
+      },
+      {
+        _id: "tasktypeid2",
+        name: "Name 2",
+        params: ["param1", "param2"],
+      },
+    ]);
+    sinon.stub(Task, "create");
+    const res = await request(server)
+      .post("/api/tasks")
+      .send({
+        type: {
+          id: "tasktypeid1",
+          name: "Name",
+        },
+        params: [],
+      });
+    expect(res.statusCode).to.equal(400);
   });
 });

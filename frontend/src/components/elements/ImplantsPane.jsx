@@ -1,26 +1,46 @@
 import Button from '@mui/material/Button';
 import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
 import { fetchImplants } from '../../functions/apiCalls';
+import { useSelector, useDispatch } from "react-redux";
+import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
 
-const ImplantsPane = ({selectImplant}) => {
-  console.log("Rendering implants")
+const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
-  const [implants, setImplants] = useState([]);
+  const implants = useSelector((state) => state.implants.implants);
+  const dispatch = useDispatch();
 
   const handleToggle = () => {
-    setShowInactive(!showInactive)
+    setShowInactive(!showInactive);
   }
 
   const refresh = async () => {
-    setImplants(await fetchImplants(showInactive))
+    const result = await fetchImplants();
+    if (result.errors.length === 0) {
+      if (showInactive) {
+        dispatch(setImplants(result.implants));
+      } else {
+        const filtered = result.implants.filter(implant => implant.isActive);
+        dispatch(setImplants(filtered));
+      }
+    } else {
+      alert(result.errors[0]);
+    }
   }
 
+  useEffect(() => {
+    async function callRefresh() {
+      await refresh();
+    }
+    callRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const implantsItems = implants.map(implant => {
-    return <ImplantItem implant={implant} key={implant.id} chooseImplant={selectImplant}/>
-  })
+    return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))}/>
+  });
 
   return (
     <Container fixed>
@@ -33,7 +53,7 @@ const ImplantsPane = ({selectImplant}) => {
         {implantsItems}
       </List>
     </Container>
-  )
+  );
 }
 
 export default ImplantsPane;

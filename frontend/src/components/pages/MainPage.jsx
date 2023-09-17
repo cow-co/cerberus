@@ -1,18 +1,22 @@
-import { useState } from "react";
+import AlertsBar from "../elements/AlertsBar";
 import ImplantsPane from "../elements/ImplantsPane";
 import TasksPane from "../elements/TasksPane";
-import Grid from '@mui/material/Grid';
+import { Box, Grid } from '@mui/material';
 
 function MainPage() {
-  const [selectedImplant, setSelectedImplant] = useState({id: "Implant"})
-
+  // TODO Better alerts formatting
   return (
     <Grid container spacing={2}>
       <Grid item xs={6}>
-        <TasksPane selectedImplant={selectedImplant}/>
+        <TasksPane />
       </Grid>
       <Grid item xs={6}>
-        <ImplantsPane selectImplant={setSelectedImplant}/>
+        <ImplantsPane />
+      </Grid>
+      <Grid item xs={12}>
+        <Box display="flex" justifyContent="center" alignItems="center">
+          <AlertsBar />
+        </Box>
       </Grid>
     </Grid>
   )

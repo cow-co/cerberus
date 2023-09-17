@@ -23,7 +23,8 @@ router.post("", async (req, res) => {
   let responseJSON = {}; // TODO make the response DTOs into their own classes
 
   try {
-    if (validateBeacon(req.body)) {
+    const validationResult = validateBeacon(req.body);
+    if (validationResult.isValid) {
       const beacon = {
         id: req.body.id,
         ip: req.body.ip,
@@ -50,8 +51,9 @@ router.post("", async (req, res) => {
     } else {
       responseJSON = {
         tasks: [],
-        errors: ["Validation Error"],
+        errors: validationResult.errors,
       };
+      console.log(JSON.stringify(responseJSON));
       returnStatus = statusCodes.BAD_REQUEST;
     }
   } catch (err) {

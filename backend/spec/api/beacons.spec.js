@@ -7,14 +7,10 @@ const Task = require("../../db/models/Task");
 
 describe("Beacon API tests", () => {
   it("should succeed", async () => {
-    sinon.stub(Implant, "findOne").callsFake(async () => {
-      return null;
-    });
-    sinon.stub(Implant, "create").callsFake(async () => {
-      return null;
-    });
-    sinon.stub(Task, "find").callsFake(async () => {
-      return [
+    sinon.stub(Implant, "findOne").returns(null);
+    sinon.stub(Implant, "create").returns(null);
+    sinon.stub(Task, "find").returns({
+      sort: sinon.stub().returns([
         {
           _id: "some-mongo-id",
           order: 1,
@@ -23,11 +19,9 @@ describe("Beacon API tests", () => {
           params: [],
           sent: false,
         },
-      ];
+      ]),
     });
-    sinon.stub(Task, "findByIdAndUpdate").callsFake(async () => {
-      return {};
-    });
+    sinon.stub(Task, "findByIdAndUpdate").returns({});
     const res = await request(server).post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",
@@ -60,6 +54,7 @@ describe("Beacon API tests", () => {
 
     expect(res.statusCode).to.equal(400);
   });
+
   it("should fail - empty ID", async () => {
     const res = await request(server).post("/api/beacon").send({
       id: "",
@@ -70,6 +65,7 @@ describe("Beacon API tests", () => {
 
     expect(res.statusCode).to.equal(400);
   });
+
   it("should fail - invalid IP", async () => {
     const res = await request(server).post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
@@ -80,6 +76,7 @@ describe("Beacon API tests", () => {
 
     expect(res.statusCode).to.equal(400);
   });
+
   it("should fail - negative interval", async () => {
     const res = await request(server).post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",

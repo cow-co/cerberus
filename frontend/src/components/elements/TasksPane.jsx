@@ -4,12 +4,18 @@ import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
 import { createTask, fetchTasks } from '../../functions/apiCalls';
 import CreateTaskDialogue from './CreateTaskDialogue';
+import { useSelector, useDispatch } from "react-redux"
+import { setTasks } from "../../common/redux/tasks-slice"
+import conf from "../../common/config/properties"
+import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
+import { v4 as uuidv4 } from "uuid"
 
-function TasksPane({selectedImplant}) {
+function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [tasks, setTasks] = useState([]);
-  console.log("Rendering with implant: " + JSON.stringify(selectedImplant));
+  const tasks = useSelector((state) => state.tasks.tasks);
+  const selectedImplant = useSelector((state) => state.implants.selected);
+  const dispatch = useDispatch();
 
   const handleToggle = () => {
     setShowSent(!showSent);
@@ -24,28 +30,59 @@ function TasksPane({selectedImplant}) {
   }
 
   const handleFormSubmit = async (data) => {
-    data.implantId = selectedImplant.id
-    await createTask(data)
+    data.implantId = selectedImplant.id;
+    const errors = await createTask(data);
+    if (errors.length > 0) {
+      errors.forEach((error) => {
+        const uuid = uuidv4();
+        const alert = {
+          id: uuid,
+          type: "error",
+          message: error
+        };
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      });
+    } else {
+      handleFormClose();
+      const newList = await fetchTasks(selectedImplant.id, showSent);
+      dispatch(setTasks(newList.tasks));
+      const uuid = uuidv4();
+      const alert = {
+        id: uuid,
+        type: "success",
+        message: "Successfully Created Task"
+      };
+      dispatch(addAlert(alert));
+      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+    }
   }
 
-  // TODO Perhaps always get all tasks, and do the filtering on the frontend - reduces number of network calls
   useEffect(() => {
     async function callFetcher() {
-      const received = await fetchTasks(selectedImplant.id, showSent);
-      setTasks(received);
+      const received = await fetchTasks(selectedImplant.id);
+      dispatch(setTasks(received.tasks));
     }
     callFetcher()
-  }, [selectedImplant, showSent])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedImplant, showSent]);
 
-  let tasksItems = null
+  let tasksItems = null;
 
   if (tasks !== undefined && tasks !== null) {
-    console.log(JSON.stringify(tasks))
-    tasksItems = tasks.map(task => {
-      return <TaskItem task={task} key={task.order} />
-    })
+    if (showSent) {
+      tasksItems = tasks.map(task => {
+        return <TaskItem task={task} key={task.order} />
+      });
+    } else {
+      const filtered = tasks.filter(task => task.sent === false);
+      tasksItems = filtered.map(task => {
+        return <TaskItem task={task} key={task.order} />
+      });
+    }
   }
 
+  // TODO move the alerts snackbar out to the mainpage component, so that it applies across everything
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
