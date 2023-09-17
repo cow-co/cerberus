@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, FormControlLabel, List, Snackbar, Typography } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';

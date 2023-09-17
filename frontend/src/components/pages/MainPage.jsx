@@ -1,10 +1,10 @@
 import AlertsBar from "../elements/AlertsBar";
 import ImplantsPane from "../elements/ImplantsPane";
 import TasksPane from "../elements/TasksPane";
-import Grid from '@mui/material/Grid';
+import { Box, Grid } from '@mui/material';
 
-// TODO The alerts stuff
 function MainPage() {
+  // TODO Better alerts formatting
   return (
     <Grid container spacing={2}>
       <Grid item xs={6}>
@@ -13,8 +13,10 @@ function MainPage() {
       <Grid item xs={6}>
         <ImplantsPane />
       </Grid>
-      <Grid item xs={6}>
-        <AlertsBar />
+      <Grid item xs={12}>
+        <Box display="flex" justifyContent="center" alignItems="center">
+          <AlertsBar />
+        </Box>
       </Grid>
     </Grid>
   )
