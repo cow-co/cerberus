@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { fetchTaskTypes } from '../../functions/apiCalls';
 import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, TextField } from '@mui/material';
-import { useSelector, useDispatch } from "react-redux"
-import { setTaskTypes } from "../../common/redux/tasks-slice"
+import { useSelector, useDispatch } from "react-redux";
+import { setTaskTypes } from "../../common/redux/tasks-slice";
 
 // FIXME Somewhere in here (on first-load) there is a unique-key error
 const CreateTaskDialogue = (props) => {
-  const {onClose, open, onSubmit} = props
+  const {onClose, open, onSubmit} = props;
   const taskTypes = useSelector((state) => state.tasks.taskTypes);
   const dispatch = useDispatch();
   const [task, setTask] = useState({type: {id: "", name: ""}, params: []});
@@ -14,7 +14,7 @@ const CreateTaskDialogue = (props) => {
   useEffect(() => {
     const getData = async () => {
       const types = await fetchTaskTypes();
-      dispatch(setTaskTypes(types));
+      dispatch(setTaskTypes(types.taskTypes));
     }
     getData();
   }, [])
@@ -40,39 +40,39 @@ const CreateTaskDialogue = (props) => {
           name: param,
           value: ""
         }
-      })
-      setTask(updated)
+      });
+      setTask(updated);
     }
   }
 
   const handleClose = () => {
-    onClose()
+    onClose();
   }
 
   const handleSubmit = () => {
-    onSubmit(task)
+    onSubmit(task);
   }
 
   const handleParamUpdate = (event) => {
-    const {id, value} = event.target
+    const {id, value} = event.target;
     let updated = {
       type: task.type,
       params: task.params
-    }
+    };
     updated.params.forEach(param => {
       if (param.name === id) {
-        param.value = value
+        param.value = value;
       }
-    })
-    setTask(updated)
+    });
+    setTask(updated);
   }
   
   const taskTypeSelects = taskTypes.map(taskType => {
     return <MenuItem value={taskType.name} key={taskType._id} id={taskType._id}>{taskType.name}</MenuItem>
-  })
+  });
   const paramsSettings = task.params.map(param => (
     <TextField className='text-input' label={param.name} variant="outlined" key={param.name} id={param.name} value={param.value} onChange={handleParamUpdate} />
-  ))
+  ));
 
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
@@ -86,7 +86,7 @@ const CreateTaskDialogue = (props) => {
         <Button onClick={handleSubmit}>Create</Button>
       </FormControl>
     </Dialog>
-  )
+  );
 }
 
-export default CreateTaskDialogue
+export default CreateTaskDialogue;

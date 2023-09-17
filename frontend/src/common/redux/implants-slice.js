@@ -4,13 +4,17 @@ export const implantsSlice = createSlice({
   name: "implants",
   initialState: {
     implants: [],
+    selected: { id: "<No Implant Selected>" },
   },
   reducers: {
     setImplants: (state, action) => {
       state.implants = action.payload;
     },
+    setSelectedImplant: (state, action) => {
+      state.selected = action.payload;
+    },
   },
 });
 
-export const { setImplants } = implantsSlice.actions;
+export const { setImplants, setSelectedImplant } = implantsSlice.actions;
 export default implantsSlice.reducer;

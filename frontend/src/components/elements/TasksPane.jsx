@@ -4,13 +4,16 @@ import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
 import { createTask, fetchTasks } from '../../functions/apiCalls';
 import CreateTaskDialogue from './CreateTaskDialogue';
+import { useSelector, useDispatch } from "react-redux"
+import { setTasks } from "../../common/redux/tasks-slice"
 
-function TasksPane({selectedImplant}) {
+function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [tasks, setTasks] = useState([]);
-  const [alerts, setAlerts] = useState([])
-  console.log("Rendering with implant: " + JSON.stringify(selectedImplant));
+  const tasks = useSelector((state) => state.tasks.tasks);
+  const selectedImplant = useSelector((state) => state.implants.selected);
+  const dispatch = useDispatch();
+  const [alerts, setAlerts] = useState([]);
 
   const handleToggle = () => {
     setShowSent(!showSent);
@@ -25,45 +28,45 @@ function TasksPane({selectedImplant}) {
   }
 
   const handleFormSubmit = async (data) => {
-    data.implantId = selectedImplant.id
-    const errors = await createTask(data)
+    data.implantId = selectedImplant.id;
+    const errors = await createTask(data);
     if (errors.length > 0) {
-      setAlerts(errors.map(error => { return {type: "error", message: error} }))
+      setAlerts(errors.map(error => { return {type: "error", message: error} }));
     } else {
-      handleFormClose()
-      const newList = await fetchTasks(selectedImplant.id, showSent)  // TODO Set a success-alert
-      setTasks(newList)
-      setAlerts([{type: "success", message: "Task Created"}])
+      handleFormClose();
+      const newList = await fetchTasks(selectedImplant.id, showSent);
+      dispatch(setTasks(newList.tasks));
+      setAlerts([{type: "success", message: "Task Created"}]);
     }
   }
 
   useEffect(() => {
     async function callFetcher() {
       const received = await fetchTasks(selectedImplant.id);
-      setTasks(received);
+      dispatch(setTasks(received.tasks));
     }
     callFetcher()
-  }, [selectedImplant, showSent])
+  }, [selectedImplant, showSent]);
 
-  let tasksItems = null
+  let tasksItems = null;
 
   if (tasks !== undefined && tasks !== null) {
     if (showSent) {
       tasksItems = tasks.map(task => {
         return <TaskItem task={task} key={task.order} />
-      })
+      });
     } else {
-      const filtered = tasks.filter(task => task.sent === false)
+      const filtered = tasks.filter(task => task.sent === false);
       tasksItems = filtered.map(task => {
         return <TaskItem task={task} key={task.order} />
-      })
+      });
     }
   }
 
-  let alertItems = null
+  let alertItems = null;
 
   if (alerts.length > 0) {
-    alertItems = alerts.map(alert => <Alert severity={alert.type}>{alert.message}</Alert>)
+    alertItems = alerts.map(alert => <Alert severity={alert.type}>{alert.message}</Alert>);
   }
 
   // TODO move the alerts snackbar out to the mainpage component, so that it applies across everything
@@ -78,9 +81,7 @@ function TasksPane({selectedImplant}) {
         {tasksItems}
       </List>
       <CreateTaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={snackbarClose}>
-        {alertItems}
-      </Snackbar>
+      {alertItems}
     </Container>
       
   )
