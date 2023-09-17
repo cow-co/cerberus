@@ -37,7 +37,6 @@ const validateBeacon = (beacon) => {
   return validity;
 };
 
-// TODO Validate that all params are populated
 const validateTask = async (task) => {
   logger.log(
     "validateTask",

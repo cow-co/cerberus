@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Checkbox, FormControlLabel, List, Snackbar, Typography } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel, List, Snackbar, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
@@ -6,6 +6,9 @@ import { createTask, fetchTasks } from '../../functions/apiCalls';
 import CreateTaskDialogue from './CreateTaskDialogue';
 import { useSelector, useDispatch } from "react-redux"
 import { setTasks } from "../../common/redux/tasks-slice"
+import conf from "../../common/config/properties"
+import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
+import { v4 as uuidv4 } from "uuid"
 
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
@@ -13,7 +16,6 @@ function TasksPane() {
   const tasks = useSelector((state) => state.tasks.tasks);
   const selectedImplant = useSelector((state) => state.implants.selected);
   const dispatch = useDispatch();
-  const [alerts, setAlerts] = useState([]);
 
   const handleToggle = () => {
     setShowSent(!showSent);
@@ -31,12 +33,28 @@ function TasksPane() {
     data.implantId = selectedImplant.id;
     const errors = await createTask(data);
     if (errors.length > 0) {
-      setAlerts(errors.map(error => { return {type: "error", message: error} }));
+      errors.forEach((error) => {
+        const uuid = uuidv4();
+        const alert = {
+          id: uuid,
+          type: "error",
+          message: error
+        };
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      });
     } else {
       handleFormClose();
       const newList = await fetchTasks(selectedImplant.id, showSent);
       dispatch(setTasks(newList.tasks));
-      setAlerts([{type: "success", message: "Task Created"}]);
+      const uuid = uuidv4();
+      const alert = {
+        id: uuid,
+        type: "success",
+        message: "Successfully Created Task"
+      };
+      dispatch(addAlert(alert));
+      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
     }
   }
 
@@ -63,12 +81,6 @@ function TasksPane() {
     }
   }
 
-  let alertItems = null;
-
-  if (alerts.length > 0) {
-    alertItems = alerts.map(alert => <Alert severity={alert.type}>{alert.message}</Alert>);
-  }
-
   // TODO move the alerts snackbar out to the mainpage component, so that it applies across everything
   return (
     <Container fixed>
@@ -81,7 +93,6 @@ function TasksPane() {
         {tasksItems}
       </List>
       <CreateTaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
-      {alertItems}
     </Container>
       
   )

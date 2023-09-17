@@ -30,7 +30,7 @@ if (process.env.NODE_ENV === "production") {
     )
     .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
   (async () => {
-    await seedTaskTypes(); // TODO call this asyncly
+    await seedTaskTypes();
   })();
 }
 

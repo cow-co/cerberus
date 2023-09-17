@@ -69,7 +69,6 @@ router.post("/tasks", async (req, res) => {
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
-  // TODO Use the new validation method
   const validationResult = await validateTask(req.body);
   if (validationResult.isValid) {
     try {

@@ -4,7 +4,6 @@ import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button,
 import { useSelector, useDispatch } from "react-redux";
 import { setTaskTypes } from "../../common/redux/tasks-slice";
 
-// FIXME Somewhere in here (on first-load) there is a unique-key error
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
   const taskTypes = useSelector((state) => state.tasks.taskTypes);
