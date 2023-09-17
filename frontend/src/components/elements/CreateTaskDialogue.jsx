@@ -16,6 +16,7 @@ const CreateTaskDialogue = (props) => {
       dispatch(setTaskTypes(types.taskTypes));
     }
     getData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleChange = (event) => {

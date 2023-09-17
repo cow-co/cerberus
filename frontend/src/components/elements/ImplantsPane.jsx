@@ -35,6 +35,7 @@ const ImplantsPane = () => {
       await refresh();
     }
     callRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const implantsItems = implants.map(implant => {

@@ -64,6 +64,7 @@ function TasksPane() {
       dispatch(setTasks(received.tasks));
     }
     callFetcher()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedImplant, showSent]);
 
   let tasksItems = null;
