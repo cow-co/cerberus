@@ -16,6 +16,10 @@ const getTasksForImplant = async (implantId, history) => {
   return tasks;
 };
 
+const getTaskById = async (taskId) => {
+  return await Task.findById(taskId);
+};
+
 const getTaskTypes = async () => {
   const taskTypes = await TaskType.find();
   return taskTypes;
@@ -58,11 +62,17 @@ const createTaskType = async (taskType) => {
   });
 };
 
+const deleteTask = async (taskId) => {
+  await Task.findByIdAndDelete(taskId);
+};
+
 module.exports = {
   getTasksForImplant,
+  getTaskById,
   taskSent,
   createTask,
   getTaskTypes,
   getTaskTypeById,
   createTaskType,
+  deleteTask,
 };
