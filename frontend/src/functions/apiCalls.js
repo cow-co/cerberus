@@ -32,4 +32,12 @@ const createTask = async (task) => {
   return json.errors;
 };
 
-export { fetchImplants, fetchTasks, fetchTaskTypes, createTask };
+const deleteTask = async (task) => {
+  const response = await fetch(`http://localhost:5000/api/tasks/${task._id}`, {
+    method: "DELETE",
+  });
+  const json = await response.json();
+  return json.errors;
+};
+
+export { fetchImplants, fetchTasks, fetchTaskTypes, createTask, deleteTask };

@@ -2,7 +2,7 @@ import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
-import { createTask, fetchTasks } from '../../functions/apiCalls';
+import { createTask, fetchTasks, deleteTask } from '../../functions/apiCalls';
 import CreateTaskDialogue from './CreateTaskDialogue';
 import { useSelector, useDispatch } from "react-redux"
 import { setTasks } from "../../common/redux/tasks-slice"
@@ -58,6 +58,35 @@ function TasksPane() {
     }
   }
 
+  const handleDelete = async (task) => {
+    const errors = await deleteTask(task);
+
+    if (errors.length > 0) {
+      errors.forEach((error) => {
+        const uuid = uuidv4();
+        const alert = {
+          id: uuid,
+          type: "error",
+          message: error
+        };
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      });
+    } else {
+      const newList = await fetchTasks(selectedImplant.id, showSent);
+      dispatch(setTasks(newList.tasks));
+      const uuid = uuidv4();
+      const alert = {
+        id: uuid,
+        type: "success",
+        message: "Successfully Deleted Task"
+      };
+      dispatch(addAlert(alert));
+      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+    }
+
+  }
+
   useEffect(() => {
     async function callFetcher() {
       const received = await fetchTasks(selectedImplant.id);
@@ -72,12 +101,12 @@ function TasksPane() {
   if (tasks !== undefined && tasks !== null) {
     if (showSent) {
       tasksItems = tasks.map(task => {
-        return <TaskItem task={task} key={task.order} />
+        return <TaskItem task={task} key={task.order} deleteTask={() => handleDelete(task)} />
       });
     } else {
       const filtered = tasks.filter(task => task.sent === false);
       tasksItems = filtered.map(task => {
-        return <TaskItem task={task} key={task.order} />
+        return <TaskItem task={task} key={task.order} deleteTask={() => handleDelete(task)} />
       });
     }
   }
