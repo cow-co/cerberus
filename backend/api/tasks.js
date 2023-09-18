@@ -1,8 +1,10 @@
 const express = require("express");
 const {
   getTasksForImplant,
+  getTaskById,
   createTask,
   getTaskTypes,
+  deleteTask,
 } = require("../db/services/tasks-service");
 const router = express.Router();
 const logger = require("../utils/logger");
@@ -88,6 +90,40 @@ router.post("/tasks", async (req, res) => {
     responseJSON = {
       errors: validationResult.errors,
     };
+  }
+
+  return res.status(returnStatus).json(responseJSON);
+});
+
+router.delete("/tasks/:taskId", async (req, res) => {
+  // TODO Check that the task has not been sent (cannot delete if it has already been sent)
+  // TODO Delete the task
+  let responseJSON = {
+    errors: [],
+  };
+  let returnStatus = statusCodes.OK;
+
+  try {
+    const task = await getTaskById(req.params.taskId);
+    if (task === undefined || task === null) {
+      returnStatus = statusCodes.BAD_REQUEST;
+      responseJSON.errors.push(
+        `Task with ID ${req.params.taskId} does not exist.`
+      );
+    } else {
+      if (task.sent) {
+        returnStatus = statusCodes.BAD_REQUEST;
+        responseJSON.errors.push(
+          "Cannot delete a task that has been sent to an implant."
+        );
+      } else {
+        await deleteTask(req.params.taskId);
+      }
+    }
+  } catch (err) {
+    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+    responseJSON.errors.push("Internal Server Error");
+    logger.log(`DELETE /tasks/${req.params.taskId}`, err, logger.levels.ERROR);
   }
 
   return res.status(returnStatus).json(responseJSON);
