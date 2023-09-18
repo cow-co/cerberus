@@ -96,8 +96,12 @@ router.post("/tasks", async (req, res) => {
 });
 
 router.delete("/tasks/:taskId", async (req, res) => {
-  // TODO Check that the task has not been sent (cannot delete if it has already been sent)
-  // TODO Delete the task
+  logger.log(
+    `DELETE /tasks/${req.params.taskId}`,
+    `Deleting task ${req.params.taskId}`,
+    logger.levels.INFO
+  );
+
   let responseJSON = {
     errors: [],
   };
@@ -110,11 +114,21 @@ router.delete("/tasks/:taskId", async (req, res) => {
       responseJSON.errors.push(
         `Task with ID ${req.params.taskId} does not exist.`
       );
+      logger.log(
+        `DELETE /tasks/${req.params.taskId}`,
+        "Task not found",
+        logger.levels.ERROR
+      );
     } else {
       if (task.sent) {
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors.push(
           "Cannot delete a task that has been sent to an implant."
+        );
+        logger.log(
+          `DELETE /tasks/${req.params.taskId}`,
+          "Task already sent",
+          logger.levels.ERROR
         );
       } else {
         await deleteTask(req.params.taskId);
