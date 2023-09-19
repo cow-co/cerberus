@@ -10,6 +10,9 @@ const swaggerDocBeaconing = YAML.load("openapi/beaconing.yaml");
 const swaggerDocImplants = YAML.load("openapi/implants.yaml");
 const path = require("path");
 const { seedTaskTypes } = require("./db/seed");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const securityConfig = require("./config/security-config");
 
 const app = express();
 app.use(express.json());
@@ -17,22 +20,17 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "build")));
 
-if (process.env.NODE_ENV === "production") {
-  const db = require("./config/dbConfig").mongo_uri;
-  mongoose
-    .connect(db, { useNewUrlParser: true })
-    .then(() =>
-      logger.log(
-        "index.js",
-        "MongoDB connection successful",
-        logger.levels.INFO
-      )
-    )
-    .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
-  (async () => {
-    await seedTaskTypes();
-  })();
-}
+const db = require("./config/dbConfig").mongo_uri;
+mongoose
+  .connect(db, { useNewUrlParser: true })
+  .then(() => {
+    logger.log("index.js", "MongoDB connection successful", logger.levels.INFO);
+  })
+  .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
+
+(async () => {
+  await seedTaskTypes();
+})();
 
 app.use(
   "/api-docs/beaconing",
@@ -48,6 +46,20 @@ app.use(
 app.use("/api/implants", implants);
 
 app.use("/api", tasks);
+
+app.use(
+  session({
+    secret: securityConfig.sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      clientPromise: mongoose.connection.getClient(),
+      dbName: mongoose.connection.db.databaseName,
+      stringify: false,
+      autoRemove: "interval",
+    }),
+  })
+);
 
 const port = process.env.PORT || 5000;
 let server = app.listen(port, async () => {
