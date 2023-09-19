@@ -68,9 +68,16 @@ const register = async (username, password) => {
       "Registering is not supported for AD-backed auth; please ask your Active Directory administrator to add you."
     );
   } else {
-    // TODO Hash password
-    // TODO Create user
+    const createdUser = await dbUserManager.register(username, password);
+    response.userId = createdUser._id;
   }
 
   return response;
+};
+
+module.exports = {
+  authenticate,
+  verifySession,
+  logout,
+  register,
 };

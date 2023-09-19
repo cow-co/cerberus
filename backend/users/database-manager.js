@@ -3,7 +3,10 @@ const argon2 = require("argon2");
 const securityConfig = require("../config/security-config");
 const { levels, log } = require("../utils/logger");
 
-const register = async (userDetails) => {};
+const register = async (username, password) => {
+  const hashed = await argon2.hash(password);
+  return await createUser({ name: username, hashedPassword: hashed, acgs: [] });
+};
 
 // Password should be null if using PKI (since PKI login doesn't use a password)
 const authenticate = async (username, password) => {

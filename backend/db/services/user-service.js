@@ -6,7 +6,7 @@ const findUser = async (username) => {
 };
 
 const createUser = async (user) => {
-  await User.create(user);
+  return await User.create(user);
 };
 
 module.exports = {
