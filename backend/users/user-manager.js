@@ -57,6 +57,7 @@ const logout = async (req) => {};
 
 // Creates a user - specifically for DB-backed user management.
 // Returns an error if user management is AD-backed.
+// In a proper environment we'd probably want email verification. TBH we'd want AD auth anyway so it's kinda moot
 const register = async (username, password) => {
   let response = {
     userId: null,

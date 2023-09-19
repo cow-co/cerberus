@@ -10,4 +10,10 @@ module.exports = {
   authMethod: authMethods.DB,
   availableAuthMethods: authMethods,
   sessionSecret: `${process.env.CERBERUS_SESSION_SECRET}`,
+  passwordRequirements: {
+    requireUppercase: true,
+    requireLowercase: true,
+    requireNumber: false,
+    minLength: 15,
+  },
 };
