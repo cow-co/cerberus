@@ -1,6 +1,5 @@
 version: 2.1
 orbs:
-  codecov: codecov/codecov@3.2.5
   node: circleci/node@5.1.0
 jobs:
   test_backend:
@@ -14,7 +13,7 @@ jobs:
           command: cd backend && npm test
           name: Run backend tests
       - run:
-          command: cd backend && npm coverage
+          command: cd backend && npm run coverage
           name: Code coverage
   build_frontend:
     executor: node/default
