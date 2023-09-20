@@ -2,8 +2,9 @@
 
 [![CircleCI Status](https://dl.circleci.com/status-badge/img/gh/cow-co/cerberus/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/cow-co/cerberus/tree/main)
 [![Snyk](https://snyk.io/test/github/cow-co/cerberus/badge.svg)](https://snyk.io/test/github/cow-co/cerberus)
+[![codecov](https://codecov.io/gh/cow-co/cerberus/graph/badge.svg?token=Y8W7b9ng2Y)](https://codecov.io/gh/cow-co/cerberus)
 
-Frontend server for administering implants as part of the RICE BOWL suite.
+C2/UI server for administering implants as part of the RICE BOWL suite.
 
 ## Disclaimery Type Things
 

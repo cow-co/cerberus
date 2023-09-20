@@ -1,3 +1,5 @@
+const chalk = require("chalk");
+
 const levels = {
   INFO: "INFO",
   DEBUG: "DEBUG",
@@ -9,20 +11,20 @@ const log = (location, message, level) => {
   message = `[${level}] ${location} ${message}`;
   switch (level) {
     case levels.INFO:
-      console.info(message);
+      console.info(chalk.green(message));
       break;
     case levels.DEBUG:
-      console.debug(message);
+      console.debug(chalk.blue(message));
       break;
     case levels.ERROR:
-      console.error(message);
+      console.error(chalk.red(message));
       break;
     case levels.WARN:
-      console.warn(message);
+      console.warn(chalk.yellow(message));
       break;
 
     default:
-      console.info(message);
+      console.info(chalk.green(message));
       break;
   }
 };

@@ -40,4 +40,47 @@ const deleteTask = async (task) => {
   return json.errors;
 };
 
-export { fetchImplants, fetchTasks, fetchTaskTypes, createTask, deleteTask };
+const register = async (username, password) => {
+  const response = await fetch("http://localhost:5000/api/users/register", {
+    method: "POST",
+    headers: new Headers({ "content-type": "application/json" }),
+    body: JSON.stringify({
+      username,
+      password,
+    }),
+  });
+  const json = await response.json();
+  return json.errors;
+};
+
+const login = async (username, password) => {
+  const response = await fetch("http://localhost:5000/api/users/login", {
+    method: "POST",
+    headers: new Headers({ "content-type": "application/json" }),
+    body: JSON.stringify({
+      username,
+      password,
+    }),
+  });
+  const json = await response.json();
+  return json; // Because we will want to extract the returned username (which will have been trimmed etc) as well as the errors
+};
+
+const logout = async () => {
+  const response = await fetch("http://localhost:5000/api/users/logout", {
+    method: "DELETE",
+  });
+  const json = await response.json();
+  return json.errors;
+};
+
+export {
+  fetchImplants,
+  fetchTasks,
+  fetchTaskTypes,
+  createTask,
+  deleteTask,
+  register,
+  login,
+  logout,
+};

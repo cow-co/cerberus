@@ -16,6 +16,7 @@ const ImplantsPane = () => {
     setShowInactive(!showInactive);
   }
 
+  // TODO set alerts for errors
   const refresh = async () => {
     const result = await fetchImplants();
     if (result.errors.length === 0) {

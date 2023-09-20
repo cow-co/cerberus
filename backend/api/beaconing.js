@@ -53,7 +53,6 @@ router.post("", async (req, res) => {
         tasks: [],
         errors: validationResult.errors,
       };
-      console.log(JSON.stringify(responseJSON));
       returnStatus = statusCodes.BAD_REQUEST;
     }
   } catch (err) {
