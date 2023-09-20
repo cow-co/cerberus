@@ -48,9 +48,9 @@ router.post("/login", userManager.authenticate, async (req, res) => {
   }
 });
 
-router.delete("/logout", userManager.authenticate, async (req, res) => {
+router.delete("/logout", userManager.verifySession, async (req, res) => {
   userManager.logout(req.session);
-  res.redirect("/");
+  res.status(statusCodes.OK).json({ errors: [] });
 });
 
 module.exports = router;

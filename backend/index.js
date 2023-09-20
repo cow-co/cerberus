@@ -20,16 +20,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 if (process.env.NODE_ENV === "production") {
+  console.log("Connecting to db...");
   const db = require("./config/dbConfig").mongo_uri;
-  const mongoClient = mongoose
+  mongoose
     .connect(db, { useNewUrlParser: true })
-    .then((mongo) => {
+    .then(() => {
       logger.log(
         "index.js",
         "MongoDB connection successful",
         logger.levels.INFO
       );
-      return mongo.connection.getClient();
     })
     .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
 
@@ -39,7 +39,7 @@ if (process.env.NODE_ENV === "production") {
       resave: false,
       saveUninitialized: false,
       store: MongoStore.create({
-        clientPromise: mongoClient,
+        client: mongoose.connection.getClient(),
         stringify: false,
         autoRemove: "interval",
       }),
@@ -48,6 +48,10 @@ if (process.env.NODE_ENV === "production") {
       },
     })
   );
+
+  (async () => {
+    await seedTaskTypes();
+  })();
 } else {
   app.use(
     session({
@@ -57,10 +61,6 @@ if (process.env.NODE_ENV === "production") {
     })
   );
 }
-
-(async () => {
-  await seedTaskTypes();
-})();
 
 app.use(express.static(path.join(__dirname, "build")));
 app.use(

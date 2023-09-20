@@ -2,7 +2,7 @@ const {
   getNumDbVersions,
   updateDBVersion,
 } = require("./services/db-state-service");
-const { createTaskType, getTaskTypes } = require("./services/tasks-service");
+const { createTaskType } = require("./services/tasks-service");
 
 const seedTaskTypes = async () => {
   const defaultTaskTypes = [
