@@ -1,5 +1,6 @@
 import AlertsBar from "../elements/AlertsBar";
 import ImplantsPane from "../elements/ImplantsPane";
+import LoginRegisterDialogue from "../elements/LoginRegisterDialogue";
 import TasksPane from "../elements/TasksPane";
 import { Box, Grid } from '@mui/material';
 
