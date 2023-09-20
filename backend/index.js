@@ -43,6 +43,9 @@ if (process.env.NODE_ENV === "production") {
         stringify: false,
         autoRemove: "interval",
       }),
+      cookie: {
+        maxAge: 8 * 60 * 60 * 1000, // Eight hours
+      },
     })
   );
 } else {

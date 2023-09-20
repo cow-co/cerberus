@@ -41,10 +41,14 @@ const authenticate = async (req, res, next) => {
         levels.ERROR
       );
       errors.push("Internal Server Error");
+      res
+        .send(statusCodes.INTERNAL_SERVER_ERROR)
+        .json({ errors: ["Internal Server Error"] });
       break;
   }
 
   if (!authenticated) {
+    log("authenticate", `User failed login`, levels.WARN);
     res
       .send(statusCodes.UNAUTHENTICATED)
       .json({ errors: ["Incorrect login credentials"] });
@@ -69,7 +73,9 @@ const verifySession = async (req, res, next) => {
 };
 
 // Destroys the stored session token
-const logout = async (req) => {};
+const logout = async (session) => {
+  session.destroy();
+};
 
 // Creates a user - specifically for DB-backed user management.
 // Returns an error if user management is AD-backed.

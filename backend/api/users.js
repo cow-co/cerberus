@@ -37,16 +37,20 @@ router.post("/register", async (req, res) => {
 // - username
 // - password
 router.post("/login", userManager.authenticate, async (req, res) => {
-  // TODO Handle this properly (redirects, whatever.)
   if (req.session.username) {
-    console.log(`NOICE ${JSON.stringify(req.session)}`);
     res
       .status(statusCodes.OK)
       .json({ username: req.session.username, errors: [] });
-    //res.redirect("/");
   } else {
-    // TODO Error stuffs
+    res
+      .status(statusCodes.UNAUTHENTICATED)
+      .json({ username: null, errors: res.locals.errors });
   }
+});
+
+router.delete("/logout", userManager.authenticate, async (req, res) => {
+  userManager.logout(req.session);
+  res.redirect("/");
 });
 
 module.exports = router;
