@@ -3,6 +3,7 @@ const expect = require("chai").expect;
 const sinon = require("sinon");
 const User = require("../../db/models/User");
 const userManager = require("../../users/user-manager");
+const argon2 = require("argon2");
 
 describe("User tests", () => {
   afterEach(() => {
@@ -60,4 +61,20 @@ describe("User tests", () => {
     expect(res.statusCode).to.equal(400);
     expect(res.body.errors.length).to.equal(1);
   });
+
+  it("should log in", async () => {
+    sinon.stub(User, "findOne").returns({
+      _id: "some-mongo-id",
+      username: "user",
+      hashedPassword: "hashed",
+      acgs: [],
+    });
+    sinon.stub(argon2, "verify").returns(true);
+    const res = await agent
+      .post("/api/users/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    expect(res.statusCode).to.equal(200);
+  });
+
+  // TODO Logout tests?
 });

@@ -61,9 +61,6 @@ const authenticate = async (req, res, next) => {
 
 // Checks that the session cookie is valid; if not, redirects to the login page
 const verifySession = async (req, res, next) => {
-  console.log(
-    `Session: ${JSON.stringify(req.session.id)} at ${req.originalUrl}`
-  );
   if (req.session.username) {
     next();
   } else {

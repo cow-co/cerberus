@@ -5,7 +5,7 @@ const tasks = require("./api/tasks");
 const users = require("./api/users");
 const swaggerUI = require("swagger-ui-express");
 const mongoose = require("mongoose");
-const logger = require("./utils/logger");
+const { levels, log } = require("./utils/logger");
 const YAML = require("yamljs");
 const swaggerDoc = YAML.load("openapi/openapi.yaml");
 const path = require("path");
@@ -20,18 +20,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 if (process.env.NODE_ENV === "production") {
-  console.log("Connecting to db...");
+  log("index.js", "Connecting to db...", levels.INFO);
   const db = require("./config/dbConfig").mongo_uri;
   mongoose
     .connect(db, { useNewUrlParser: true })
     .then(() => {
-      logger.log(
-        "index.js",
-        "MongoDB connection successful",
-        logger.levels.INFO
-      );
+      log("index.js", "MongoDB connection successful", levels.INFO);
     })
-    .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
+    .catch((err) => log("index.js", err, levels.ERROR));
 
   app.use(
     session({
@@ -78,18 +74,18 @@ app.use(
 
 const port = process.env.PORT || 5000;
 let server = app.listen(port, async () => {
-  logger.log("index.js", `server running on port ${port}`, logger.levels.INFO);
+  log("index.js", `server running on port ${port}`, levels.INFO);
 });
 
 const stop = () => {
-  logger.log("index.js", "Closing server...", logger.levels.INFO);
+  log("index.js", "Closing server...", levels.INFO);
 
   if (process.env.NODE_ENV === "production") {
     mongoose.disconnect();
   }
 
   server.shutdown(() => {
-    logger.log("index.js", "Server closed...", logger.levels.INFO);
+    log("index.js", "Server closed...", levels.INFO);
   });
 };
 
@@ -100,7 +96,7 @@ const serveProdClient = () => {
       res.sendFile(path.join(__dirname, "./build/index.html"));
     });
 
-    console.log("Serving React App...");
+    log("index.js", "Serving React App...", levels.INFO);
   }
 };
 serveProdClient();
