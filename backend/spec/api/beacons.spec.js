@@ -1,11 +1,20 @@
 const request = require("supertest");
-const server = require("../../index");
+let server;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Implant = require("../../db/models/Implant");
 const Task = require("../../db/models/Task");
+const userManager = require("../../users/user-manager");
 
 describe("Beacon API tests", () => {
+  beforeAll(() => {
+    console.log("Stubbing");
+    sinon.stub(userManager, "verifySession").callsFake((req, res, next) => {
+      console.log("Stub");
+      return next();
+    });
+    server = require("../../index");
+  });
   it("should succeed", async () => {
     sinon.stub(Implant, "findOne").returns(null);
     sinon.stub(Implant, "create").returns(null);

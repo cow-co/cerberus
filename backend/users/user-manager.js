@@ -64,11 +64,9 @@ const verifySession = async (req, res, next) => {
     `Session: ${JSON.stringify(req.session.id)} at ${req.originalUrl}`
   );
   if (req.session.username) {
-    console.log("FOUND");
     next();
   } else {
-    console.log("NONE");
-    res.redirect("/");
+    res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
   }
 };
 

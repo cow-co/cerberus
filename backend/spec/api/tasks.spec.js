@@ -1,13 +1,17 @@
 const request = require("supertest");
-const server = require("../../index");
+let server = null;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Task = require("../../db/models/Task");
 const TaskType = require("../../db/models/TaskType");
+const userManager = require("../../users/user-manager");
 
 describe("Tasks API Tests", () => {
-  beforeEach(() => {
+  afterEach(() => {
     sinon.restore();
+  });
+
+  beforeEach(() => {
     const findStub = sinon.stub(Task, "find");
     findStub.withArgs({ implantId: "id-1" }).returns({
       sort: sinon.stub().returns([
@@ -56,6 +60,10 @@ describe("Tasks API Tests", () => {
       ]),
     });
 
+    findStub.withArgs({ implantId: "id-3", sent: false }).returns({
+      sort: sinon.stub().returns([]),
+    });
+
     const byIdStub = sinon.stub(TaskType, "findById");
     byIdStub.withArgs("tasktypeid1").returns({
       _id: "tasktypeid1",
@@ -67,14 +75,16 @@ describe("Tasks API Tests", () => {
       name: "Name 2",
       params: ["param1", "param2"],
     });
+
+    sinon.stub(userManager, "verifySession").callsFake((req, res, next) => {
+      console.log("Stub");
+      return next();
+    });
+    server = require("../../index");
   });
 
   it("should get all tasks for an implant (empty array)", async () => {
-    sinon.restore();
-    sinon.stub(Task, "find").returns({
-      sort: sinon.stub().returns([]),
-    });
-    const res = await request(server).get("/api/tasks/id-1");
+    const res = await request(server).get("/api/tasks/id-3");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(0);
   });
