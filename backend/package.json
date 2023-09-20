@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "nyc jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "test": "nyc --reporter=lcov jasmine JASMINE_CONFIG_PATH=jasmine.json",
     "start": "node index.js"
   },
   "author": "cow-co",
