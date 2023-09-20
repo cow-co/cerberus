@@ -94,4 +94,52 @@ router.post("/tasks", async (req, res) => {
   return res.status(returnStatus).json(responseJSON);
 });
 
+router.delete("/tasks/:taskId", async (req, res) => {
+  logger.log(
+    `DELETE /tasks/${req.params.taskId}`,
+    `Deleting task ${req.params.taskId}`,
+    logger.levels.INFO
+  );
+
+  let responseJSON = {
+    errors: [],
+  };
+  let returnStatus = statusCodes.OK;
+
+  try {
+    const task = await getTaskById(req.params.taskId);
+    if (task === undefined || task === null) {
+      returnStatus = statusCodes.BAD_REQUEST;
+      responseJSON.errors.push(
+        `Task with ID ${req.params.taskId} does not exist.`
+      );
+      logger.log(
+        `DELETE /tasks/${req.params.taskId}`,
+        "Task not found",
+        logger.levels.ERROR
+      );
+    } else {
+      if (task.sent) {
+        returnStatus = statusCodes.BAD_REQUEST;
+        responseJSON.errors.push(
+          "Cannot delete a task that has been sent to an implant."
+        );
+        logger.log(
+          `DELETE /tasks/${req.params.taskId}`,
+          "Task already sent",
+          logger.levels.ERROR
+        );
+      } else {
+        await deleteTask(req.params.taskId);
+      }
+    }
+  } catch (err) {
+    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+    responseJSON.errors.push("Internal Server Error");
+    logger.log(`DELETE /tasks/${req.params.taskId}`, err, logger.levels.ERROR);
+  }
+
+  return res.status(returnStatus).json(responseJSON);
+});
+
 module.exports = router;

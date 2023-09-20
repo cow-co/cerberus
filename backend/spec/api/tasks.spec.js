@@ -203,4 +203,39 @@ describe("Tasks API Tests", () => {
     });
     expect(res.statusCode).to.equal(400);
   });
+
+  it("should delete a task", async () => {
+    sinon.stub(Task, "findById").returns({
+      _id: "some-mongo-id",
+      order: 0,
+      implantId: "id-1",
+      taskType: "Task",
+      params: ["param1"],
+      sent: false,
+    });
+    sinon.stub(Task, "findByIdAndDelete");
+    const res = await agent.delete("/api/tasks/some-mongo-id");
+    expect(res.statusCode).to.equal(200);
+  });
+
+  it("should fail to delete a task - non-existent ID", async () => {
+    sinon.stub(Task, "findById").returns(null);
+    sinon.stub(Task, "findByIdAndDelete");
+    const res = await agent.delete("/api/tasks/some-mongo-if");
+    expect(res.statusCode).to.equal(400);
+  });
+
+  it("should fail to delete a task - task already sent", async () => {
+    sinon.stub(Task, "findById").returns({
+      _id: "some-mongo-id",
+      order: 0,
+      implantId: "id-1",
+      taskType: "Task",
+      params: ["param1"],
+      sent: true,
+    });
+    sinon.stub(Task, "findByIdAndDelete");
+    const res = await agent.delete("/api/tasks/some-mongo-id");
+    expect(res.statusCode).to.equal(400);
+  });
 });
