@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json",
+    "test": "nyc jasmine JASMINE_CONFIG_PATH=jasmine.json",
     "start": "node index.js"
   },
   "author": "cow-co",
@@ -24,6 +24,7 @@
     "chai": "^4.3.8",
     "jasmine": "^5.1.0",
     "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
     "sinon": "^15.2.0",
     "supertest": "^6.3.3"
   }
