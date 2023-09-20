@@ -32,7 +32,7 @@ const authenticate = async (req, res, next) => {
       authenticated = await dbUserManager.authenticate(username, password);
       break;
     case securityConfig.availableAuthMethods.AD:
-      adUserManager.authenticate(username, password);
+      authenticated = adUserManager.authenticate(username, password);
       break;
 
     default:

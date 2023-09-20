@@ -3,14 +3,20 @@ const ActiveDirectory = require("activedirectory");
 
 const ad = new ActiveDirectory(securityConfig.adConfig);
 
-// TODO Handle the PKI case (no password; ie. just check that given username exists)
+// Password will be null if using PKI
 const authenticate = async (username, password) => {
   let success = false;
-  ad.authenticate(username, password, (err, auth) => {
-    if (auth) {
-      success = true;
-    }
-  });
+  if (securityConfig.usePKI) {
+    ad.userExists(username, (err, exists) => {
+      success = exists;
+    });
+  } else {
+    ad.authenticate(username, password, (err, auth) => {
+      if (auth) {
+        success = true;
+      }
+    });
+  }
 
   return success;
 };
