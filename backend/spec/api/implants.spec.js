@@ -1,12 +1,15 @@
-const request = require("supertest");
-const server = require("../../index");
+let agent;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Implant = require("../../db/models/Implant");
+const userManager = require("../../users/user-manager");
 
 describe("Implant API Tests", () => {
-  beforeEach(() => {
+  afterEach(() => {
     sinon.restore();
+  });
+
+  beforeEach(() => {
     const findStub = sinon.stub(Implant, "find").callsFake(async () => {
       return [
         {
@@ -29,19 +32,25 @@ describe("Implant API Tests", () => {
         },
       ];
     });
+
+    // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
+    // since node caches the app
+    sinon.stub(userManager, "verifySession").callsArg(2);
+    agent = require("supertest").agent(require("../../index"));
   });
   it("should get all implants (empty array)", async () => {
     sinon.restore();
     sinon.stub(Implant, "find").callsFake(async () => {
       return [];
     });
-    const res = await request(server).get("/api/implants");
+    const res = await agent.get("/api/implants");
     expect(res.statusCode).to.equal(200);
     expect(res.body.implants.length).to.equal(0);
   });
 
   it("should get all implants (non-empty array)", async () => {
-    const res = await request(server).get("/api/implants");
+    server = require("../../index");
+    const res = await agent.get("/api/implants");
     expect(res.statusCode).to.equal(200);
     expect(res.body.implants.length).to.equal(2);
   });

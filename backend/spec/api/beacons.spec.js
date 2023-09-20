@@ -1,11 +1,22 @@
-const request = require("supertest");
-const server = require("../../index");
+let agent;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Implant = require("../../db/models/Implant");
 const Task = require("../../db/models/Task");
+const userManager = require("../../users/user-manager");
 
 describe("Beacon API tests", () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
+  // since node caches the app
+  beforeEach(() => {
+    sinon.stub(userManager, "verifySession").callsArg(2);
+    agent = require("supertest").agent(require("../../index"));
+  });
+
   it("should succeed", async () => {
     sinon.stub(Implant, "findOne").returns(null);
     sinon.stub(Implant, "create").returns(null);
@@ -22,7 +33,7 @@ describe("Beacon API tests", () => {
       ]),
     });
     sinon.stub(Task, "findByIdAndUpdate").returns({});
-    const res = await request(server).post("/api/beacon").send({
+    const res = await agent.post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",
       os: "Windows 6.1.7601.17592",
@@ -46,7 +57,7 @@ describe("Beacon API tests", () => {
   });
 
   it("should fail - no ID", async () => {
-    const res = await request(server).post("/api/beacon").send({
+    const res = await agent.post("/api/beacon").send({
       ip: "192.168.0.1",
       os: "Windows 6.1.7601.17592",
       beaconIntervalSeconds: 300,
@@ -56,7 +67,7 @@ describe("Beacon API tests", () => {
   });
 
   it("should fail - empty ID", async () => {
-    const res = await request(server).post("/api/beacon").send({
+    const res = await agent.post("/api/beacon").send({
       id: "",
       ip: "192.168.0.1",
       os: "Windows 6.1.7601.17592",
@@ -67,7 +78,7 @@ describe("Beacon API tests", () => {
   });
 
   it("should fail - invalid IP", async () => {
-    const res = await request(server).post("/api/beacon/").send({
+    const res = await agent.post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.",
       os: "Windows 6.1.7601.17592",
@@ -78,7 +89,7 @@ describe("Beacon API tests", () => {
   });
 
   it("should fail - negative interval", async () => {
-    const res = await request(server).post("/api/beacon/").send({
+    const res = await agent.post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",
       os: "Windows 6.1.7601.17592",
@@ -88,7 +99,7 @@ describe("Beacon API tests", () => {
     expect(res.statusCode).to.equal(400);
   });
   it("should fail - zero interval", async () => {
-    const res = await request(server).post("/api/beacon/").send({
+    const res = await agent.post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",
       os: "Windows 6.1.7601.17592",

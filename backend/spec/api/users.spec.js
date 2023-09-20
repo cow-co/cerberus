@@ -1,10 +1,21 @@
-const request = require("supertest");
-const server = require("../../index");
+let agent;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const User = require("../../db/models/User");
+const userManager = require("../../users/user-manager");
 
 describe("User tests", () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
+  // since node caches the app
+  beforeEach(() => {
+    sinon.stub(userManager, "verifySession").callsArg(2);
+    agent = require("supertest").agent(require("../../index"));
+  });
+
   it("should create a user", async () => {
     sinon.stub(User, "create").returns({
       _id: "some-mongo-id",
@@ -12,14 +23,14 @@ describe("User tests", () => {
       hashedPassword: "hashed",
       acgs: [],
     });
-    const res = await request(server)
+    const res = await agent
       .post("/api/users/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
   });
 
   it("should fail to create a user - no uppercase", async () => {
-    const res = await request(server)
+    const res = await agent
       .post("/api/users/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyz11" });
     expect(res.statusCode).to.equal(400);
@@ -27,7 +38,7 @@ describe("User tests", () => {
   });
 
   it("should fail to create a user - no lowercase", async () => {
-    const res = await request(server)
+    const res = await agent
       .post("/api/users/register")
       .send({ username: "user", password: "ABCDEFGHIJKLMNOPQRSTUVWXYZ11" });
     expect(res.statusCode).to.equal(400);
@@ -35,7 +46,7 @@ describe("User tests", () => {
   });
 
   it("should fail to create a user - no number", async () => {
-    const res = await request(server)
+    const res = await agent
       .post("/api/users/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ" });
     expect(res.statusCode).to.equal(400);
@@ -43,7 +54,7 @@ describe("User tests", () => {
   });
 
   it("should fail to create a user - too short", async () => {
-    const res = await request(server)
+    const res = await agent
       .post("/api/users/register")
       .send({ username: "user", password: "Ab1" });
     expect(res.statusCode).to.equal(400);

@@ -19,9 +19,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, "build")));
-
 if (process.env.NODE_ENV === "production") {
+  console.log("Connecting to db...");
   const db = require("./config/dbConfig").mongo_uri;
   mongoose
     .connect(db, { useNewUrlParser: true })
@@ -40,13 +39,19 @@ if (process.env.NODE_ENV === "production") {
       resave: false,
       saveUninitialized: false,
       store: MongoStore.create({
-        clientPromise: mongoose.connection.getClient(),
-        dbName: mongoose.connection.db.databaseName,
+        client: mongoose.connection.getClient(),
         stringify: false,
         autoRemove: "interval",
       }),
+      cookie: {
+        maxAge: 8 * 60 * 60 * 1000, // Eight hours
+      },
     })
   );
+
+  (async () => {
+    await seedTaskTypes();
+  })();
 } else {
   app.use(
     session({
@@ -57,10 +62,7 @@ if (process.env.NODE_ENV === "production") {
   );
 }
 
-(async () => {
-  await seedTaskTypes();
-})();
-
+app.use(express.static(path.join(__dirname, "build")));
 app.use(
   "/api-docs/beaconing",
   swaggerUI.serve,

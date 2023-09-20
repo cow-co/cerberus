@@ -33,4 +33,24 @@ router.post("/register", async (req, res) => {
   res.status(responseStatus).json(responseJSON);
 });
 
+// Expects request body to contain:
+// - username
+// - password
+router.post("/login", userManager.authenticate, async (req, res) => {
+  if (req.session.username) {
+    res
+      .status(statusCodes.OK)
+      .json({ username: req.session.username, errors: [] });
+  } else {
+    res
+      .status(statusCodes.UNAUTHENTICATED)
+      .json({ username: null, errors: res.locals.errors });
+  }
+});
+
+router.delete("/logout", userManager.verifySession, async (req, res) => {
+  userManager.logout(req.session);
+  res.status(statusCodes.OK).json({ errors: [] });
+});
+
 module.exports = router;

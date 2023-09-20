@@ -10,8 +10,9 @@ const router = express.Router();
 const logger = require("../utils/logger");
 const statusCodes = require("../config/statusCodes");
 const { validateTask } = require("../validation/request-validation");
+const { verifySession } = require("../users/user-manager");
 
-router.get("/tasks/:implantId", async (req, res) => {
+router.get("/tasks/:implantId", verifySession, async (req, res) => {
   logger.log(
     `/tasks/${req.params.implantId}`,
     "Getting tasks for implant...",
