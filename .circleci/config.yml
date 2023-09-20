@@ -12,6 +12,9 @@ jobs:
       - run:
           command: cd backend && npm test
           name: Run backend tests
+      - run:
+          command: cd backend && npm run coverage
+          name: Code coverage
   build_frontend:
     executor: node/default
     steps:

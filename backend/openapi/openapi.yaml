@@ -1,0 +1,450 @@
+openapi: 3.0.0
+info:
+  title: CERBERUS API
+  description: API definition for the CERBERUS implant-management API.
+  version: 0.0.1
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sid
+  schemas:
+    logindetails:
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    implant:
+      properties:
+        _id:
+          nullable: false
+          type: "string"
+        id:
+          nullable: false
+          type: "string"
+        ip:
+          nullable: true
+          type: "string"
+        os:
+          nullable: true
+          type: "string"
+        beaconIntervalSeconds:
+          nullable: false
+          type: "number"
+        lastCheckinTime:
+          nullable: false
+          type: "string"
+        isActive:
+          nullable: false
+          type: "boolean"
+    task:
+      properties:
+        _id:
+          nullable: false
+          type: "string"
+        order:
+          nullable: false
+          type: "integer"
+        implantId:
+          nullable: false
+          type: "string"
+        taskType:
+          nullable: false
+          type: "string"
+        params:
+          nullable: true
+          type: "array"
+          items:
+            $ref: "#/components/schemas/paramvalue"
+        sent:
+          nullable: false
+          type: "boolean"
+    tasktype:
+      properties:
+        _id:
+          nullable: false
+          type: "string"
+        name:
+          nullable: false
+          type: "string"
+        params:
+          nullable: false
+          type: "array"
+          items:
+            type: "string"
+    paramvalue:
+      properties:
+        name:
+          nullable: false
+          type: "string"
+        value:
+          nullable: false
+          type: "string"
+paths:
+  /implants/:
+    get:
+      summary: Retrieves all implants.
+      tags:
+        - Implants
+      responses:
+        "200": # status code
+          description: Implant details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  implants:
+                    type: array
+                    description: This will be empty
+                    items:
+                      $ref: "#/components/schemas/implant"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  implants:
+                    type: array
+                    description: This will be empty
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /beacon/:
+    post:
+      summary: Reports in to the CERBERUS server, to receive C2 tasking.
+      tags:
+        - Beacon
+      requestBody:
+        description: Details of the implant host
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: The ID of the implant
+                os:
+                  type: string
+                  description: The OS of the implant host
+                ip:
+                  type: string
+                  description: The IP of the implant host
+                beaconIntervalSeconds:
+                  type: long
+                  description: The interval, in seconds, between checkins for the implant - configured in the implant code to start off, but may be updated by C2
+        required: true
+      responses:
+        "200": # status code
+          description: Tasking details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/task"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400": # status code
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    description: This will be empty
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    description: This will be empty
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /tasks/{implantId}:
+    get:
+      security:
+        - cookieAuth: []
+      summary: Retrieves tasks for the given implant. Requires login
+      tags:
+        - Tasks
+      responses:
+        "200": # status code
+          description: Tasks.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    description: Tasks for the implant
+                    items:
+                      $ref: "#/components/schemas/task"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  implants:
+                    type: array
+                    description: This will be empty
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /task-types:
+    get:
+      summary: Retrieves the list of all task types
+      tags:
+        - Tasks
+      responses:
+        "200": # status code
+          description: Task types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    description: Task types
+                    items:
+                      $ref: "#/components/schemas/tasktype"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  implants:
+                    type: array
+                    description: This will be empty
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /tasks: 
+    post: 
+      security:
+        - cookieAuth: []
+      summary: Creates a task
+      tags:
+        - Tasks
+      responses:
+        "200": # status code
+          description: Successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400": # status code
+          description: Improperly-formatted task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /tasks/{taskId}: 
+    delete: 
+      security:
+        - cookieAuth: []
+      summary: Deletes a task
+      tags:
+        - Tasks
+      responses:
+        "200": # status code
+          description: Successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400": # status code
+          description: Task does not exist, or has already been sent to an implant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /users/register: 
+    post: 
+      summary: Creates a database-backed user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/logindetails"
+      responses:
+        "200": # status code
+          description: Successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400": # status code
+          description: Registration error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /users/login: 
+    post: 
+      summary: Creates a login session
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/logindetails"
+      responses:
+        "200": # status code
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "401": # status code
+          description: Login error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /users/logout: 
+    delete: 
+      security:
+        - cookieAuth: []
+      summary: Logs the user out
+      tags:
+        - Users
+      responses:
+        "200": # status code
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: User not logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+      
+      
