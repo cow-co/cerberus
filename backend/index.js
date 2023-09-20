@@ -2,6 +2,7 @@ const express = require("express");
 const beacons = require("./api/beaconing");
 const implants = require("./api/implants");
 const tasks = require("./api/tasks");
+const users = require("./api/users");
 const swaggerUI = require("swagger-ui-express");
 const mongoose = require("mongoose");
 const logger = require("./utils/logger");
@@ -10,6 +11,9 @@ const swaggerDocBeaconing = YAML.load("openapi/beaconing.yaml");
 const swaggerDocImplants = YAML.load("openapi/implants.yaml");
 const path = require("path");
 const { seedTaskTypes } = require("./db/seed");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const securityConfig = require("./config/security-config");
 
 const app = express();
 app.use(express.json());
@@ -21,18 +25,41 @@ if (process.env.NODE_ENV === "production") {
   const db = require("./config/dbConfig").mongo_uri;
   mongoose
     .connect(db, { useNewUrlParser: true })
-    .then(() =>
+    .then(() => {
       logger.log(
         "index.js",
         "MongoDB connection successful",
         logger.levels.INFO
-      )
-    )
+      );
+    })
     .catch((err) => logger.log("index.js", err, logger.levels.ERROR));
-  (async () => {
-    await seedTaskTypes();
-  })();
+
+  app.use(
+    session({
+      secret: securityConfig.sessionSecret,
+      resave: false,
+      saveUninitialized: false,
+      store: MongoStore.create({
+        clientPromise: mongoose.connection.getClient(),
+        dbName: mongoose.connection.db.databaseName,
+        stringify: false,
+        autoRemove: "interval",
+      }),
+    })
+  );
+} else {
+  app.use(
+    session({
+      secret: securityConfig.sessionSecret,
+      resave: false,
+      saveUninitialized: false,
+    })
+  );
 }
+
+(async () => {
+  await seedTaskTypes();
+})();
 
 app.use(
   "/api-docs/beaconing",
@@ -46,8 +73,8 @@ app.use(
   swaggerUI.setup(swaggerDocImplants)
 );
 app.use("/api/implants", implants);
-
 app.use("/api", tasks);
+app.use("/api/users", users);
 
 const port = process.env.PORT || 5000;
 let server = app.listen(port, async () => {
