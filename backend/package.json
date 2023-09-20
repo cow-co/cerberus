@@ -16,6 +16,7 @@
     "express": "^4.18.2",
     "express-session": "^1.17.3",
     "mongoose": "^7.5.0",
+    "swagger-themes": "^1.2.30",
     "swagger-ui-express": "^5.0.0",
     "yamljs": "^0.3.0"
   },

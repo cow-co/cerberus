@@ -7,13 +7,13 @@ const swaggerUI = require("swagger-ui-express");
 const mongoose = require("mongoose");
 const logger = require("./utils/logger");
 const YAML = require("yamljs");
-const swaggerDocBeaconing = YAML.load("openapi/beaconing.yaml");
-const swaggerDocImplants = YAML.load("openapi/implants.yaml");
+const swaggerDoc = YAML.load("openapi/openapi.yaml");
 const path = require("path");
 const { seedTaskTypes } = require("./db/seed");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const securityConfig = require("./config/security-config");
+const { SwaggerTheme } = require("swagger-themes");
 
 const app = express();
 app.use(express.json());
@@ -63,20 +63,18 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.use(express.static(path.join(__dirname, "build")));
-app.use(
-  "/api-docs/beaconing",
-  swaggerUI.serve,
-  swaggerUI.setup(swaggerDocBeaconing)
-);
 app.use("/api/beacon", beacons);
-app.use(
-  "/api-docs/implants",
-  swaggerUI.serve,
-  swaggerUI.setup(swaggerDocImplants)
-);
 app.use("/api/implants", implants);
 app.use("/api", tasks);
 app.use("/api/users", users);
+
+const theme = new SwaggerTheme("v3");
+const darkStyle = theme.getBuffer("dark");
+app.use(
+  "/api-docs",
+  swaggerUI.serve,
+  swaggerUI.setup(swaggerDoc, { customCss: darkStyle })
+);
 
 const port = process.env.PORT || 5000;
 let server = app.listen(port, async () => {

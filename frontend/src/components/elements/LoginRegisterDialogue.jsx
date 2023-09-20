@@ -12,7 +12,7 @@ const LoginRegisterDialogue = (props) => {
   }
 
   const handleSubmit = () => {
-    onSubmit(task);
+    onSubmit(username, password);
   }
 
   const handleUsernameUpdate = (event) => {
