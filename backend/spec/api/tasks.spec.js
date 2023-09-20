@@ -214,14 +214,14 @@ describe("Tasks API Tests", () => {
       sent: false,
     });
     sinon.stub(Task, "findByIdAndDelete");
-    const res = await request(server).delete("/api/tasks/some-mongo-id");
+    const res = await agent.delete("/api/tasks/some-mongo-id");
     expect(res.statusCode).to.equal(200);
   });
 
   it("should fail to delete a task - non-existent ID", async () => {
     sinon.stub(Task, "findById").returns(null);
     sinon.stub(Task, "findByIdAndDelete");
-    const res = await request(server).delete("/api/tasks/some-mongo-if");
+    const res = await agent.delete("/api/tasks/some-mongo-if");
     expect(res.statusCode).to.equal(400);
   });
 
@@ -235,7 +235,7 @@ describe("Tasks API Tests", () => {
       sent: true,
     });
     sinon.stub(Task, "findByIdAndDelete");
-    const res = await request(server).delete("/api/tasks/some-mongo-id");
+    const res = await agent.delete("/api/tasks/some-mongo-id");
     expect(res.statusCode).to.equal(400);
   });
 });
