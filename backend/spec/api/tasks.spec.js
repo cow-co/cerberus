@@ -1,5 +1,4 @@
-const request = require("supertest");
-let server = null;
+let agent = null;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Task = require("../../db/models/Task");
@@ -76,39 +75,36 @@ describe("Tasks API Tests", () => {
       params: ["param1", "param2"],
     });
 
-    sinon.stub(userManager, "verifySession").callsFake((req, res, next) => {
-      console.log("Stub");
-      return next();
-    });
-    server = require("../../index");
+    sinon.stub(userManager, "verifySession").callsArg(2);
+    agent = require("supertest").agent(require("../../index"));
   });
 
   it("should get all tasks for an implant (empty array)", async () => {
-    const res = await request(server).get("/api/tasks/id-3");
+    const res = await agent.get("/api/tasks/id-3");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(0);
   });
 
   it("should get all tasks for an implant (non-empty array)", async () => {
-    const res = await request(server).get("/api/tasks/id-1");
+    const res = await agent.get("/api/tasks/id-1");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(1);
   });
 
   it("should get all tasks for an implant (including sent)", async () => {
-    const res = await request(server).get("/api/tasks/id-1?includeSent=true");
+    const res = await agent.get("/api/tasks/id-1?includeSent=true");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(2);
   });
 
   it("should get all tasks for an implant (explicitly excluding sent)", async () => {
-    const res = await request(server).get("/api/tasks/id-1?includeSent=false");
+    const res = await agent.get("/api/tasks/id-1?includeSent=false");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(1);
   });
 
   it("should get all tasks for a different implant", async () => {
-    const res = await request(server).get("/api/tasks/id-2");
+    const res = await agent.get("/api/tasks/id-2");
     expect(res.statusCode).to.equal(200);
     expect(res.body.tasks.length).to.equal(1);
   });
@@ -126,7 +122,7 @@ describe("Tasks API Tests", () => {
         },
       ];
     });
-    const res = await request(server).get("/api/task-types");
+    const res = await agent.get("/api/task-types");
     expect(res.statusCode).to.equal(200);
     expect(res.body.taskTypes.length).to.equal(2);
   });
@@ -147,16 +143,14 @@ describe("Tasks API Tests", () => {
       ];
     });
     sinon.stub(Task, "create");
-    const res = await request(server)
-      .post("/api/tasks")
-      .send({
-        type: {
-          id: "tasktypeid1",
-          name: "Name",
-        },
-        implantId: "id-1",
-        params: [],
-      });
+    const res = await agent.post("/api/tasks").send({
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      implantId: "id-1",
+      params: [],
+    });
     expect(res.statusCode).to.equal(200);
   });
 
@@ -176,15 +170,13 @@ describe("Tasks API Tests", () => {
       ];
     });
     sinon.stub(Task, "create");
-    const res = await request(server)
-      .post("/api/tasks")
-      .send({
-        type: {
-          id: "tasktypeid1",
-        },
-        implantId: "id-1",
-        params: [],
-      });
+    const res = await agent.post("/api/tasks").send({
+      type: {
+        id: "tasktypeid1",
+      },
+      implantId: "id-1",
+      params: [],
+    });
     expect(res.statusCode).to.equal(400);
   });
 
@@ -202,15 +194,13 @@ describe("Tasks API Tests", () => {
       },
     ]);
     sinon.stub(Task, "create");
-    const res = await request(server)
-      .post("/api/tasks")
-      .send({
-        type: {
-          id: "tasktypeid1",
-          name: "Name",
-        },
-        params: [],
-      });
+    const res = await agent.post("/api/tasks").send({
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      params: [],
+    });
     expect(res.statusCode).to.equal(400);
   });
 });
