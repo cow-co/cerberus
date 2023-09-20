@@ -1,8 +1,10 @@
 const express = require("express");
 const {
   getTasksForImplant,
+  getTaskById,
   createTask,
   getTaskTypes,
+  deleteTask,
 } = require("../db/services/tasks-service");
 const router = express.Router();
 const logger = require("../utils/logger");
