@@ -14,10 +14,7 @@ jobs:
           command: cd backend && npm test
           name: Run backend tests
       - run:
-          command: ls ./backend
-          name: test
-      - run:
-          command: ls ./
+          command: ls ./backend/coverage
           name: test
       - codecov/upload:
           file: ./backend/coverage
