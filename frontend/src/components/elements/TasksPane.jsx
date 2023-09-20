@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
 import { createTask, fetchTasks, deleteTask } from '../../functions/apiCalls';
 import CreateTaskDialogue from './CreateTaskDialogue';
-import { useSelector, useDispatch } from "react-redux"
-import { setTasks } from "../../common/redux/tasks-slice"
-import conf from "../../common/config/properties"
+import { useSelector, useDispatch } from "react-redux";
+import { setTasks } from "../../common/redux/tasks-slice";
+import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { v4 as uuidv4 } from "uuid";
 

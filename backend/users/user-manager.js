@@ -6,6 +6,7 @@ const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
 const { extractUserDetails } = require("../security/pki");
+const mongoose = require("mongoose");
 
 // Basically checks the provided credentials
 // Does NOT mutate `req` - setting the session details on `req` must be done by the caller,
@@ -23,7 +24,6 @@ const authenticate = async (req, res, next) => {
     username = req.body.username;
     password = req.body.password;
   }
-
   let authenticated = false;
 
   // TODO wrap in try/catch

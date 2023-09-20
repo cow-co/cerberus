@@ -41,6 +41,7 @@ if (process.env.NODE_ENV === "production") {
       }),
       cookie: {
         maxAge: 8 * 60 * 60 * 1000, // Eight hours
+        httpOnly: false,
       },
     })
   );
@@ -54,6 +55,10 @@ if (process.env.NODE_ENV === "production") {
       secret: securityConfig.sessionSecret,
       resave: false,
       saveUninitialized: false,
+      cookie: {
+        maxAge: 8 * 60 * 60 * 1000, // Eight hours
+        httpOnly: false,
+      },
     })
   );
 }
