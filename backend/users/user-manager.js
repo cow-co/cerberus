@@ -4,6 +4,7 @@ const securityConfig = require("../config/security-config");
 const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
+const adUserManager = require("./active-directory-manager");
 const { extractUserDetails } = require("../security/pki");
 
 // Basically checks the provided credentials
@@ -31,7 +32,7 @@ const authenticate = async (req, res, next) => {
       authenticated = await dbUserManager.authenticate(username, password);
       break;
     case securityConfig.availableAuthMethods.AD:
-      // TODO Do an auth check
+      adUserManager.authenticate(username, password);
       break;
 
     default:

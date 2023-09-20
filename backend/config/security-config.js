@@ -16,4 +16,10 @@ module.exports = {
     requireNumber: true,
     minLength: 15,
   },
+  adConfig: {
+    url: "",
+    baseDN: "",
+    username: `${process.env.CERBERUS_LDAP_BIND_USER}`,
+    password: `${process.env.CERBERUS_LDAP_BIND_PASS}`,
+  },
 };
