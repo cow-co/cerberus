@@ -1,6 +1,6 @@
 const { passwordRequirements } = require("../config/security-config");
 
-const DIGITS_REGEX = "[0-9]+";
+const DIGITS_REGEX = /[0-9]+/g;
 
 const validatePassword = (password) => {
   let errors = [];
@@ -21,7 +21,7 @@ const validatePassword = (password) => {
 
   if (
     passwordRequirements.requireNumber &&
-    password.matches(DIGITS_REGEX).length === 0
+    password.match(DIGITS_REGEX) === null
   ) {
     errors.push("At least one numeric digit is required");
   }

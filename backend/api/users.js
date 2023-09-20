@@ -26,7 +26,7 @@ router.post("/register", async (req, res) => {
       responseStatus = statusCodes.BAD_REQUEST;
     }
   } else {
-    responseJSON.errors.concat(validationErrors);
+    responseJSON.errors = responseJSON.errors.concat(validationErrors);
     responseStatus = statusCodes.BAD_REQUEST;
   }
 

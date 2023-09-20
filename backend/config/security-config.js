@@ -13,7 +13,7 @@ module.exports = {
   passwordRequirements: {
     requireUppercase: true,
     requireLowercase: true,
-    requireNumber: false,
+    requireNumber: true,
     minLength: 15,
   },
 };
