@@ -13,11 +13,14 @@ jobs:
       - run:
           command: cd backend && npm test
           name: Run backend tests
+      - run:
+          command: ls ./backend
+          name: test
+      - run:
+          command: ls ./
+          name: test
       - codecov/upload:
           file: ./backend/coverage
-      - run:
-          command: ls ./backend/coverage
-          name: test
   build_frontend:
     executor: node/default
     steps:
