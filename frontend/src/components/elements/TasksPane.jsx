@@ -10,6 +10,7 @@ import conf from "../../common/config/properties"
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { v4 as uuidv4 } from "uuid";
 
+// TODO Handle auth errors etc
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
@@ -89,8 +90,10 @@ function TasksPane() {
 
   useEffect(() => {
     async function callFetcher() {
-      const received = await fetchTasks(selectedImplant.id);
-      dispatch(setTasks(received.tasks));
+      if (selectedImplant.id) {
+        const received = await fetchTasks(selectedImplant.id);
+        dispatch(setTasks(received.tasks));
+      }
     }
     callFetcher()
     // eslint-disable-next-line react-hooks/exhaustive-deps
