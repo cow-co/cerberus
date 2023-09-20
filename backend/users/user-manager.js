@@ -6,15 +6,21 @@ const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
 const { extractUserDetails } = require("../security/pki");
 
-// Basically logs a user in sits in front of the POST /login endpoint
+// Basically checks the provided credentials
+// Does NOT mutate `req` - setting the session details on `req` must be done by the caller,
+// after receiving a successful response from this.
+// TODO all these methods should trim whitespace off the username (but not the password!!!)
+// TODO Or do we want this to be a middleware? How do we return the different status codes (ie how to determine between a 500 and a 400/401 after returning?)
 const authenticate = async (req, res, next) => {
   let username = null;
   let password = null;
+  let errors = [];
 
   if (securityConfig.usePKI) {
     username = extractUserDetails(req);
   } else {
-    // TODO extract username and password from request body
+    username = req.body.username;
+    password = req.body.password;
   }
 
   let authenticated = false;
@@ -34,9 +40,7 @@ const authenticate = async (req, res, next) => {
         `Auth method ${securityConfig.authMethod} not supported`,
         levels.ERROR
       );
-      res
-        .status(statusCodes.INTERNAL_SERVER_ERROR)
-        .json({ errors: ["Internal Server Error"] });
+      errors.push("Internal Server Error");
       break;
   }
 
@@ -45,12 +49,24 @@ const authenticate = async (req, res, next) => {
       .send(statusCodes.UNAUTHENTICATED)
       .json({ errors: ["Incorrect login credentials"] });
   } else {
-    // TODO Generate session token
+    req.session.username = username;
+    next();
   }
 };
 
 // Checks that the session cookie is valid; if not, redirects to the login page
-const verifySession = async (req, res, next) => {};
+const verifySession = async (req, res, next) => {
+  console.log(
+    `Session: ${JSON.stringify(req.session.id)} at ${req.originalUrl}`
+  );
+  if (req.session.username) {
+    console.log("FOUND");
+    next();
+  } else {
+    console.log("NONE");
+    res.redirect("/");
+  }
+};
 
 // Destroys the stored session token
 const logout = async (req) => {};
