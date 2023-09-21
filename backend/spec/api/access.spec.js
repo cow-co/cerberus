@@ -4,6 +4,7 @@ const sinon = require("sinon");
 const User = require("../../db/models/User");
 const userManager = require("../../users/user-manager");
 const argon2 = require("argon2");
+const securityConfig = require("../../config/security-config");
 
 describe("User tests", () => {
   afterEach(() => {
@@ -75,4 +76,11 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
   });
+
+  it("should log the user in automatically when using PKI", async () => {
+    const originalSetting = securityConfig.usePKI;
+    securityConfig.usePKI = true;
+    // TODO attempt to access some secured endpoint without having logged in - ensure PKI method is called and sets up the sesh properly
+  });
+  // TODO AD Login test
 });

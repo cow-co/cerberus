@@ -69,7 +69,13 @@ const verifySession = async (req, res, next) => {
   if (req.session.username) {
     next();
   } else {
-    res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
+    // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
+    // to manually submit anything
+    if (securityConfig.usePKI) {
+      authenticate(req, res, next);
+    } else {
+      res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
+    }
   }
 };
 

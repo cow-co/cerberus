@@ -22,5 +22,10 @@ module.exports = {
     baseDN: "",
     username: `${process.env.CERBERUS_LDAP_BIND_USER}`,
     password: `${process.env.CERBERUS_LDAP_BIND_PASS}`,
+    adminGroup: "",
+  },
+  initialAdmin: {
+    username: `${process.env.CERBERUS_INIT_ADMIN_USER}`,
+    password: `${process.env.CERBERUS_INIT_ADMIN_PASS}`,
   },
 };
