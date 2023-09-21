@@ -5,8 +5,8 @@ const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
-const { extractUserDetails } = require("../security/pki");
-const mongoose = require("mongoose");
+const { extractUserDetails } = require("./pki");
+const { findUser } = require("../db/services/user-service");
 
 // Basically checks the provided credentials
 const authenticate = async (req, res, next) => {
@@ -100,9 +100,28 @@ const register = async (username, password) => {
   return response;
 };
 
+const checkAdmin = async (req, res, next) => {
+  const username = req.session.username;
+  let isAdmin = false;
+
+  if (username) {
+    const user = await findUser(username);
+    isAdmin = user.isAdmin;
+  }
+
+  if (!isAdmin) {
+    res
+      .status(statusCodes.FORBIDDEN)
+      .json({ errors: ["You must be an admin to do this"] });
+  } else {
+    next();
+  }
+};
+
 module.exports = {
   authenticate,
   verifySession,
   logout,
   register,
+  checkAdmin,
 };

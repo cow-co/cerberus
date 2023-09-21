@@ -3,6 +3,7 @@ const authMethods = {
   AD: "activedirectory",
 };
 
+// TODO Set initial admin stuff
 module.exports = {
   // If true, then mutual TLS will be enforced. The DN from the client cert
   // will be used instead of a username/password (the login functionality will simply be pass-through)

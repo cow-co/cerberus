@@ -13,8 +13,9 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
-  acgs: {
-    type: Array,
+  isAdmin: {
+    type: Boolean,
+    default: false,
   },
 });
 
