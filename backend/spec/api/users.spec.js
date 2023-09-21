@@ -75,6 +75,4 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
   });
-
-  // TODO Logout tests?
 });

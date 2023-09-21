@@ -114,7 +114,6 @@ function TasksPane() {
     }
   }
 
-  // TODO move the alerts snackbar out to the mainpage component, so that it applies across everything
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
