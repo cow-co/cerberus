@@ -9,10 +9,6 @@ const { extractUserDetails } = require("../security/pki");
 const mongoose = require("mongoose");
 
 // Basically checks the provided credentials
-// Does NOT mutate `req` - setting the session details on `req` must be done by the caller,
-// after receiving a successful response from this.
-// TODO all these methods should trim whitespace off the username (but not the password!!!)
-// TODO Or do we want this to be a middleware? How do we return the different status codes (ie how to determine between a 500 and a 400/401 after returning?)
 const authenticate = async (req, res, next) => {
   let username = null;
   let password = null;
@@ -26,26 +22,35 @@ const authenticate = async (req, res, next) => {
   }
   let authenticated = false;
 
-  // TODO wrap in try/catch
-  switch (securityConfig.authMethod) {
-    case securityConfig.availableAuthMethods.DB:
-      authenticated = await dbUserManager.authenticate(username, password);
-      break;
-    case securityConfig.availableAuthMethods.AD:
-      authenticated = adUserManager.authenticate(username, password);
-      break;
+  username = username.trim();
 
-    default:
-      log(
-        "authenticate",
-        `Auth method ${securityConfig.authMethod} not supported`,
-        levels.ERROR
-      );
-      errors.push("Internal Server Error");
-      res
-        .send(statusCodes.INTERNAL_SERVER_ERROR)
-        .json({ errors: ["Internal Server Error"] });
-      break;
+  try {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        authenticated = await dbUserManager.authenticate(username, password);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        authenticated = await adUserManager.authenticate(username, password);
+        break;
+
+      default:
+        log(
+          "authenticate",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        res
+          .send(statusCodes.INTERNAL_SERVER_ERROR)
+          .json({ errors: ["Internal Server Error"] });
+        break;
+    }
+  } catch (err) {
+    log("authenticate", err, levels.ERROR);
+    errors.push("Internal Server Error");
+    res
+      .send(statusCodes.INTERNAL_SERVER_ERROR)
+      .json({ errors: ["Internal Server Error"] });
   }
 
   if (!authenticated) {
@@ -77,6 +82,7 @@ const logout = async (session) => {
 // Returns an error if user management is AD-backed.
 // In a proper environment we'd probably want email verification. TBH we'd want AD auth anyway so it's kinda moot
 const register = async (username, password) => {
+  username = username.trim();
   let response = {
     userId: null,
     errors: [],

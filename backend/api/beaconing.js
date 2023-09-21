@@ -20,7 +20,7 @@ router.post("", async (req, res) => {
     logger.levels.DEBUG
   );
   let returnStatus = statusCodes.OK;
-  let responseJSON = {}; // TODO make the response DTOs into their own classes
+  let responseJSON = {};
 
   try {
     const validationResult = validateBeacon(req.body);

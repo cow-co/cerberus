@@ -1,13 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const {
-  findImplantById,
-  getAllImplants,
-} = require("../db/services/implant-service");
+const { getAllImplants } = require("../db/services/implant-service");
 const statusCodes = require("../config/statusCodes");
+const { verifySession } = require("../users/user-manager");
 
-// TODO requires authz
-router.get("", async (req, res) => {
+router.get("", verifySession, async (req, res) => {
   const implants = await getAllImplants();
   const responseJSON = {
     implants: implants,
