@@ -181,7 +181,16 @@ describe("User tests", () => {
     expect(res.statusCode).to.equal(200);
   });
 
-  // TODO Test invalid auth method
+  it("should fail to log in with invalid auth type", async () => {
+    const originalSetting = securityConfig.authMethod;
+    securityConfig.authMethod = "fake";
+    const res = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    expect(res.statusCode).to.equal(500);
+    securityConfig.authMethod = originalSetting;
+  });
+
   // TODO Test exception-handling in...basically everywhere
   // TODO Test verifySession *without* a session; with PKI and without PKI
 });

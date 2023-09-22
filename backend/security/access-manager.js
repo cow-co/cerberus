@@ -13,6 +13,7 @@ const authenticate = async (req, res, next) => {
   let username = null;
   let password = null;
   let errors = [];
+  let status = statusCodes.BAD_REQUEST;
 
   if (securityConfig.usePKI) {
     username = extractUserDetails(req);
@@ -40,24 +41,22 @@ const authenticate = async (req, res, next) => {
           levels.ERROR
         );
         errors.push("Internal Server Error");
-        res
-          .status(statusCodes.INTERNAL_SERVER_ERROR)
-          .json({ errors: ["Internal Server Error"] });
+        status = statusCodes.INTERNAL_SERVER_ERROR;
         break;
     }
   } catch (err) {
     log("authenticate", err, levels.ERROR);
     errors.push("Internal Server Error");
-    res
-      .status(statusCodes.INTERNAL_SERVER_ERROR)
-      .json({ errors: ["Internal Server Error"] });
+    status = statusCodes.INTERNAL_SERVER_ERROR;
   }
 
-  if (!authenticated) {
+  if (!authenticated && errors.length === 0) {
     log("authenticate", `User failed login`, levels.WARN);
-    res
-      .status(statusCodes.UNAUTHENTICATED)
-      .json({ errors: ["Incorrect login credentials"] });
+    status = statusCodes.UNAUTHENTICATED;
+    errors.push("Incorrect login credentials");
+    res.status(status).json({ errors });
+  } else if (errors.length > 0) {
+    res.status(status).json({ errors });
   } else {
     req.session.username = username;
     next();
