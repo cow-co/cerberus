@@ -10,15 +10,21 @@ const register = async (username, password) => {
 
 // Password should be null if using PKI (since PKI login doesn't use a password)
 const authenticate = async (username, password) => {
+  log("database-manager#authenticate", "DB Authentication...", levels.DEBUG);
   let user = null;
   let authenticated = false;
 
   if (username !== null) {
     user = await findUser(username);
-    if (!securityConfig.usePKI) {
-      authenticated = await argon2.verify(user.hashedPassword, password);
+    if (user !== null) {
+      log("database-manager#authenticate", JSON.stringify(user), levels.DEBUG);
+      if (!securityConfig.usePKI) {
+        authenticated = await argon2.verify(user.hashedPassword, password);
+      } else {
+        authenticated = true;
+      }
     } else {
-      authenticated = true;
+      log("db-user-manager#authenticate", "User does not exist", levels.WARN);
     }
   } else {
     log("db-user-manager#authenticate", "Username not provided", levels.WARN);

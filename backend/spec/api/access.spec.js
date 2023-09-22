@@ -190,7 +190,4 @@ describe("User tests", () => {
     expect(res.statusCode).to.equal(500);
     securityConfig.authMethod = originalSetting;
   });
-
-  // TODO Test exception-handling in...basically everywhere
-  // TODO Test verifySession *without* a session; with PKI and without PKI
 });

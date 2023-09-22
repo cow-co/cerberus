@@ -10,6 +10,7 @@ const { findUser } = require("../db/services/user-service");
 
 // Basically checks the provided credentials
 const authenticate = async (req, res, next) => {
+  log("access-manager#authenticate", "Authenticating...", levels.DEBUG);
   let username = null;
   let password = null;
   let errors = [];
@@ -65,6 +66,11 @@ const authenticate = async (req, res, next) => {
 
 // Checks that the session cookie is valid; if not, redirects to the login page
 const verifySession = async (req, res, next) => {
+  log(
+    "verifySession",
+    "Verifying Session..." + JSON.stringify(req.session.username),
+    levels.DEBUG
+  );
   if (req.session.username) {
     next();
   } else {
