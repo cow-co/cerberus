@@ -5,14 +5,16 @@ const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
-const { extractUserDetails } = require("../security/pki");
-const mongoose = require("mongoose");
+const { extractUserDetails } = require("./pki");
+const { findUser } = require("../db/services/user-service");
 
 // Basically checks the provided credentials
 const authenticate = async (req, res, next) => {
+  log("access-manager#authenticate", "Authenticating...", levels.DEBUG);
   let username = null;
   let password = null;
   let errors = [];
+  let status = statusCodes.BAD_REQUEST;
 
   if (securityConfig.usePKI) {
     username = extractUserDetails(req);
@@ -40,24 +42,22 @@ const authenticate = async (req, res, next) => {
           levels.ERROR
         );
         errors.push("Internal Server Error");
-        res
-          .send(statusCodes.INTERNAL_SERVER_ERROR)
-          .json({ errors: ["Internal Server Error"] });
+        status = statusCodes.INTERNAL_SERVER_ERROR;
         break;
     }
   } catch (err) {
     log("authenticate", err, levels.ERROR);
     errors.push("Internal Server Error");
-    res
-      .send(statusCodes.INTERNAL_SERVER_ERROR)
-      .json({ errors: ["Internal Server Error"] });
+    status = statusCodes.INTERNAL_SERVER_ERROR;
   }
 
-  if (!authenticated) {
+  if (!authenticated && errors.length === 0) {
     log("authenticate", `User failed login`, levels.WARN);
-    res
-      .send(statusCodes.UNAUTHENTICATED)
-      .json({ errors: ["Incorrect login credentials"] });
+    status = statusCodes.UNAUTHENTICATED;
+    errors.push("Incorrect login credentials");
+    res.status(status).json({ errors });
+  } else if (errors.length > 0) {
+    res.status(status).json({ errors });
   } else {
     req.session.username = username;
     next();
@@ -66,10 +66,21 @@ const authenticate = async (req, res, next) => {
 
 // Checks that the session cookie is valid; if not, redirects to the login page
 const verifySession = async (req, res, next) => {
+  log(
+    "verifySession",
+    "Verifying Session..." + JSON.stringify(req.session.username),
+    levels.DEBUG
+  );
   if (req.session.username) {
     next();
   } else {
-    res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
+    // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
+    // to manually submit anything
+    if (securityConfig.usePKI) {
+      authenticate(req, res, next);
+    } else {
+      res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
+    }
   }
 };
 
@@ -100,9 +111,29 @@ const register = async (username, password) => {
   return response;
 };
 
+const checkAdmin = async (req, res, next) => {
+  const username = req.session.username;
+  let isAdmin = false;
+
+  if (username) {
+    const user = await findUser(username);
+    isAdmin = user.isAdmin;
+  }
+
+  if (!isAdmin) {
+    log("checkAdmin", "User is not an admin", levels.WARN);
+    res
+      .status(statusCodes.FORBIDDEN)
+      .json({ errors: ["You must be an admin to do this"] });
+  } else {
+    next();
+  }
+};
+
 module.exports = {
   authenticate,
   verifySession,
   logout,
   register,
+  checkAdmin,
 };

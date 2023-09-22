@@ -1,6 +1,6 @@
 const { levels, log } = require("../utils/logger");
 
-const extractCertDetails = (req) => {
+const extractUserDetails = (req) => {
   const clientCert = req.socket.getPeerCertificate();
   let username = null;
 
@@ -8,7 +8,7 @@ const extractCertDetails = (req) => {
     username = clientCert.subject.CN;
   } else {
     log(
-      "extractCertDetails",
+      "extractUserDetails",
       "PKI Certificate Authentication Failed - Cert rejected",
       levels.WARN
     );
@@ -18,5 +18,5 @@ const extractCertDetails = (req) => {
 };
 
 module.exports = {
-  extractCertDetails,
+  extractUserDetails,
 };

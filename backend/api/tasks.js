@@ -10,7 +10,7 @@ const router = express.Router();
 const logger = require("../utils/logger");
 const statusCodes = require("../config/statusCodes");
 const { validateTask } = require("../validation/request-validation");
-const { verifySession } = require("../users/user-manager");
+const { verifySession } = require("../security/access-manager");
 
 router.get("/tasks/:implantId", verifySession, async (req, res) => {
   logger.log(

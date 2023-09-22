@@ -41,7 +41,7 @@ const deleteTask = async (task) => {
 };
 
 const register = async (username, password) => {
-  const response = await fetch("http://localhost:5000/api/users/register", {
+  const response = await fetch("http://localhost:5000/api/access/register", {
     method: "POST",
     headers: new Headers({ "content-type": "application/json" }),
     body: JSON.stringify({
@@ -54,7 +54,7 @@ const register = async (username, password) => {
 };
 
 const login = async (username, password) => {
-  const response = await fetch("http://localhost:5000/api/users/login", {
+  const response = await fetch("http://localhost:5000/api/access/login", {
     method: "POST",
     headers: new Headers({ "content-type": "application/json" }),
     body: JSON.stringify({
@@ -67,7 +67,7 @@ const login = async (username, password) => {
 };
 
 const logout = async () => {
-  const response = await fetch("http://localhost:5000/api/users/logout", {
+  const response = await fetch("http://localhost:5000/api/access/logout", {
     method: "DELETE",
   });
   const json = await response.json();

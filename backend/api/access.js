@@ -1,8 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const userManager = require("../users/user-manager");
 const statusCodes = require("../config/statusCodes");
 const { validatePassword } = require("../validation/security-validation");
+const {
+  authenticate,
+  verifySession,
+  checkAdmin,
+  register,
+  logout,
+} = require("../security/access-manager");
+const { findUser } = require("../db/services/user-service");
 
 // Expects request body to contain:
 // - username
@@ -19,7 +26,7 @@ router.post("/register", async (req, res) => {
   const validationErrors = validatePassword(password);
 
   if (validationErrors.length === 0) {
-    const result = await userManager.register(username, password);
+    const result = await register(username, password);
 
     if (result.errors.length > 0) {
       responseJSON.errors = result.errors;
@@ -36,21 +43,38 @@ router.post("/register", async (req, res) => {
 // Expects request body to contain:
 // - username
 // - password
-router.post("/login", userManager.authenticate, async (req, res) => {
-  if (req.session.username) {
-    res
-      .status(statusCodes.OK)
-      .json({ username: req.session.username, errors: [] });
-  } else {
-    res
-      .status(statusCodes.UNAUTHENTICATED)
-      .json({ username: null, errors: res.locals.errors });
-  }
+router.post("/login", authenticate, async (req, res) => {
+  res
+    .status(statusCodes.OK)
+    .json({ username: req.session.username, errors: [] });
 });
 
-router.delete("/logout", userManager.verifySession, async (req, res) => {
-  userManager.logout(req.session);
+router.delete("/logout", verifySession, async (req, res) => {
+  logout(req.session);
   res.status(statusCodes.OK).json({ errors: [] });
+});
+
+// Changes admin status of the user.
+// Expects req.body to contain:
+// - username (string)
+// - makeAdmin (boolean)
+router.put("/admin", verifySession, checkAdmin, async (req, res) => {
+  let status = statusCodes.OK;
+  let response = {
+    errors: [],
+  };
+
+  const chosenUser = req.body.username.trim();
+  const user = await findUser(chosenUser);
+  if (user) {
+    user.isAdmin = req.body.makeAdmin;
+    await user.save();
+  } else {
+    status = statusCodes.BAD_REQUEST;
+    response.errors.push("User not found");
+  }
+
+  res.status(status).json(response);
 });
 
 module.exports = router;

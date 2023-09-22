@@ -29,6 +29,8 @@ const seedTaskTypes = async () => {
   }
 };
 
+const seedInitialAdmin = async () => {};
+
 module.exports = {
   seedTaskTypes,
 };
