@@ -6,6 +6,8 @@ const {
   authenticate,
   verifySession,
   checkAdmin,
+  register,
+  logout,
 } = require("../security/access-manager");
 const { findUser } = require("../db/services/user-service");
 
@@ -24,7 +26,7 @@ router.post("/register", async (req, res) => {
   const validationErrors = validatePassword(password);
 
   if (validationErrors.length === 0) {
-    const result = await userManager.register(username, password);
+    const result = await register(username, password);
 
     if (result.errors.length > 0) {
       responseJSON.errors = result.errors;
@@ -42,19 +44,13 @@ router.post("/register", async (req, res) => {
 // - username
 // - password
 router.post("/login", authenticate, async (req, res) => {
-  if (req.session.username) {
-    res
-      .status(statusCodes.OK)
-      .json({ username: req.session.username, errors: [] });
-  } else {
-    res
-      .status(statusCodes.UNAUTHENTICATED)
-      .json({ username: null, errors: res.locals.errors });
-  }
+  res
+    .status(statusCodes.OK)
+    .json({ username: req.session.username, errors: [] });
 });
 
 router.delete("/logout", verifySession, async (req, res) => {
-  userManager.logout(req.session);
+  logout(req.session);
   res.status(statusCodes.OK).json({ errors: [] });
 });
 

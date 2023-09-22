@@ -3,7 +3,7 @@ const expect = require("chai").expect;
 const sinon = require("sinon");
 const Task = require("../../db/models/Task");
 const TaskType = require("../../db/models/TaskType");
-const userManager = require("../../users/user-manager");
+const accessManager = require("../../security/access-manager");
 
 describe("Tasks API Tests", () => {
   afterEach(() => {
@@ -75,7 +75,7 @@ describe("Tasks API Tests", () => {
       params: ["param1", "param2"],
     });
 
-    sinon.stub(userManager, "verifySession").callsArg(2);
+    sinon.stub(accessManager, "verifySession").callsArg(2);
     agent = require("supertest").agent(require("../../index"));
   });
 

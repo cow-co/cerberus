@@ -344,7 +344,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /users/register: 
+  /access/register: 
     post: 
       summary: Creates a database-backed user
       tags:
@@ -378,7 +378,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /users/login: 
+  /access/login: 
     post: 
       summary: Creates a login session
       tags:
@@ -416,7 +416,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /users/logout: 
+  /access/logout: 
     delete: 
       security:
         - cookieAuth: []

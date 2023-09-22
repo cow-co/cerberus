@@ -3,7 +3,7 @@ const expect = require("chai").expect;
 const sinon = require("sinon");
 const Implant = require("../../db/models/Implant");
 const Task = require("../../db/models/Task");
-const userManager = require("../../users/user-manager");
+const accessManager = require("../../security/access-manager");
 
 describe("Beacon API tests", () => {
   afterEach(() => {
@@ -13,7 +13,7 @@ describe("Beacon API tests", () => {
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
-    sinon.stub(userManager, "verifySession").callsArg(2);
+    sinon.stub(accessManager, "verifySession").callsArg(2);
     agent = require("supertest").agent(require("../../index"));
   });
 

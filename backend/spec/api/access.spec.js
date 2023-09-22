@@ -2,9 +2,12 @@ let agent;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const User = require("../../db/models/User");
-const userManager = require("../../users/user-manager");
+const accessManager = require("../../security/access-manager");
 const argon2 = require("argon2");
 const securityConfig = require("../../config/security-config");
+const pki = require("../../security/pki");
+const ActiveDirectory = require("activedirectory");
+const Task = require("../../db/models/Task");
 
 describe("User tests", () => {
   afterEach(() => {
@@ -14,7 +17,7 @@ describe("User tests", () => {
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
-    sinon.stub(userManager, "verifySession").callsArg(2);
+    sinon.stub(accessManager, "verifySession").callsArg(2);
     agent = require("supertest").agent(require("../../index"));
   });
 
@@ -26,14 +29,24 @@ describe("User tests", () => {
       acgs: [],
     });
     const res = await agent
-      .post("/api/users/register")
+      .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
   });
 
+  it("should fail to create a user - AD-backed", async () => {
+    const originalSetting = securityConfig.authMethod;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    const res = await agent
+      .post("/api/access/register")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    expect(res.statusCode).to.equal(400);
+    securityConfig.authMethod = originalSetting;
+  });
+
   it("should fail to create a user - no uppercase", async () => {
     const res = await agent
-      .post("/api/users/register")
+      .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyz11" });
     expect(res.statusCode).to.equal(400);
     expect(res.body.errors.length).to.equal(1);
@@ -41,7 +54,7 @@ describe("User tests", () => {
 
   it("should fail to create a user - no lowercase", async () => {
     const res = await agent
-      .post("/api/users/register")
+      .post("/api/access/register")
       .send({ username: "user", password: "ABCDEFGHIJKLMNOPQRSTUVWXYZ11" });
     expect(res.statusCode).to.equal(400);
     expect(res.body.errors.length).to.equal(1);
@@ -49,7 +62,7 @@ describe("User tests", () => {
 
   it("should fail to create a user - no number", async () => {
     const res = await agent
-      .post("/api/users/register")
+      .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ" });
     expect(res.statusCode).to.equal(400);
     expect(res.body.errors.length).to.equal(1);
@@ -57,7 +70,7 @@ describe("User tests", () => {
 
   it("should fail to create a user - too short", async () => {
     const res = await agent
-      .post("/api/users/register")
+      .post("/api/access/register")
       .send({ username: "user", password: "Ab1" });
     expect(res.statusCode).to.equal(400);
     expect(res.body.errors.length).to.equal(1);
@@ -72,15 +85,77 @@ describe("User tests", () => {
     });
     sinon.stub(argon2, "verify").returns(true);
     const res = await agent
-      .post("/api/users/login")
+      .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
   });
 
-  it("should log the user in automatically when using PKI", async () => {
-    const originalSetting = securityConfig.usePKI;
-    securityConfig.usePKI = true;
-    // TODO attempt to access some secured endpoint without having logged in - ensure PKI method is called and sets up the sesh properly
+  it("should fail to log in", async () => {
+    sinon.stub(User, "findOne").returns({
+      _id: "some-mongo-id",
+      username: "user",
+      hashedPassword: "hashed",
+      acgs: [],
+    });
+    sinon.stub(argon2, "verify").returns(false);
+    const res = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    expect(res.statusCode).to.equal(401);
   });
-  // TODO AD Login test
+
+  it("should log the user in automatically when using PKI", async () => {
+    sinon.stub(User, "findOne").returns({
+      _id: "some-mongo-id",
+      username: "user",
+      hashedPassword: "hashed",
+      acgs: [],
+    });
+    sinon.stub(Task, "find").returns({
+      sort: sinon.stub().returns([
+        {
+          _id: "some-mongo-id",
+          order: 1,
+          implantId: "id-1",
+          taskType: "Task2",
+          params: [],
+          sent: false,
+        },
+        {
+          _id: "some-mongo-id",
+          order: 0,
+          implantId: "id-1",
+          taskType: "Task",
+          params: ["param1"],
+          sent: true,
+        },
+      ]),
+    });
+    sinon.stub(pki, "extractUserDetails").returns("user");
+
+    const wasFalse = securityConfig.usePKI ? false : true;
+    if (wasFalse) {
+      securityConfig.usePKI = true;
+    }
+
+    const res = await agent.get("/api/tasks/id-3");
+    expect(res.statusCode).to.equal(200);
+
+    if (wasFalse) {
+      securityConfig.usePKI = false;
+    }
+  });
+
+  it("should log the user in via AD", async () => {
+    sinon
+      .stub(ActiveDirectory.prototype, "authenticate")
+      .callsArgWith(2, null, true);
+    const originalSetting = securityConfig.authMethod;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    const res = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    expect(res.statusCode).to.equal(200);
+    securityConfig.authMethod = originalSetting;
+  });
 });

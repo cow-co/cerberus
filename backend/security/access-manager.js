@@ -41,7 +41,7 @@ const authenticate = async (req, res, next) => {
         );
         errors.push("Internal Server Error");
         res
-          .send(statusCodes.INTERNAL_SERVER_ERROR)
+          .status(statusCodes.INTERNAL_SERVER_ERROR)
           .json({ errors: ["Internal Server Error"] });
         break;
     }
@@ -49,14 +49,14 @@ const authenticate = async (req, res, next) => {
     log("authenticate", err, levels.ERROR);
     errors.push("Internal Server Error");
     res
-      .send(statusCodes.INTERNAL_SERVER_ERROR)
+      .status(statusCodes.INTERNAL_SERVER_ERROR)
       .json({ errors: ["Internal Server Error"] });
   }
 
   if (!authenticated) {
     log("authenticate", `User failed login`, levels.WARN);
     res
-      .send(statusCodes.UNAUTHENTICATED)
+      .status(statusCodes.UNAUTHENTICATED)
       .json({ errors: ["Incorrect login credentials"] });
   } else {
     req.session.username = username;
