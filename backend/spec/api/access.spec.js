@@ -26,7 +26,6 @@ describe("User tests", () => {
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
-      acgs: [],
     });
     const res = await agent
       .post("/api/access/register")
@@ -81,7 +80,6 @@ describe("User tests", () => {
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
-      acgs: [],
     });
     sinon.stub(argon2, "verify").returns(true);
     const res = await agent
@@ -95,7 +93,6 @@ describe("User tests", () => {
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
-      acgs: [],
     });
     sinon.stub(argon2, "verify").returns(false);
     const res = await agent
@@ -109,7 +106,6 @@ describe("User tests", () => {
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
-      acgs: [],
     });
     sinon.stub(Task, "find").returns({
       sort: sinon.stub().returns([
@@ -158,4 +154,34 @@ describe("User tests", () => {
     expect(res.statusCode).to.equal(200);
     securityConfig.authMethod = originalSetting;
   });
+
+  it("should successfully add an admin", async () => {
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "some-mongo-id",
+      username: "user",
+      hashedPassword: "hashed",
+      isAdmin: true,
+    });
+    findWrapper.withArgs({ name: "user2" }).returns({
+      _id: "some-mongo-id2",
+      username: "user2",
+      hashedPassword: "hashed",
+      isAdmin: true,
+      save: () => {},
+    });
+    sinon.stub(argon2, "verify").returns(true);
+    const res1 = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    console.log(res1.headers["set-cookie"]);
+    const res = await agent
+      .put("/api/access/admin")
+      .send({ username: "user2", makeAdmin: true });
+    expect(res.statusCode).to.equal(200);
+  });
+
+  // TODO Test invalid auth method
+  // TODO Test exception-handling in...basically everywhere
+  // TODO Test verifySession *without* a session; with PKI and without PKI
 });

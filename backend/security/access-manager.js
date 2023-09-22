@@ -116,6 +116,7 @@ const checkAdmin = async (req, res, next) => {
   }
 
   if (!isAdmin) {
+    log("checkAdmin", "User is not an admin", levels.WARN);
     res
       .status(statusCodes.FORBIDDEN)
       .json({ errors: ["You must be an admin to do this"] });
