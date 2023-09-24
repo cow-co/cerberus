@@ -10,6 +10,7 @@ const {
   logout,
 } = require("../security/access-manager");
 const { findUser } = require("../db/services/user-service");
+const { addAdmin } = require("../db/services/admin-service");
 
 // Expects request body to contain:
 // - username
@@ -67,8 +68,7 @@ router.put("/admin", verifySession, checkAdmin, async (req, res) => {
   const chosenUser = req.body.username.trim();
   const user = await findUser(chosenUser);
   if (user) {
-    user.isAdmin = req.body.makeAdmin;
-    await user.save();
+    await addAdmin(user._id);
   } else {
     status = statusCodes.BAD_REQUEST;
     response.errors.push("User not found");

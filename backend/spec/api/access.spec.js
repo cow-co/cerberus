@@ -8,6 +8,7 @@ const securityConfig = require("../../config/security-config");
 const pki = require("../../security/pki");
 const ActiveDirectory = require("activedirectory");
 const Task = require("../../db/models/Task");
+const Admin = require("../../db/models/Admin");
 
 describe("User tests", () => {
   afterEach(() => {
@@ -158,25 +159,32 @@ describe("User tests", () => {
   it("should successfully add an admin", async () => {
     const findWrapper = sinon.stub(User, "findOne");
     findWrapper.returns({
-      _id: "some-mongo-id",
+      _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
-      isAdmin: true,
     });
     findWrapper.withArgs({ name: "user2" }).returns({
-      _id: "some-mongo-id2",
+      _id: "650a3a2a7dcd3241ecee2d70",
       username: "user2",
       hashedPassword: "hashed",
-      isAdmin: true,
       save: () => {},
     });
+
+    sinon.stub(Admin, "findOne").returns({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
+    sinon.stub(Admin, "create").returns({
+      userId: "650a3a2a7dcd3241ecee2d70",
+    });
     sinon.stub(argon2, "verify").returns(true);
-    const res1 = await agent
+    const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    console.log(res1.headers["set-cookie"]);
+    const cookies = loginRes.headers["set-cookie"];
+    console.log(cookies);
     const res = await agent
       .put("/api/access/admin")
+      .set("Cookie", cookies[0])
       .send({ username: "user2", makeAdmin: true });
     expect(res.statusCode).to.equal(200);
   });
