@@ -9,9 +9,12 @@ const AdminDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
   const [username, setUsername] = useState("");
 
-
   const handleChange = (event) => {
     setUsername(event.target.value);
+  }
+
+  const handleSubmit = () => {
+    onSubmit(username);
   }
 
   return (
@@ -19,7 +22,7 @@ const AdminDialogue = (props) => {
       <DialogTitle>Administrator Interface</DialogTitle>
       <FormControl fullWidth>
         <TextField className="text-input" variant="outlined" value={username} label="User to find" onChange={handleChange} />
-        <Button onClick={onSubmit}>Create</Button>
+        <Button onClick={handleSubmit}>Create</Button>
       </FormControl>
     </Dialog>
   );

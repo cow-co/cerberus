@@ -7,6 +7,8 @@ import { fetchImplants } from '../../functions/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
 import { v4 as uuidv4 } from "uuid";
+import conf from "../../common/config/properties";
+import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
@@ -31,7 +33,7 @@ const ImplantsPane = () => {
       const alert = {
         id: uuid,
         type: "error",
-        message: JSON.stringify(result.errors)
+        message: JSON.stringify(result.errors)  // Should do like a loop over these instead
       };
       dispatch(addAlert(alert));
       setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);

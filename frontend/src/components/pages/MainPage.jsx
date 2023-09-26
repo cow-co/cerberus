@@ -5,7 +5,7 @@ import RegisterDialogue from "../elements/RegisterDialogue";
 import TasksPane from "../elements/TasksPane";
 import { useState } from 'react';
 import { Box, Grid, AppBar, Toolbar, Button, Typography } from '@mui/material';
-import { register, login, logout } from "../../functions/apiCalls";
+import { register, login, logout, findUserByName } from "../../functions/apiCalls";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsername } from "../../common/redux/users-slice";
 import conf from "../../common/config/properties";
@@ -34,6 +34,32 @@ function MainPage() {
 
   const handleAdminFormClose = () => {
     setAdminOpen(false);
+  }
+
+  const handleAdminFormSubmit = async (username) => {
+    const response = await findUserByName(username);
+    if (response.errors.length > 0) {
+      response.errors.forEach((error) => {
+        // TODO Make a utility method to generate an alert
+        const uuid = uuidv4();
+        const alert = {
+          id: uuid,
+          type: "error",
+          message: error
+        };
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      });
+    } else {
+        const uuid = uuidv4();
+        const alert = {
+          id: uuid,
+          type: "success",
+          message: "Successfully found user"
+        };
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+    }
   }
 
   const handleLoginFormSubmit = async (username, password) => {
@@ -148,7 +174,7 @@ function MainPage() {
       </AppBar>
       <LoginDialogue open={loginOpen} onClose={handleLoginFormClose} onSubmit={handleLoginFormSubmit} />
       <RegisterDialogue open={registerOpen} onClose={handleRegisterFormClose} onSubmit={handleRegisterFormSubmit} />
-      <AdminDialogue open={adminOpen} onClose={handleAdminFormClose} />
+      <AdminDialogue open={adminOpen} onClose={handleAdminFormClose} onSubmit={handleAdminFormSubmit} />
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <TasksPane />
