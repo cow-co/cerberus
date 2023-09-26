@@ -189,6 +189,48 @@ describe("User tests", () => {
     expect(res.statusCode).to.equal(200);
   });
 
+  it("should successfully remove an admin", async () => {
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    findWrapper.withArgs({ name: "user2" }).returns({
+      _id: "650a3a2a7dcd3241ecee2d70",
+      username: "user2",
+      hashedPassword: "hashed",
+      save: () => {},
+    });
+    sinon.stub(argon2, "verify").returns(true);
+    const adminStub = sinon.stub(Admin, "findOne");
+    adminStub
+      .withArgs({
+        username: "user",
+      })
+      .returns({
+        userId: "650a3a2a7dcd3241ecee2d71",
+      });
+
+    adminStub
+      .withArgs({
+        username: "user2",
+      })
+      .returns({
+        userId: "650a3a2a7dcd3241ecee2d70",
+      });
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    console.log(cookies);
+    const res = await agent
+      .put("/api/access/admin")
+      .set("Cookie", cookies[0])
+      .send({ username: "user2", makeAdmin: false });
+    expect(res.statusCode).to.equal(200);
+  });
+
   it("should fail to log in with invalid auth type", async () => {
     const originalSetting = securityConfig.authMethod;
     securityConfig.authMethod = "fake";

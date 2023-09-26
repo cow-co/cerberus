@@ -2,22 +2,27 @@
 // Also in future will allow creation of task types
 
 import { useState, useEffect } from 'react';
-import { InputLabel, FormControl, Select, Dialog, DialogTitle, Button, TextField } from '@mui/material';
+import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
 
 const AdminDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
+  const [username, setUsername] = useState("");
+
+
+  const handleChange = (event) => {
+    setUsername(event.target.value);
+  }
+
   return (
-    <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
+    <Dialog className="form-dialog" onClose={onClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Administrator Interface</DialogTitle>
       <FormControl fullWidth>
-        <InputLabel id="task-type-label">Search for User</InputLabel>
-        <Select className="select-list" labelId="task-type-label" value={task.type.name} label="Task Type" onChange={handleChange}>
-          {taskTypeSelects}
-        </Select>
-        {paramsSettings}
-        <Button onClick={handleSubmit}>Create</Button>
+        <TextField className="text-input" variant="outlined" value={username} label="User to find" onChange={handleChange} />
+        <Button onClick={onSubmit}>Create</Button>
       </FormControl>
     </Dialog>
   );
 }
+
+export default AdminDialogue;

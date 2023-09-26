@@ -11,10 +11,12 @@ import { setUsername } from "../../common/redux/users-slice";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { v4 as uuidv4 } from "uuid";
+import AdminDialogue from "../elements/AdminDialogue";
 
 function MainPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const loggedInUser = useSelector((state) => state.users.username);
   const dispatch = useDispatch();
 
@@ -24,6 +26,14 @@ function MainPage() {
 
   const handleLoginFormClose = () => {
     setLoginOpen(false);
+  }
+
+  const handleAdminFormOpen = () => {
+    setAdminOpen(true);
+  }
+
+  const handleAdminFormClose = () => {
+    setAdminOpen(false);
   }
 
   const handleLoginFormSubmit = async (username, password) => {
@@ -133,10 +143,12 @@ function MainPage() {
           </Typography>
           <Button onClick={handleRegisterFormOpen}>Register</Button>
           {loginoutButton}
+          <Button onClick={handleAdminFormOpen}>Admin</Button>
         </Toolbar>
       </AppBar>
       <LoginDialogue open={loginOpen} onClose={handleLoginFormClose} onSubmit={handleLoginFormSubmit} />
       <RegisterDialogue open={registerOpen} onClose={handleRegisterFormClose} onSubmit={handleRegisterFormSubmit} />
+      <AdminDialogue open={adminOpen} onClose={handleAdminFormClose} />
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <TasksPane />

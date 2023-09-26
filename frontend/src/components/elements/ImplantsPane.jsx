@@ -6,6 +6,7 @@ import ImplantItem from './ImplantItem';
 import { fetchImplants } from '../../functions/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
+import { v4 as uuidv4 } from "uuid";
 
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
@@ -16,7 +17,6 @@ const ImplantsPane = () => {
     setShowInactive(!showInactive);
   }
 
-  // TODO set alerts for errors
   const refresh = async () => {
     const result = await fetchImplants();
     if (result.errors.length === 0) {
@@ -27,7 +27,14 @@ const ImplantsPane = () => {
         dispatch(setImplants(filtered));
       }
     } else {
-      alert(result.errors[0]);
+      const uuid = uuidv4();
+      const alert = {
+        id: uuid,
+        type: "error",
+        message: JSON.stringify(result.errors)
+      };
+      dispatch(addAlert(alert));
+      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
     }
   }
 

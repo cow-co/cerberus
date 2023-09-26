@@ -20,7 +20,7 @@ const addAdmin = async (userId) => {
 };
 
 // This ensures the given user is not an admin - if they are not already, then it does nothing.
-const removeAdmin = async (username) => {
+const removeAdmin = async (userId) => {
   const existingAdminRecord = await Admin.findOne({ userId: userId });
   if (existingAdminRecord !== null) {
     await existingAdminRecord.deleteOne();
