@@ -3,6 +3,7 @@ const beacons = require("./api/beaconing");
 const implants = require("./api/implants");
 const tasks = require("./api/tasks");
 const access = require("./api/access");
+const users = require("./api/users");
 const swaggerUI = require("swagger-ui-express");
 const mongoose = require("mongoose");
 const { levels, log } = require("./utils/logger");
@@ -68,6 +69,7 @@ app.use("/api/beacon", beacons);
 app.use("/api/implants", implants);
 app.use("/api", tasks);
 app.use("/api/access", access);
+app.use("/api/users", users);
 
 const theme = new SwaggerTheme("v3");
 const darkStyle = theme.getBuffer("dark");
