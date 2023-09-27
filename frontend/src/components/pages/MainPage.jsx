@@ -5,7 +5,7 @@ import RegisterDialogue from "../elements/RegisterDialogue";
 import TasksPane from "../elements/TasksPane";
 import { useState } from 'react';
 import { Box, Grid, AppBar, Toolbar, Button, Typography } from '@mui/material';
-import { logout, findUserByName } from "../../functions/apiCalls";
+import { logout } from "../../functions/apiCalls";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsername } from "../../common/redux/users-slice";
 import conf from "../../common/config/properties";
@@ -92,9 +92,9 @@ function MainPage() {
           <Button onClick={handleAdminFormOpen}>Admin</Button>
         </Toolbar>
       </AppBar>
-      <LoginDialogue open={loginOpen} onClose={handleLoginFormClose} onSubmit={handleLoginFormSubmit} />
-      <RegisterDialogue open={registerOpen} onClose={handleRegisterFormClose} onSubmit={handleRegisterFormSubmit} />
-      <AdminDialogue open={adminOpen} onClose={handleAdminFormClose} onSubmit={handleAdminFormSubmit} />
+      <LoginDialogue open={loginOpen} onClose={handleLoginFormClose} />
+      <RegisterDialogue open={registerOpen} onClose={handleRegisterFormClose} />
+      <AdminDialogue open={adminOpen} onClose={handleAdminFormClose} />
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <TasksPane />

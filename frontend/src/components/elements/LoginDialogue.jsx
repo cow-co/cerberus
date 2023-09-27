@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { setUsername } from "../../common/redux/users-slice";
+import { v4 as uuidv4 } from "uuid";
 
 const LoginDialogue = (props) => {
   const {onClose, open} = props;

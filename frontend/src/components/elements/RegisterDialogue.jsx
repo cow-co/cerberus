@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 import { register } from "../../functions/apiCalls";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
+import { v4 as uuidv4 } from "uuid";
 
 const RegisterDialogue = (props) => {
   const {onClose, open} = props;
