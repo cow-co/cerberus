@@ -27,8 +27,14 @@ const removeAdmin = async (userId) => {
   }
 };
 
+const numAdmins = async () => {
+  const allAdmins = await Admin.countDocuments({});
+  return allAdmins;
+};
+
 module.exports = {
   isUserAdmin,
   addAdmin,
   removeAdmin,
+  numAdmins,
 };

@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const statusCodes = require("../config/statusCodes");
-const { validatePassword } = require("../validation/security-validation");
 const {
   authenticate,
   verifySession,
   checkAdmin,
-  register,
   logout,
 } = require("../security/access-manager");
 const { findUser } = require("../db/services/user-service");
@@ -23,20 +21,6 @@ router.post("/register", async (req, res) => {
   let responseJSON = {
     errors: [],
   };
-
-  const validationErrors = validatePassword(password);
-
-  if (validationErrors.length === 0) {
-    const result = await register(username, password);
-
-    if (result.errors.length > 0) {
-      responseJSON.errors = result.errors;
-      responseStatus = statusCodes.BAD_REQUEST;
-    }
-  } else {
-    responseJSON.errors = responseJSON.errors.concat(validationErrors);
-    responseStatus = statusCodes.BAD_REQUEST;
-  }
 
   res.status(responseStatus).json(responseJSON);
 });

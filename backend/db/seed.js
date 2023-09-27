@@ -3,6 +3,10 @@ const {
   updateDBVersion,
 } = require("./services/db-state-service");
 const { createTaskType } = require("./services/tasks-service");
+const { findUser } = require("./services/user-service");
+const { addAdmin, numAdmins } = require("./services/admin-service");
+const { register } = require("../security/access-manager");
+const securityConfig = require("../config/security-config");
 
 const seedTaskTypes = async () => {
   const defaultTaskTypes = [
@@ -29,8 +33,27 @@ const seedTaskTypes = async () => {
   }
 };
 
-const seedInitialAdmin = async () => {};
+const seedInitialAdmin = async () => {
+  let error = false;
+  let existing = await findUser(securityConfig.initialAdmin.username);
+  const adminCount = await numAdmins();
+  if (adminCount === 0) {
+    if (!existing) {
+      existing = await register(
+        securityConfig.initialAdmin.username,
+        securityConfig.initialAdmin.password
+      );
+
+      if (existing.errors.length === 0) {
+        addAdmin(existing._id);
+      }
+    } else {
+      addAdmin(existing._id);
+    }
+  }
+};
 
 module.exports = {
   seedTaskTypes,
+  seedInitialAdmin,
 };

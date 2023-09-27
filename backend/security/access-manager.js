@@ -96,7 +96,7 @@ const logout = async (session) => {
 const register = async (username, password) => {
   username = username.trim();
   let response = {
-    userId: null,
+    _id: null,
     errors: [],
   };
 
@@ -106,7 +106,8 @@ const register = async (username, password) => {
     );
   } else {
     const createdUser = await dbUserManager.register(username, password);
-    response.userId = createdUser._id;
+    response._id = createdUser.userId;
+    response.errors = createdUser.errors;
   }
 
   return response;
