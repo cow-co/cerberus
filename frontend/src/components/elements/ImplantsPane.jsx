@@ -29,14 +29,16 @@ const ImplantsPane = () => {
         dispatch(setImplants(filtered));
       }
     } else {
-      const uuid = uuidv4();
-      const alert = {
-        id: uuid,
-        type: "error",
-        message: JSON.stringify(result.errors)  // Should do like a loop over these instead
-      };
-      dispatch(addAlert(alert));
-      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      result.errors.forEach(error => {
+        const uuid = uuidv4();
+        const alert = {
+          id: uuid,
+          type: "error",
+          message: error
+        };
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      });
     }
   }
 

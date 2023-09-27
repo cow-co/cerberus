@@ -5,7 +5,7 @@ import RegisterDialogue from "../elements/RegisterDialogue";
 import TasksPane from "../elements/TasksPane";
 import { useState } from 'react';
 import { Box, Grid, AppBar, Toolbar, Button, Typography } from '@mui/material';
-import { register, login, logout, findUserByName } from "../../functions/apiCalls";
+import { logout, findUserByName } from "../../functions/apiCalls";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsername } from "../../common/redux/users-slice";
 import conf from "../../common/config/properties";
@@ -36,60 +36,6 @@ function MainPage() {
     setAdminOpen(false);
   }
 
-  const handleAdminFormSubmit = async (username) => {
-    const response = await findUserByName(username);
-    if (response.errors.length > 0) {
-      response.errors.forEach((error) => {
-        // TODO Make a utility method to generate an alert
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
-    } else {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "success",
-          message: "Successfully found user"
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-    }
-  }
-
-  const handleLoginFormSubmit = async (username, password) => {
-    const response = await login(username, password);
-    if (response.errors.length > 0) {
-      response.errors.forEach((error) => {
-        // TODO Make a utility method to generate an alert
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
-    } else {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "success",
-          message: "Successfully logged in"
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-        dispatch(setUsername(response.username));
-        handleLoginFormClose();
-    }
-  }
-
   const handleRegisterFormOpen = () => {
     setRegisterOpen(true);
   }
@@ -97,35 +43,9 @@ function MainPage() {
   const handleRegisterFormClose = () => {
     setRegisterOpen(false);
   }
+  
 
-  const handleRegisterFormSubmit = async (username, password) => {
-    const errors = await register(username, password);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
-        // TODO Make a utility method to generate an alert
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
-    } else {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "success",
-          message: "Successfully registered"
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-        handleRegisterFormClose();
-    }
-  }
-
-  const handleLogout = async (username, password) => {
+  const handleLogout = async () => {
     const errors = await logout();
     if (errors.length > 0) {
       errors.forEach((error) => {

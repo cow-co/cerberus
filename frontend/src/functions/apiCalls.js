@@ -79,6 +79,8 @@ const findUserByName = async (username) => {
   return response.json();
 };
 
+const changeAdminStatus = async (userId) => {};
+
 export {
   fetchImplants,
   fetchTasks,
