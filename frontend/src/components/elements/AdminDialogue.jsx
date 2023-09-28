@@ -8,7 +8,7 @@ import CheckBox from '@mui/icons-material/CheckBox';
 import { v4 as uuidv4 } from "uuid";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { findUserByName } from '../../functions/apiCalls';
+import { changeAdminStatus, findUserByName } from '../../functions/apiCalls';
 
 const AdminDialogue = (props) => {
   const {onClose, open} = props;
@@ -21,7 +21,30 @@ const AdminDialogue = (props) => {
     setUser({name: event.target.value});
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const errors = await changeAdminStatus(user.id);
+    if (errors.length > 0) {
+        // TODO Make a utility method to generate an alert
+        const uuid = uuidv4();
+        const alert = {
+          id: uuid,
+          type: "error",
+          message: error
+        };
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setHelpText("Could not change user's admin status");
+    } else {
+        const uuid = uuidv4();
+        const alert = {
+          id: uuid,
+          type: "success",
+          message: "Successfully changed user admin status"
+        };
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setHelpText("Changed user admin status");
+    }
   }
 
   const handleSearch = async () => {

@@ -7,7 +7,7 @@ const {
   checkAdmin,
   logout,
 } = require("../security/access-manager");
-const { findUser } = require("../db/services/user-service");
+const { findUser, findUserById } = require("../db/services/user-service");
 const { addAdmin } = require("../db/services/admin-service");
 
 // Expects request body to contain:
@@ -41,7 +41,7 @@ router.delete("/logout", verifySession, async (req, res) => {
 
 // Changes admin status of the user.
 // Expects req.body to contain:
-// - username (string)
+// - userId (string)
 // - makeAdmin (boolean)
 router.put("/admin", verifySession, checkAdmin, async (req, res) => {
   let status = statusCodes.OK;
@@ -49,8 +49,8 @@ router.put("/admin", verifySession, checkAdmin, async (req, res) => {
     errors: [],
   };
 
-  const chosenUser = req.body.username.trim();
-  const user = await findUser(chosenUser);
+  const chosenUser = req.body.userId.trim();
+  const user = await findUserById(chosenUser); // TODO this should go to the user manager, in order to support AD auth
   if (user) {
     await addAdmin(user._id);
   } else {

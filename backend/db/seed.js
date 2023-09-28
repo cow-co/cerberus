@@ -34,7 +34,6 @@ const seedTaskTypes = async () => {
 };
 
 const seedInitialAdmin = async () => {
-  let error = false;
   let existing = await findUser(securityConfig.initialAdmin.username);
   const adminCount = await numAdmins();
   if (adminCount === 0) {
