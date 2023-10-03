@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { setUsername } from "../../common/redux/users-slice";
-import { v4 as uuidv4 } from "uuid";
+import { generateAlert } from "../../common/utils";
 
 const LoginDialogue = (props) => {
   const {onClose, open} = props;
@@ -21,23 +21,12 @@ const LoginDialogue = (props) => {
     const response = await login(currentUsername, password);
     if (response.errors.length > 0) {
       response.errors.forEach((error) => {
-        // TODO Make a utility method to generate an alert
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
+        const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
       });
     } else {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "success",
-          message: "Successfully logged in"
-        };
+        const alert = generateAlert("Successfully logged in", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
         dispatch(setUsername(response.username));

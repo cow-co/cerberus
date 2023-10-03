@@ -10,7 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setUsername } from "../../common/redux/users-slice";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { v4 as uuidv4 } from "uuid";
+import { generateAlert } from "../../common/utils";
 import AdminDialogue from "../elements/AdminDialogue";
 
 function MainPage() {
@@ -49,23 +49,12 @@ function MainPage() {
     const errors = await logout();
     if (errors.length > 0) {
       errors.forEach((error) => {
-        // TODO Make a utility method to generate an alert
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
+        const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
       });
     } else {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "success",
-          message: "Successfully logged out"
-        };
+        const alert = generateAlert("Successfully logged out", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
         dispatch(setUsername(""));

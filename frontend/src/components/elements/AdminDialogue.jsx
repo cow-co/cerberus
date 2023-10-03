@@ -2,18 +2,18 @@
 // Also in future will allow creation of task types
 
 import { useState } from 'react';
-import { Dialog, DialogTitle, Button, TextField } from '@mui/material';
+import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormControlLabel, FormGroup } from '@mui/material';
 import { useDispatch } from "react-redux";
-import CheckBox from '@mui/icons-material/CheckBox';
-import { v4 as uuidv4 } from "uuid";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { changeAdminStatus, findUserByName } from '../../functions/apiCalls';
+import { generateAlert } from "../../common/utils";
 
 const AdminDialogue = (props) => {
   const {onClose, open} = props;
   const [user, setUser] = useState({id: "", name: ""});
   const [searchError, setSearchError] = useState(false);
+  const [makeAdmin, setMakeAdmin] = useState(false);
   const [helpText, setHelpText] = useState("");
   const dispatch = useDispatch();
 
@@ -22,28 +22,21 @@ const AdminDialogue = (props) => {
   }
 
   const handleSubmit = async () => {
-    const errors = await changeAdminStatus(user.id);
+    const errors = await changeAdminStatus(user.id, makeAdmin);
     if (errors.length > 0) {
-        // TODO Make a utility method to generate an alert
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
+      errors.forEach((error) => {
+        const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-        setHelpText("Could not change user's admin status");
+      });
+      setHelpText("Could not change user's admin status");
+      setUser({id: "", name: ""});
     } else {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "success",
-          message: "Successfully changed user admin status"
-        };
+        const alert = generateAlert("Successfully changed user admin status", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
         setHelpText("Changed user admin status");
+        setUser({id: "", name: ""});
     }
   }
 
@@ -51,25 +44,14 @@ const AdminDialogue = (props) => {
     const response = await findUserByName(user.name);
     if (response.errors.length > 0) {
       response.errors.forEach((error) => {
-        // TODO Make a utility method to generate an alert
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
+        const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-        setSearchError(true);
-        setHelpText("Could not find user");
       });
+      setSearchError(true);
+      setHelpText("Could not find user");
     } else {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "success",
-          message: "Successfully found user"
-        };
+        const alert = generateAlert("Successfully found user", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
         setUser({id: response.user._id, name: response.user.name});
@@ -81,11 +63,13 @@ const AdminDialogue = (props) => {
   return (
     <Dialog className="form-dialog" onClose={onClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Administrator Interface</DialogTitle>
-      {/* <FormControl fullWidth> */}
+      <FormGroup>
         <TextField className="text-input" variant="outlined" value={user.name} label="User to find" type="search" onChange={handleChange} error={searchError} helperText={helpText} />
+        <FormControlLabel control={<Checkbox checked={makeAdmin} onClick={() => setMakeAdmin(!makeAdmin)} />} label="Make User Admin" />
+        <Typography variant="body1">Selected User ID: {user.id}</Typography>
         <Button onClick={handleSearch}>Search</Button>
-        <Button onClick={handleSubmit}>Submit</Button>
-      {/* </FormControl> */}
+        <Button onClick={handleSubmit} disabled={user.id === ""}>Submit</Button>
+      </FormGroup>
     </Dialog>
   );
 }
