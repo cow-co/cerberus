@@ -76,6 +76,6 @@ describe("User tests", () => {
       .delete("/api/users/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(200);
-    expect(delStub.calledOnce()).to.be.true;
+    expect(delStub.calledOnce).to.be.true;
   });
 });
