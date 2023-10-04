@@ -40,7 +40,6 @@ describe("User tests", () => {
     expect(res.body.user.hashedPassword).to.equal(undefined);
   });
 
-  // TODO test with admin and with non-admin
   it("should delete a user", async () => {
     const findWrapper = sinon.stub(User, "findOne");
     findWrapper.returns({
@@ -58,9 +57,6 @@ describe("User tests", () => {
     const adminStub = sinon.stub(Admin, "findOne");
     adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
       userId: "650a3a2a7dcd3241ecee2d71",
-      deleteOne: () => {
-        return { userId: "650a3a2a7dcd3241ecee2d71" };
-      },
     });
     const delStub = sinon.stub(User, "findByIdAndDelete").returns({
       _id: "some-mongo-id3",
@@ -77,5 +73,37 @@ describe("User tests", () => {
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(200);
     expect(delStub.calledOnce).to.be.true;
+  });
+
+  it("should delete a user", async () => {
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    findWrapper.withArgs({ name: "user2" }).returns({
+      _id: "650a3a2a7dcd3241ecee2d70",
+      username: "user2",
+      hashedPassword: "hashed",
+      save: () => {},
+    });
+    sinon.stub(argon2, "verify").returns(true);
+    const adminStub = sinon.stub(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns(null);
+    const delStub = sinon.stub(User, "findByIdAndDelete").returns({
+      _id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
+    });
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .delete("/api/users/some-mongo-id3")
+      .set("Cookie", cookies[0]);
+    expect(res.statusCode).to.equal(403);
   });
 });
