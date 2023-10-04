@@ -7,6 +7,7 @@ const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
 const { extractUserDetails } = require("./pki");
 const { findUser } = require("../db/services/user-service");
+const { isUserAdmin } = require("../db/services/admin-service");
 
 // Basically checks the provided credentials
 const authenticate = async (req, res, next) => {
@@ -95,7 +96,7 @@ const logout = async (session) => {
 const register = async (username, password) => {
   username = username.trim();
   let response = {
-    userId: null,
+    _id: null,
     errors: [],
   };
 
@@ -105,7 +106,8 @@ const register = async (username, password) => {
     );
   } else {
     const createdUser = await dbUserManager.register(username, password);
-    response.userId = createdUser._id;
+    response._id = createdUser.userId;
+    response.errors = createdUser.errors;
   }
 
   return response;
@@ -117,7 +119,7 @@ const checkAdmin = async (req, res, next) => {
 
   if (username) {
     const user = await findUser(username);
-    isAdmin = user.isAdmin;
+    isAdmin = await isUserAdmin(user._id);
   }
 
   if (!isAdmin) {

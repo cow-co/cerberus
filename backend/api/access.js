@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const statusCodes = require("../config/statusCodes");
-const { validatePassword } = require("../validation/security-validation");
 const {
   authenticate,
   verifySession,
   checkAdmin,
-  register,
   logout,
+  register,
 } = require("../security/access-manager");
-const { findUser } = require("../db/services/user-service");
+const { findUser, findUserById } = require("../db/services/user-service");
+const { addAdmin, removeAdmin } = require("../db/services/admin-service");
 
 // Expects request body to contain:
 // - username
@@ -23,17 +23,10 @@ router.post("/register", async (req, res) => {
     errors: [],
   };
 
-  const validationErrors = validatePassword(password);
+  const result = await register(username, password);
 
-  if (validationErrors.length === 0) {
-    const result = await register(username, password);
-
-    if (result.errors.length > 0) {
-      responseJSON.errors = result.errors;
-      responseStatus = statusCodes.BAD_REQUEST;
-    }
-  } else {
-    responseJSON.errors = responseJSON.errors.concat(validationErrors);
+  if (result.errors.length > 0) {
+    responseJSON.errors = result.errors;
     responseStatus = statusCodes.BAD_REQUEST;
   }
 
@@ -56,7 +49,7 @@ router.delete("/logout", verifySession, async (req, res) => {
 
 // Changes admin status of the user.
 // Expects req.body to contain:
-// - username (string)
+// - userId (string)
 // - makeAdmin (boolean)
 router.put("/admin", verifySession, checkAdmin, async (req, res) => {
   let status = statusCodes.OK;
@@ -64,11 +57,15 @@ router.put("/admin", verifySession, checkAdmin, async (req, res) => {
     errors: [],
   };
 
-  const chosenUser = req.body.username.trim();
-  const user = await findUser(chosenUser);
+  const chosenUser = req.body.userId.trim();
+  const user = await findUserById(chosenUser); // TODO this should go to the user manager, in order to support AD auth
+  // TODO Allow removing admin too
   if (user) {
-    user.isAdmin = req.body.makeAdmin;
-    await user.save();
+    if (req.body.makeAdmin) {
+      await addAdmin(user._id);
+    } else {
+      await removeAdmin(user._id);
+    }
   } else {
     status = statusCodes.BAD_REQUEST;
     response.errors.push("User not found");

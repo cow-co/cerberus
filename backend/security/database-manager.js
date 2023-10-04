@@ -2,10 +2,37 @@ const { findUser, createUser } = require("../db/services/user-service");
 const argon2 = require("argon2");
 const securityConfig = require("../config/security-config");
 const { levels, log } = require("../utils/logger");
+const { validatePassword } = require("../validation/security-validation");
 
 const register = async (username, password) => {
-  const hashed = await argon2.hash(password);
-  return await createUser({ name: username, hashedPassword: hashed, acgs: [] });
+  let response = {
+    userId: "",
+    errors: [],
+  };
+
+  try {
+    const validationErrors = validatePassword(password);
+
+    if (validationErrors.length === 0) {
+      const hashed = await argon2.hash(password);
+      const userRecord = await createUser({
+        name: username,
+        hashedPassword: hashed,
+      });
+      response.userId = userRecord._id;
+    } else {
+      log(
+        "database-manager#register",
+        "Validation of password failed",
+        levels.WARN
+      );
+      response.errors = response.errors.concat(validationErrors);
+    }
+  } catch (err) {
+    log("database-manager#register", "OH NO", levels.ERROR);
+    response.errors.push("Internal Server Error");
+  }
+  return response;
 };
 
 // Password should be null if using PKI (since PKI login doesn't use a password)
