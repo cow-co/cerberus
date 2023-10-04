@@ -74,6 +74,23 @@ const logout = async () => {
   return json.errors;
 };
 
+const findUserByName = async (username) => {
+  const response = await fetch("http://localhost:5000/api/users/" + username);
+  return response.json();
+};
+
+const changeAdminStatus = async (userId, makeAdmin) => {
+  const response = await fetch("http://localhost:5000/api/access/admin", {
+    method: "PUT",
+    headers: new Headers({ "content-type": "application/json" }),
+    body: JSON.stringify({
+      userId,
+      makeAdmin,
+    }),
+  });
+  return response.json.errors;
+};
+
 export {
   fetchImplants,
   fetchTasks,
@@ -83,4 +100,6 @@ export {
   register,
   login,
   logout,
+  findUserByName,
+  changeAdminStatus,
 };
