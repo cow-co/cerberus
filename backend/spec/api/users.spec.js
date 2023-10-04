@@ -75,7 +75,7 @@ describe("User tests", () => {
     expect(delStub.calledOnce).to.be.true;
   });
 
-  it("should delete a user", async () => {
+  it("should fail to delete a user - not admin", async () => {
     const findWrapper = sinon.stub(User, "findOne");
     findWrapper.returns({
       _id: "650a3a2a7dcd3241ecee2d71",
@@ -105,5 +105,35 @@ describe("User tests", () => {
       .delete("/api/users/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(403);
+  });
+
+  it("should fail to delete a user - user does not exist", async () => {
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    findWrapper.withArgs({ name: "user2" }).returns({
+      _id: "650a3a2a7dcd3241ecee2d70",
+      username: "user2",
+      hashedPassword: "hashed",
+      save: () => {},
+    });
+    sinon.stub(argon2, "verify").returns(true);
+    const adminStub = sinon.stub(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns(null);
+    const delStub = sinon
+      .stub(User, "findByIdAndDelete")
+      .throws("DocumentNotFoundError");
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .delete("/api/users/some-mongo-id3")
+      .set("Cookie", cookies[0]);
+    expect(res.statusCode).to.equal(400);
   });
 });
