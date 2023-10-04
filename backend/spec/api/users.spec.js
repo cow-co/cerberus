@@ -122,7 +122,9 @@ describe("User tests", () => {
     });
     sinon.stub(argon2, "verify").returns(true);
     const adminStub = sinon.stub(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns(null);
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
     const delStub = sinon
       .stub(User, "findByIdAndDelete")
       .throws("DocumentNotFoundError");

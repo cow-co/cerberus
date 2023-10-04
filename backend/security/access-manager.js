@@ -165,6 +165,71 @@ const removeUser = async (userId) => {
   return errors;
 };
 
+const findUserByName = async (userName) => {
+  let errors = [];
+  let user = null;
+  try {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        user = await dbUserManager.findUserByName(userName);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        user = await adUserManager.findUserByName(userName);
+        break;
+
+      default:
+        log(
+          "findUser",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        break;
+    }
+  } catch (err) {
+    log("findUser", err, levels.ERROR);
+    errors.push("Internal Server Error");
+  }
+
+  return {
+    user,
+    errors,
+  };
+};
+
+// TODO this should return a generic "user" representation (username and id)
+const findUserById = async (userId) => {
+  let errors = [];
+  let user = null;
+  try {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        user = await dbUserManager.findUserById(userId);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        user = await adUserManager.findUserById(userId);
+        break;
+
+      default:
+        log(
+          "findUser",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        break;
+    }
+  } catch (err) {
+    log("findUser", err, levels.ERROR);
+    errors.push("Internal Server Error");
+  }
+
+  return {
+    user,
+    errors,
+  };
+};
+
 module.exports = {
   authenticate,
   verifySession,
@@ -172,4 +237,6 @@ module.exports = {
   register,
   checkAdmin,
   removeUser,
+  findUserByName,
+  findUserById,
 };
