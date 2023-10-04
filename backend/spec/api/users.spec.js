@@ -3,6 +3,8 @@ const expect = require("chai").expect;
 const sinon = require("sinon");
 const User = require("../../db/models/User");
 const accessManager = require("../../security/access-manager");
+const Admin = require("../../db/models/Admin");
+const argon2 = require("argon2");
 
 describe("User tests", () => {
   afterEach(() => {
