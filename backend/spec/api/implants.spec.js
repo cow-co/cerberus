@@ -1,12 +1,15 @@
-const request = require("supertest");
-const server = require("../../index");
+let agent;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Implant = require("../../db/models/Implant");
+const accessManager = require("../../security/access-manager");
 
 describe("Implant API Tests", () => {
-  beforeEach(() => {
+  afterEach(() => {
     sinon.restore();
+  });
+
+  beforeEach(() => {
     const findStub = sinon.stub(Implant, "find").callsFake(async () => {
       return [
         {
@@ -30,47 +33,25 @@ describe("Implant API Tests", () => {
       ];
     });
 
-    findStub.withArgs({ isActive: true }).callsFake(async () => {
-      return [
-        {
-          _id: "some-mongo-id",
-          id: "some-uuid",
-          ip: "192.168.0.1",
-          os: "Windows",
-          beaconIntervalSeconds: 300,
-          lastCheckinTimeSeconds: 0,
-          isActive: true,
-        },
-      ];
-    });
+    // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
+    // since node caches the app
+    sinon.stub(accessManager, "verifySession").callsArg(2);
+    agent = require("supertest").agent(require("../../index"));
   });
   it("should get all implants (empty array)", async () => {
     sinon.restore();
     sinon.stub(Implant, "find").callsFake(async () => {
       return [];
     });
-    const res = await request(server).get("/api/implants");
+    const res = await agent.get("/api/implants");
     expect(res.statusCode).to.equal(200);
     expect(res.body.implants.length).to.equal(0);
   });
 
   it("should get all implants (non-empty array)", async () => {
-    const res = await request(server).get("/api/implants");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.implants.length).to.equal(1);
-  });
-
-  it("should get all implants (including inactive)", async () => {
-    const res = await request(server).get("/api/implants?includeInactive=true");
+    server = require("../../index");
+    const res = await agent.get("/api/implants");
     expect(res.statusCode).to.equal(200);
     expect(res.body.implants.length).to.equal(2);
-  });
-
-  it("should get all implants (explicitly excluding inactive)", async () => {
-    const res = await request(server).get(
-      "/api/implants?includeInactive=false"
-    );
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.implants.length).to.equal(1);
   });
 });
