@@ -156,7 +156,6 @@ describe("User tests", () => {
     securityConfig.authMethod = originalSetting;
   });
 
-  // FIXME Need to mock out the admin/session checks
   it("should successfully add an admin", async () => {
     const findWrapper = sinon.stub(User, "findOne");
     findWrapper.returns({
@@ -190,7 +189,6 @@ describe("User tests", () => {
     expect(res.statusCode).to.equal(200);
   });
 
-  // FIXME Need to mock out the admin/session checks
   it("should successfully remove an admin", async () => {
     const findWrapper = sinon.stub(User, "findOne");
     findWrapper.returns({
@@ -224,7 +222,6 @@ describe("User tests", () => {
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
-    console.log(cookies);
     const res = await agent
       .put("/api/access/admin")
       .set("Cookie", cookies[0])
