@@ -1,8 +1,13 @@
-const { findUser, createUser } = require("../db/services/user-service");
+const {
+  findUser,
+  createUser,
+  findUserById,
+} = require("../db/services/user-service");
 const argon2 = require("argon2");
 const securityConfig = require("../config/security-config");
 const { levels, log } = require("../utils/logger");
 const { validatePassword } = require("../validation/security-validation");
+const User = require("../db/models/User");
 
 const register = async (username, password) => {
   let response = {
@@ -60,7 +65,12 @@ const authenticate = async (username, password) => {
   return authenticated;
 };
 
+const deleteUser = async (userId) => {
+  const user = await User.findByIdAndDelete(userId);
+};
+
 module.exports = {
   register,
   authenticate,
+  deleteUser,
 };

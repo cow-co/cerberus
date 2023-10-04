@@ -446,5 +446,97 @@ paths:
                     type: array
                     items:
                       type: string
-      
+  /access/admin: 
+    put: 
+      security:
+        - cookieAuth: []
+      summary: Changes the admin status of a user. Requires the calling user to be an admin themselves.
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId: 
+                  type: string
+                makeAdmin: 
+                  type: boolean
+      responses:
+        "200": # status code
+          description: Successfully changed admin status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400": # status code
+          description: Provided userId does not correspond to a user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: User not logged in, or user not an admin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string      
+  /users/{username}: 
+    get: 
+      security:
+        - cookieAuth: []
+      summary: Gets the details (minus hashed password) of the user, if they exist.
+      tags:
+        - Users
+      responses:
+        "200": # status code
+          description: Successfully found user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400": # status code
+          description: Provided username does not correspond to a user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: Calling user not logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
       

@@ -51,6 +51,7 @@ router.delete("/logout", verifySession, async (req, res) => {
 // Expects req.body to contain:
 // - userId (string)
 // - makeAdmin (boolean)
+// TODO Test that only admins can do this
 router.put("/admin", verifySession, checkAdmin, async (req, res) => {
   let status = statusCodes.OK;
   let response = {
@@ -59,7 +60,6 @@ router.put("/admin", verifySession, checkAdmin, async (req, res) => {
 
   const chosenUser = req.body.userId.trim();
   const user = await findUserById(chosenUser); // TODO this should go to the user manager, in order to support AD auth
-  // TODO Allow removing admin too
   if (user) {
     if (req.body.makeAdmin) {
       await addAdmin(user._id);

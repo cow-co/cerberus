@@ -132,10 +132,44 @@ const checkAdmin = async (req, res, next) => {
   }
 };
 
+const removeUser = async (userId) => {
+  let errors = [];
+  try {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        await dbUserManager.deleteUser(userId);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        log(
+          "removeUser",
+          "Cannot remove a user when backed by Active Directory. Contact domain admin to remove user.",
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        break;
+
+      default:
+        log(
+          "removeUser",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        break;
+    }
+  } catch (err) {
+    log("removeUser", err, levels.ERROR);
+    errors.push("Internal Server Error");
+  }
+
+  return errors;
+};
+
 module.exports = {
   authenticate,
   verifySession,
   logout,
   register,
   checkAdmin,
+  removeUser,
 };

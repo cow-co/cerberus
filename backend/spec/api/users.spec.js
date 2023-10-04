@@ -37,4 +37,15 @@ describe("User tests", () => {
     expect(res.statusCode).to.equal(200);
     expect(res.body.user.hashedPassword).to.equal(undefined);
   });
+
+  it("should delete a user", async () => {
+    const delStub = sinon.stub(User, "findByIdAndDelete").returns({
+      _id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
+    });
+    const res = await agent.delete("/api/users/some-mongo-id3");
+    expect(res.statusCode).to.equal(200);
+    expect(delStub.calledOnce()).to.be.true;
+  });
 });
