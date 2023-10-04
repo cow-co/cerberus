@@ -27,14 +27,15 @@ const AdminDialogue = (props) => {
       errors.forEach((error) => {
         const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
       });
       setHelpText("Could not change user's admin status");
       setUser({id: "", name: ""});
     } else {
+        // FIXME This alert might not be working?
         const alert = generateAlert("Successfully changed user admin status", "success");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         setHelpText("Changed user admin status");
         setUser({id: "", name: ""});
     }
@@ -46,14 +47,14 @@ const AdminDialogue = (props) => {
       response.errors.forEach((error) => {
         const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
       });
       setSearchError(true);
       setHelpText("Could not find user");
     } else {
-        const alert = generateAlert("Successfully found user", "success");
+        const alert = generateAlert("Successfully found", "success");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         setUser({id: response.user._id, name: response.user.name});
         setSearchError(false);
         setHelpText("Found User");

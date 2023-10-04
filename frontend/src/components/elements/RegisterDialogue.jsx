@@ -22,12 +22,12 @@ const RegisterDialogue = (props) => {
       errors.forEach((error) => {
         const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
       });
     } else {
         const alert = generateAlert("Successfully registered", "success");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         handleClose();
     }
   }

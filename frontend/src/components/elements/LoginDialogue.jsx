@@ -23,12 +23,12 @@ const LoginDialogue = (props) => {
       response.errors.forEach((error) => {
         const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
       });
     } else {
         const alert = generateAlert("Successfully logged in", "success");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         dispatch(setUsername(response.username));
         handleClose();
     }
@@ -47,7 +47,7 @@ const LoginDialogue = (props) => {
       <DialogTitle>Login</DialogTitle>
       <FormControl fullWidth>
         <TextField className='text-input' label="Username" variant="outlined" value={currentUsername} onChange={handleUsernameUpdate} />
-        <TextField className='text-input' label="Password" variant="outlined" value={password} onChange={handlePasswordUpdate} />
+        <TextField type="password" className='text-input' label="Password" variant="outlined" value={password} onChange={handlePasswordUpdate} />
         <Button onClick={handleSubmit}>Submit</Button>
       </FormControl>
     </Dialog>

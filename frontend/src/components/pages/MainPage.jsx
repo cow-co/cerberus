@@ -51,12 +51,12 @@ function MainPage() {
       errors.forEach((error) => {
         const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
       });
     } else {
         const alert = generateAlert("Successfully logged out", "success");
         dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         dispatch(setUsername(""));
         handleRegisterFormClose();
     }
