@@ -3,3 +3,6 @@
 ### VS Code ###
 .vscode/
 /bin/
+**/build/
+**/coverage/
+**/.nyc_output/

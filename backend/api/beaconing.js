@@ -20,10 +20,11 @@ router.post("", async (req, res) => {
     logger.levels.DEBUG
   );
   let returnStatus = statusCodes.OK;
-  let responseJSON = {}; // TODO make the response DTOs into their own classes
+  let responseJSON = {};
 
   try {
-    if (validateBeacon(req.body)) {
+    const validationResult = validateBeacon(req.body);
+    if (validationResult.isValid) {
       const beacon = {
         id: req.body.id,
         ip: req.body.ip,
@@ -50,7 +51,7 @@ router.post("", async (req, res) => {
     } else {
       responseJSON = {
         tasks: [],
-        errors: ["Validation Error"],
+        errors: validationResult.errors,
       };
       returnStatus = statusCodes.BAD_REQUEST;
     }
