@@ -3,7 +3,7 @@ const expect = require("chai").expect;
 const sinon = require("sinon");
 const Implant = require("../../db/models/Implant");
 const Task = require("../../db/models/Task");
-const accessManager = require("../../security/access-manager");
+const accessManager = require("../../security/user-and-access-manager");
 
 describe("Beacon API tests", () => {
   afterEach(() => {

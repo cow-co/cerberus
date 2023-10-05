@@ -5,8 +5,11 @@ const {
   verifySession,
   checkAdmin,
   removeUser,
-} = require("../security/access-manager");
-const { findUser, findUserById } = require("../db/services/user-service");
+  findUserByName,
+  findUserById,
+} = require("../security/user-and-access-manager");
+
+// TODO update to use access-manager findUser method
 
 router.get("/:username", verifySession, async (req, res) => {
   let status = statusCodes.OK;
@@ -16,13 +19,12 @@ router.get("/:username", verifySession, async (req, res) => {
   };
 
   const chosenUser = req.params.username.trim();
-  const user = await findUser(chosenUser);
-  const strippedUser = {
-    _id: user._id,
-    name: user.name,
-  };
-  if (user) {
-    response.user = strippedUser;
+  const result = await findUserByName(chosenUser);
+  if (result.user) {
+    response.user = {
+      _id: result.user._id,
+      name: result.user.name,
+    };
   } else {
     status = statusCodes.BAD_REQUEST;
     response.errors.push("User not found");
@@ -31,7 +33,6 @@ router.get("/:username", verifySession, async (req, res) => {
   res.status(status).json(response);
 });
 
-// TODO Test that only admins can do this
 router.delete("/:userId", verifySession, checkAdmin, async (req, res) => {
   let status = statusCodes.OK;
   let response = {
@@ -39,10 +40,16 @@ router.delete("/:userId", verifySession, checkAdmin, async (req, res) => {
   };
 
   const chosenUser = req.params.userId.trim();
-  const errors = await removeUser(chosenUser);
-  response.errors = errors;
-  if (errors.length > 0) {
-    status = statusCodes.INTERNAL_SERVER_ERROR;
+  const result = await findUserById(chosenUser);
+  if (!result.user) {
+    response.errors = result.errors;
+    status = statusCodes.BAD_REQUEST;
+  } else {
+    const errors = await removeUser(chosenUser);
+    response.errors = errors;
+    if (errors.length > 0) {
+      status = statusCodes.INTERNAL_SERVER_ERROR;
+    }
   }
   res.status(status).json(response);
 });

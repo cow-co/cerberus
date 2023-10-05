@@ -7,7 +7,7 @@ const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
 const { extractUserDetails } = require("./pki");
 const { findUser } = require("../db/services/user-service");
-const { isUserAdmin } = require("../db/services/admin-service");
+const { isUserAdmin, removeAdmin } = require("../db/services/admin-service");
 
 // Basically checks the provided credentials
 const authenticate = async (req, res, next) => {
@@ -138,6 +138,7 @@ const removeUser = async (userId) => {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
         await dbUserManager.deleteUser(userId);
+        await removeAdmin(userId);
         break;
       case securityConfig.availableAuthMethods.AD:
         log(
@@ -165,6 +166,70 @@ const removeUser = async (userId) => {
   return errors;
 };
 
+const findUserByName = async (userName) => {
+  let errors = [];
+  let user = null;
+  try {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        user = await dbUserManager.findUserByName(userName);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        user = await adUserManager.findUserByName(userName);
+        break;
+
+      default:
+        log(
+          "findUserByName",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        break;
+    }
+  } catch (err) {
+    log("findUserByName", err, levels.ERROR);
+    errors.push("Internal Server Error");
+  }
+
+  return {
+    user,
+    errors,
+  };
+};
+
+const findUserById = async (userId) => {
+  let errors = [];
+  let user = null;
+  try {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        user = await dbUserManager.findUserById(userId);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        user = await adUserManager.findUserById(userId);
+        break;
+
+      default:
+        log(
+          "findUserById",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        break;
+    }
+  } catch (err) {
+    log("findUserById", err, levels.ERROR);
+    errors.push("Internal Server Error");
+  }
+
+  return {
+    user,
+    errors,
+  };
+};
+
 module.exports = {
   authenticate,
   verifySession,
@@ -172,4 +237,6 @@ module.exports = {
   register,
   checkAdmin,
   removeUser,
+  findUserByName,
+  findUserById,
 };

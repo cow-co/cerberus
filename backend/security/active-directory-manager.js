@@ -21,6 +21,23 @@ const authenticate = async (username, password) => {
   return success;
 };
 
+const findUserById = async (userId) => {
+  return findUserByName(userId);
+};
+
+const findUserByName = async (username) => {
+  let foundUser = null;
+  ad.findUser(username, (err, user) => {
+    foundUser = user;
+  });
+  return {
+    id: foundUser.sn,
+    name: foundUser.sAMAccountName,
+  };
+};
+
 module.exports = {
   authenticate,
+  findUserById,
+  findUserByName,
 };

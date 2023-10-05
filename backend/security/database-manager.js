@@ -1,8 +1,4 @@
-const {
-  findUser,
-  createUser,
-  findUserById,
-} = require("../db/services/user-service");
+const userService = require("../db/services/user-service");
 const argon2 = require("argon2");
 const securityConfig = require("../config/security-config");
 const { levels, log } = require("../utils/logger");
@@ -20,7 +16,7 @@ const register = async (username, password) => {
 
     if (validationErrors.length === 0) {
       const hashed = await argon2.hash(password);
-      const userRecord = await createUser({
+      const userRecord = await userService.createUser({
         name: username,
         hashedPassword: hashed,
       });
@@ -47,7 +43,7 @@ const authenticate = async (username, password) => {
   let authenticated = false;
 
   if (username !== null) {
-    user = await findUser(username);
+    user = await userService.findUser(username);
     if (user !== null) {
       log("database-manager#authenticate", JSON.stringify(user), levels.DEBUG);
       if (!securityConfig.usePKI) {
@@ -66,11 +62,37 @@ const authenticate = async (username, password) => {
 };
 
 const deleteUser = async (userId) => {
-  const user = await User.findByIdAndDelete(userId);
+  return userService.deleteUser(userId);
+};
+
+const findUserById = async (userId) => {
+  const user = await userService.findUserById(userId);
+  if (!user) {
+    return null;
+  } else {
+    return {
+      id: user._id,
+      name: user.name,
+    };
+  }
+};
+
+const findUserByName = async (username) => {
+  const user = await userService.findUser(username);
+  if (!user) {
+    return null;
+  } else {
+    return {
+      id: user._id,
+      name: user.name,
+    };
+  }
 };
 
 module.exports = {
   register,
   authenticate,
   deleteUser,
+  findUserById,
+  findUserByName,
 };
