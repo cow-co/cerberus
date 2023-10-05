@@ -22,7 +22,7 @@ router.get("/:username", verifySession, async (req, res) => {
   const result = await findUserByName(chosenUser);
   if (result.user) {
     response.user = {
-      _id: result.user._id,
+      id: result.user.id,
       name: result.user.name,
     };
   } else {
