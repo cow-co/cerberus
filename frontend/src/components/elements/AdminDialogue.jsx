@@ -6,13 +6,14 @@ import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormContr
 import { useDispatch } from "react-redux";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { changeAdminStatus, findUserByName } from '../../functions/apiCalls';
+import { changeAdminStatus, deleteUser, findUserByName } from '../../functions/apiCalls';
 import { generateAlert } from "../../common/utils";
 
 const AdminDialogue = (props) => {
   const {onClose, open} = props;
   const [user, setUser] = useState({id: "", name: ""});
   const [searchError, setSearchError] = useState(false);
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [makeAdmin, setMakeAdmin] = useState(false);
   const [helpText, setHelpText] = useState("");
   const dispatch = useDispatch();
@@ -21,7 +22,7 @@ const AdminDialogue = (props) => {
     setUser({name: event.target.value});
   }
 
-  const handleSubmit = async () => {
+  const handleSubmitAdminStatus = async () => {
     const errors = await changeAdminStatus(user.id, makeAdmin);
     if (errors.length > 0) {
       errors.forEach((error) => {
@@ -37,6 +38,25 @@ const AdminDialogue = (props) => {
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         setHelpText("Changed user admin status");
+        setUser({id: "", name: ""});
+    }
+  }
+
+  const handleSubmitDelete = async () => {
+    const errors = await deleteUser(user.id);
+    if (errors.length > 0) {
+      errors.forEach((error) => {
+        const alert = generateAlert(error, "error");
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+      });
+      setHelpText("Could not delete user");
+      setUser({id: "", name: ""});
+    } else {
+        const alert = generateAlert("Successfully deleted user", "success");
+        dispatch(addAlert(alert));
+        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+        setHelpText("User deleted");
         setUser({id: "", name: ""});
     }
   }
@@ -69,8 +89,15 @@ const AdminDialogue = (props) => {
         <FormControlLabel control={<Checkbox checked={makeAdmin} onClick={() => setMakeAdmin(!makeAdmin)} />} label="Make User Admin" />
         <Typography variant="body1">Selected User ID: {user.id}</Typography>
         <Button onClick={handleSearch}>Search</Button>
-        <Button onClick={handleSubmit} disabled={user.id === ""}>Submit</Button>
+        <Button onClick={handleSubmitAdminStatus} disabled={user.id === ""}>Change User Admin Status</Button>
+        <Button onClick={() => setConfirmationOpen(true)} disabled={user.id === ""}>Delete User</Button>
       </FormGroup>
+      <Dialog open={confirmationOpen} onClose={() => setConfirmationOpen(false)}>
+        <DialogTitle>Are You Sure?</DialogTitle>
+        <Typography variant="body1">You are going to delete user {user.name}</Typography>
+        <Button onClick={handleSubmitDelete}>Confirm</Button>
+        <Button onClick={() => setConfirmationOpen(false)}>Cancel</Button>
+      </Dialog>
     </Dialog>
   );
 }

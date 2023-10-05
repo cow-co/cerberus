@@ -91,6 +91,13 @@ const changeAdminStatus = async (userId, makeAdmin) => {
   return response.json.errors;
 };
 
+const deleteUser = async (userId) => {
+  const response = await fetch("http://localhost:5000/api/users/" + userId, {
+    method: "DELETE",
+  });
+  return response.json();
+};
+
 export {
   fetchImplants,
   fetchTasks,
@@ -102,4 +109,5 @@ export {
   logout,
   findUserByName,
   changeAdminStatus,
+  deleteUser,
 };
