@@ -61,19 +61,32 @@ const authenticate = async (username, password) => {
   return authenticated;
 };
 
-// TODO We should put in something to remove the user as an admin (unless maybe we wanna put that in the outer access-manager area?)
 const deleteUser = async (userId) => {
   return userService.deleteUser(userId);
 };
 
 const findUserById = async (userId) => {
   const user = await userService.findUserById(userId);
-  return user;
+  if (!user) {
+    return null;
+  } else {
+    return {
+      id: user._id,
+      name: user.name,
+    };
+  }
 };
 
 const findUserByName = async (username) => {
   const user = await userService.findUser(username);
-  return user;
+  if (!user) {
+    return null;
+  } else {
+    return {
+      id: user._id,
+      name: user.name,
+    };
+  }
 };
 
 module.exports = {

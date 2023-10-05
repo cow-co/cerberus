@@ -2,7 +2,7 @@ let agent;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const User = require("../../db/models/User");
-const accessManager = require("../../security/access-manager");
+const accessManager = require("../../security/user-and-access-manager");
 const argon2 = require("argon2");
 const securityConfig = require("../../config/security-config");
 const pki = require("../../security/pki");
@@ -181,7 +181,6 @@ describe("User tests", () => {
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
-    console.log(cookies);
     const res = await agent
       .put("/api/access/admin")
       .set("Cookie", cookies[0])

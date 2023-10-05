@@ -7,7 +7,7 @@ const {
   checkAdmin,
   logout,
   register,
-} = require("../security/access-manager");
+} = require("../security/user-and-access-manager");
 const { findUser, findUserById } = require("../db/services/user-service");
 const { addAdmin, removeAdmin } = require("../db/services/admin-service");
 

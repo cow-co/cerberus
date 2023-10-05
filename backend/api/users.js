@@ -7,7 +7,7 @@ const {
   removeUser,
   findUserByName,
   findUserById,
-} = require("../security/access-manager");
+} = require("../security/user-and-access-manager");
 
 // TODO update to use access-manager findUser method
 
@@ -19,13 +19,12 @@ router.get("/:username", verifySession, async (req, res) => {
   };
 
   const chosenUser = req.params.username.trim();
-  const user = await findUserByName(chosenUser);
-  const strippedUser = {
-    _id: user._id,
-    name: user.name,
-  };
-  if (user) {
-    response.user = strippedUser;
+  const result = await findUserByName(chosenUser);
+  if (result.user) {
+    response.user = {
+      _id: result.user._id,
+      name: result.user.name,
+    };
   } else {
     status = statusCodes.BAD_REQUEST;
     response.errors.push("User not found");

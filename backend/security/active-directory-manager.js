@@ -30,7 +30,10 @@ const findUserByName = async (username) => {
   ad.findUser(username, (err, user) => {
     foundUser = user;
   });
-  return foundUser;
+  return {
+    id: foundUser.sn,
+    name: foundUser.sAMAccountName,
+  };
 };
 
 module.exports = {

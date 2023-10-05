@@ -7,7 +7,7 @@ const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
 const { extractUserDetails } = require("./pki");
 const { findUser } = require("../db/services/user-service");
-const { isUserAdmin } = require("../db/services/admin-service");
+const { isUserAdmin, removeAdmin } = require("../db/services/admin-service");
 
 // Basically checks the provided credentials
 const authenticate = async (req, res, next) => {
@@ -138,6 +138,7 @@ const removeUser = async (userId) => {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
         await dbUserManager.deleteUser(userId);
+        await removeAdmin(userId);
         break;
       case securityConfig.availableAuthMethods.AD:
         log(
@@ -179,7 +180,7 @@ const findUserByName = async (userName) => {
 
       default:
         log(
-          "findUser",
+          "findUserByName",
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
@@ -187,7 +188,7 @@ const findUserByName = async (userName) => {
         break;
     }
   } catch (err) {
-    log("findUser", err, levels.ERROR);
+    log("findUserByName", err, levels.ERROR);
     errors.push("Internal Server Error");
   }
 
@@ -197,7 +198,6 @@ const findUserByName = async (userName) => {
   };
 };
 
-// TODO this should return a generic "user" representation (username and id)
 const findUserById = async (userId) => {
   let errors = [];
   let user = null;
@@ -212,7 +212,7 @@ const findUserById = async (userId) => {
 
       default:
         log(
-          "findUser",
+          "findUserById",
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
@@ -220,7 +220,7 @@ const findUserById = async (userId) => {
         break;
     }
   } catch (err) {
-    log("findUser", err, levels.ERROR);
+    log("findUserById", err, levels.ERROR);
     errors.push("Internal Server Error");
   }
 

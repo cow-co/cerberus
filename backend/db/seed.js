@@ -5,7 +5,7 @@ const {
 const { createTaskType } = require("./services/tasks-service");
 const { findUser } = require("./services/user-service");
 const { addAdmin, numAdmins } = require("./services/admin-service");
-const { register } = require("../security/access-manager");
+const { register } = require("../security/user-and-access-manager");
 const securityConfig = require("../config/security-config");
 
 const seedTaskTypes = async () => {
