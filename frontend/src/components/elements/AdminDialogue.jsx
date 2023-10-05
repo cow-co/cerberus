@@ -75,7 +75,7 @@ const AdminDialogue = (props) => {
         const alert = generateAlert("Successfully found", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-        setUser({id: response.user._id, name: response.user.name});
+        setUser({id: response.user.id, name: response.user.name});
         setSearchError(false);
         setHelpText("Found User");
     }
