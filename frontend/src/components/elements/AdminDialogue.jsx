@@ -92,7 +92,7 @@ const AdminDialogue = (props) => {
         <Button onClick={handleSubmitAdminStatus} disabled={user.id === ""}>Change User Admin Status</Button>
         <Button onClick={() => setConfirmationOpen(true)} disabled={user.id === ""}>Delete User</Button>
       </FormGroup>
-      <Dialog open={confirmationOpen} onClose={() => setConfirmationOpen(false)}>
+      <Dialog open={confirmationOpen} onClose={() => setConfirmationOpen(false)} fullWidth maxWidth="md">
         <DialogTitle>Are You Sure?</DialogTitle>
         <Typography variant="body1">You are going to delete user {user.name}</Typography>
         <Button onClick={handleSubmitDelete}>Confirm</Button>
