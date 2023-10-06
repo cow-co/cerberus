@@ -54,4 +54,12 @@ router.delete("/:userId", verifySession, checkAdmin, async (req, res) => {
   res.status(status).json(response);
 });
 
+router.get("/check-session", verifySession, async (req, res) => {
+  let status = statusCodes.OK;
+  let response = {
+    username: req.session.username,
+  };
+  res.status(status).json(response);
+});
+
 module.exports = router;

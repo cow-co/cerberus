@@ -1,7 +1,21 @@
 import { AppBar, Toolbar, Button, Typography } from '@mui/material';
+import { checkSessionCookie } from '../../functions/apiCalls';
+import { setUsername } from '../../common/redux/users-slice';
+import { addAlert, removeAlert } from '../../common/redux/alerts-slice';
+import { generateAlert } from '../../common/utils';
+import { useDispatch } from 'react-redux';
+import Cookies from "js-cookie";
 
 const HeaderBar = (props) => {
-  // TODO On load, ping the checkSession endpoint
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const checkSession = async () => {
+      const user = await checkSessionCookie();
+      dispatch(setUsername(user.username));
+    }
+    checkSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   
   const handleLogout = async () => {
     const errors = await logout();

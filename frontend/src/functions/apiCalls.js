@@ -98,6 +98,11 @@ const deleteUser = async (userId) => {
   return response.json();
 };
 
+const checkSessionCookie = async () => {
+  const response = await fetch("http://localhost:5000/api/users/check-session");
+  return response.json();
+};
+
 export {
   fetchImplants,
   fetchTasks,
@@ -110,4 +115,5 @@ export {
   findUserByName,
   changeAdminStatus,
   deleteUser,
+  checkSessionCookie,
 };

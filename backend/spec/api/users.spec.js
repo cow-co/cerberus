@@ -146,4 +146,30 @@ describe("User tests", () => {
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(400);
   });
+
+  it("should remove hashed password from user in response", async () => {
+    sinon.stub(User, "findOne").returns({
+      _id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
+    });
+    const res = await agent.get("/api/users/username");
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.user.hashedPassword).to.equal(undefined);
+  });
+
+  it("should check session and return username", async () => {
+    // Stub for login
+    sinon.stub(argon2, "verify").returns(true);
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .delete("/api/users/check-session")
+      .set("Cookie", cookies[0]);
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.user.username).to.equal("user");
+  });
 });

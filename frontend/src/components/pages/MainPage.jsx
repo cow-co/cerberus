@@ -4,22 +4,14 @@ import LoginDialogue from "../elements/LoginDialogue";
 import RegisterDialogue from "../elements/RegisterDialogue";
 import TasksPane from "../elements/TasksPane";
 import { useState } from 'react';
-import { Box, Grid, AppBar, Toolbar, Button, Typography } from '@mui/material';
-import { logout } from "../../functions/apiCalls";
-import { useDispatch } from "react-redux";
-import { setUsername } from "../../common/redux/users-slice";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { generateAlert, isLoggedIn } from "../../common/utils";
+import { Box, Grid } from '@mui/material';
 import AdminDialogue from "../elements/AdminDialogue";
-import Cookies from "js-cookie";
 import HeaderBar from "../elements/HeaderBar";
 
 function MainPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
-  const dispatch = useDispatch();
 
   // TODO Break App bar into separate component
   // TODO On app bar component mount, if connect.sid exists, ping off to a "checkSession" endpoint which will return the username if the session is valid
