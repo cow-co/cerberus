@@ -6,20 +6,21 @@ import TasksPane from "../elements/TasksPane";
 import { useState } from 'react';
 import { Box, Grid, AppBar, Toolbar, Button, Typography } from '@mui/material';
 import { logout } from "../../functions/apiCalls";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setUsername } from "../../common/redux/users-slice";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { generateAlert } from "../../common/utils";
+import { generateAlert, isLoggedIn } from "../../common/utils";
 import AdminDialogue from "../elements/AdminDialogue";
+import Cookies from "js-cookie";
 
 function MainPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
-  const loggedInUser = useSelector((state) => state.users.username);
   const dispatch = useDispatch();
 
+  // TODO Just put these as anon funcs in the components
   const handleLoginFormOpen = () => {
     setLoginOpen(true);
   }
@@ -44,7 +45,6 @@ function MainPage() {
     setRegisterOpen(false);
   }
   
-
   const handleLogout = async () => {
     const errors = await logout();
     if (errors.length > 0) {
@@ -58,12 +58,14 @@ function MainPage() {
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         dispatch(setUsername(""));
-        handleRegisterFormClose();
+        // FIXME This should probably be a dispatch I guess - it doesn't automatically update the app bar
+        Cookies.remove("connect.sid");
+        Cookies.remove("JSESSIONID");
     }
   }
 
   let loginoutButton = null;
-  if (!loggedInUser) {
+  if (!isLoggedIn()) {
     loginoutButton = <Button onClick={handleLoginFormOpen}>Log In</Button>
   } else {
     loginoutButton = <Button onClick={handleLogout}>Log Out</Button>
