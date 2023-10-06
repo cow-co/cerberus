@@ -13,6 +13,7 @@ import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { generateAlert, isLoggedIn } from "../../common/utils";
 import AdminDialogue from "../elements/AdminDialogue";
 import Cookies from "js-cookie";
+import HeaderBar from "../elements/HeaderBar";
 
 function MainPage() {
   const [loginOpen, setLoginOpen] = useState(false);
@@ -20,72 +21,18 @@ function MainPage() {
   const [adminOpen, setAdminOpen] = useState(false);
   const dispatch = useDispatch();
 
-  // TODO Just put these as anon funcs in the components
-  const handleLoginFormOpen = () => {
-    setLoginOpen(true);
-  }
-
-  const handleLoginFormClose = () => {
-    setLoginOpen(false);
-  }
-
-  const handleAdminFormOpen = () => {
-    setAdminOpen(true);
-  }
-
-  const handleAdminFormClose = () => {
-    setAdminOpen(false);
-  }
-
-  const handleRegisterFormOpen = () => {
-    setRegisterOpen(true);
-  }
-
-  const handleRegisterFormClose = () => {
-    setRegisterOpen(false);
-  }
-  
-  const handleLogout = async () => {
-    const errors = await logout();
-    if (errors.length > 0) {
-      errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
-    } else {
-        const alert = generateAlert("Successfully logged out", "success");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-        dispatch(setUsername(""));
-        // FIXME This should probably be a dispatch I guess - it doesn't automatically update the app bar
-        Cookies.remove("connect.sid");
-        Cookies.remove("JSESSIONID");
-    }
-  }
-
-  let loginoutButton = null;
-  if (!isLoggedIn()) {
-    loginoutButton = <Button onClick={handleLoginFormOpen}>Log In</Button>
-  } else {
-    loginoutButton = <Button onClick={handleLogout}>Log Out</Button>
-  }
-
+  // TODO Break App bar into separate component
+  // TODO On app bar component mount, if connect.sid exists, ping off to a "checkSession" endpoint which will return the username if the session is valid
   return (
     <Box sx={{flexGrow: 1}}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-            Cerberus
-          </Typography>
-          <Button onClick={handleRegisterFormOpen}>Register</Button>
-          {loginoutButton}
-          <Button onClick={handleAdminFormOpen}>Admin</Button>
-        </Toolbar>
-      </AppBar>
-      <LoginDialogue open={loginOpen} onClose={handleLoginFormClose} />
-      <RegisterDialogue open={registerOpen} onClose={handleRegisterFormClose} />
-      <AdminDialogue open={adminOpen} onClose={handleAdminFormClose} />
+      <HeaderBar 
+        handleAdminFormOpen={() => setAdminOpen(true)} 
+        handleLoginFormOpen={() => setLoginOpen(true)} 
+        handleRegisterFormOpen={() => setRegisterOpen(true)}
+      />
+      <LoginDialogue open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <RegisterDialogue open={registerOpen} onClose={() => setRegisterOpen(false)} />
+      <AdminDialogue open={adminOpen} onClose={() => setAdminOpen(false)} />
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <TasksPane />
