@@ -24,7 +24,7 @@ describe("User tests", () => {
       name: "username",
       hashedPassword: "hashed",
     });
-    const res = await agent.get("/api/users/username");
+    const res = await agent.get("/api/users/user/username");
     expect(res.statusCode).to.equal(200);
     expect(res.body.user.name).to.equal("username");
   });
@@ -35,7 +35,7 @@ describe("User tests", () => {
       name: "username",
       hashedPassword: "hashed",
     });
-    const res = await agent.get("/api/users/username");
+    const res = await agent.get("/api/users/user/username");
     expect(res.statusCode).to.equal(200);
     expect(res.body.user.hashedPassword).to.equal(undefined);
   });
@@ -76,7 +76,7 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(200);
     expect(delStub.calledOnce).to.be.true;
@@ -112,7 +112,7 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(403);
   });
@@ -142,8 +142,40 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(400);
+  });
+
+  it("should remove hashed password from user in response", async () => {
+    sinon.stub(User, "findOne").returns({
+      _id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
+    });
+    const res = await agent.get("/api/users/user/username");
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.user.hashedPassword).to.equal(undefined);
+  });
+
+  it("should check session and return username", async () => {
+    // Stub for login
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    sinon.stub(argon2, "verify").returns(true);
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .get("/api/users/check-session")
+      .set("Cookie", cookies[0]);
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.username).to.equal("user");
   });
 });

@@ -498,7 +498,7 @@ paths:
                     type: array
                     items:
                       type: string      
-  /users/{username}: 
+  /users/user/{username}: 
     get: 
       security:
         - cookieAuth: []
