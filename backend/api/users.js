@@ -8,6 +8,7 @@ const {
   findUserByName,
   findUserById,
 } = require("../security/user-and-access-manager");
+const { ResponseDTO } = require("./dto/ResponseDTO");
 
 // TODO update to use access-manager findUser method
 
@@ -35,30 +36,26 @@ router.get("/user/:username", verifySession, async (req, res) => {
 
 router.delete("/user/:userId", verifySession, checkAdmin, async (req, res) => {
   let status = statusCodes.OK;
-  let response = {
-    errors: [],
-  };
+  let errors = [];
 
   const chosenUser = req.params.userId.trim();
   const result = await findUserById(chosenUser);
   if (!result.user) {
-    response.errors = result.errors;
+    errors = result.errors;
     status = statusCodes.BAD_REQUEST;
   } else {
-    const errors = await removeUser(chosenUser);
-    response.errors = errors;
+    errors = await removeUser(chosenUser);
     if (errors.length > 0) {
       status = statusCodes.INTERNAL_SERVER_ERROR;
     }
   }
+  const response = new ResponseDTO(chosenUser, errors);
   res.status(status).json(response);
 });
 
 router.get("/check-session", verifySession, async (req, res) => {
   let status = statusCodes.OK;
-  let response = {
-    username: req.session.username,
-  };
+  const response = new ResponseDTO(req.session.username, []);
   res.status(status).json(response);
 });
 

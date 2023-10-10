@@ -8,3 +8,5 @@ class ResponseDTO {
     this.errors = errors;
   }
 }
+
+module.exports = { ResponseDTO };
