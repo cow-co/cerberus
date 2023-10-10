@@ -160,6 +160,12 @@ describe("User tests", () => {
 
   it("should check session and return username", async () => {
     // Stub for login
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
     sinon.stub(argon2, "verify").returns(true);
 
     const loginRes = await agent
@@ -167,9 +173,9 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/check-session")
+      .get("/api/users/check-session")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(200);
-    expect(res.body.user.username).to.equal("user");
+    expect(res.body.username).to.equal("user");
   });
 });
