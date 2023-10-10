@@ -17,4 +17,10 @@ class TaskDTO {
     this.params = params;
     this.sent = sent;
   }
+
+  get id() {
+    return this.id;
+  }
 }
+
+module.exports = { TaskDTO };

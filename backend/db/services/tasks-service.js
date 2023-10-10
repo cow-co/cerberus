@@ -1,5 +1,6 @@
 const Task = require("../models/Task");
 const TaskType = require("../models/TaskType");
+const TaskDTO = require("../../api/dto/TaskDTO");
 
 const getTasksForImplant = async (implantId, history) => {
   let tasks = [];
@@ -13,7 +14,17 @@ const getTasksForImplant = async (implantId, history) => {
       sent: false,
     }).sort({ order: -1 });
   }
-  return tasks;
+
+  const taskArray = tasks.map((task) => {
+    return new TaskDTO(
+      task._id,
+      task.order,
+      task.implantId,
+      task.params,
+      task.sent
+    );
+  });
+  return taskArray;
 };
 
 const getTaskById = async (taskId) => {

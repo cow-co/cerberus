@@ -12,6 +12,7 @@ const {
   getTasksForImplant,
   taskSent,
 } = require("../db/services/tasks-service");
+const { ResponseDTO } = require("./dto/ResponseDTO");
 
 router.post("", async (req, res) => {
   logger.log(
@@ -20,7 +21,8 @@ router.post("", async (req, res) => {
     logger.levels.DEBUG
   );
   let returnStatus = statusCodes.OK;
-  let responseJSON = {};
+  let errors = [];
+  let tasks = [];
 
   try {
     const validationResult = validateBeacon(req.body);
@@ -39,30 +41,21 @@ router.post("", async (req, res) => {
         await updateImplant(beacon);
       }
 
-      const tasks = await getTasksForImplant(beacon.id, false);
-      responseJSON = {
-        tasks,
-        errors: [],
-      };
-
+      tasks = await getTasksForImplant(beacon.id, false);
       await tasks.forEach(async (task) => {
-        await taskSent(task._id);
+        await taskSent(task.id);
       });
     } else {
-      responseJSON = {
-        tasks: [],
-        errors: validationResult.errors,
-      };
+      errors = validationResult.errors;
       returnStatus = statusCodes.BAD_REQUEST;
     }
   } catch (err) {
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON = {
-      tasks: [],
-      errors: ["Internal Server Error"],
-    };
+    errors = ["Internal Server Error"];
     logger.log("/beacon", err, logger.levels.ERROR);
   }
+
+  const responseJSON = new ResponseDTO(tasks, errors);
   return res.status(returnStatus).json(responseJSON);
 });
 
