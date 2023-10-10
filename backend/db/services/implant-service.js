@@ -1,4 +1,5 @@
 const Implant = require("../models/Implant");
+const ImplantDTO = require("../../api/dto/ImplantDTO");
 
 const addImplant = async (details) => {
   await Implant.create({
@@ -26,15 +27,32 @@ const updateImplant = async (details) => {
 };
 
 const findImplantById = async (id) => {
-  let implant = null;
-  implant = await Implant.findOne({ id: id });
-  return implant;
+  const implant = await Implant.findOne({ id: id });
+  const dto = new ImplantDTO(
+    implant.id,
+    implant.ip,
+    implant.os,
+    implant.beaconIntervalSeconds,
+    implant.lastCheckinTime,
+    implant.isActive
+  );
+  return dto;
 };
 
 const getAllImplants = async () => {
-  let implants = [];
-  implants = await Implant.find();
-  return implants;
+  const implants = await Implant.find();
+  const implantsArray = implants.map(
+    (implant) =>
+      new ImplantDTO(
+        implant.id,
+        implant.ip,
+        implant.os,
+        implant.beaconIntervalSeconds,
+        implant.lastCheckinTime,
+        implant.isActive
+      )
+  );
+  return implantsArray;
 };
 
 module.exports = {

@@ -12,7 +12,7 @@ const {
   getTasksForImplant,
   taskSent,
 } = require("../db/services/tasks-service");
-const { ResponseDTO } = require("./dto/ResponseDTO");
+const ResponseDTO = require("./dto/ResponseDTO");
 
 router.post("", async (req, res) => {
   logger.log(

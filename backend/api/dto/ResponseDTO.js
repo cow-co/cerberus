@@ -9,4 +9,4 @@ class ResponseDTO {
   }
 }
 
-module.exports = { ResponseDTO };
+module.exports = ResponseDTO;

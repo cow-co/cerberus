@@ -10,7 +10,7 @@ const {
 } = require("../security/user-and-access-manager");
 const { findUserById } = require("../db/services/user-service");
 const { addAdmin, removeAdmin } = require("../db/services/admin-service");
-const { ResponseDTO } = require("./dto/ResponseDTO");
+const ResponseDTO = require("./dto/ResponseDTO");
 
 /**
  * Expects request body to contain:

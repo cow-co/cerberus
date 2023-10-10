@@ -23,4 +23,4 @@ class TaskDTO {
   }
 }
 
-module.exports = { TaskDTO };
+module.exports = TaskDTO;
