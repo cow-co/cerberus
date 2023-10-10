@@ -11,6 +11,7 @@ const logger = require("../utils/logger");
 const statusCodes = require("../config/statusCodes");
 const { validateTask } = require("../validation/request-validation");
 const { verifySession } = require("../security/user-and-access-manager");
+const ResponseDTO = require("../api/dto/ResponseDTO");
 
 router.get("/tasks/:implantId", verifySession, async (req, res) => {
   logger.log(
@@ -19,24 +20,19 @@ router.get("/tasks/:implantId", verifySession, async (req, res) => {
     logger.levels.DEBUG
   );
   let returnStatus = statusCodes.OK;
-  let responseJSON = {};
+  let errors = [];
+  let tasks = [];
 
   try {
     const includeSent = req.query.includeSent === "true";
-    const tasks = await getTasksForImplant(req.params.implantId, includeSent);
-    responseJSON = {
-      tasks: tasks,
-      errors: [],
-    };
+    tasks = await getTasksForImplant(req.params.implantId, includeSent);
   } catch (err) {
     logger.log(`/tasks/${req.params.implantId}`, err, logger.levels.ERROR);
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON = {
-      tasks: [],
-      errors: ["Internal Server Error"],
-    };
+    errors = ["Internal Server Error"];
   }
 
+  const responseJSON = new ResponseDTO(tasks, errors);
   return res.status(returnStatus).json(responseJSON);
 });
 
