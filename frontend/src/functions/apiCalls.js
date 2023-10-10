@@ -75,7 +75,9 @@ const logout = async () => {
 };
 
 const findUserByName = async (username) => {
-  const response = await fetch("http://localhost:5000/api/users/" + username);
+  const response = await fetch(
+    "http://localhost:5000/api/users/user/" + username
+  );
   return response.json();
 };
 
@@ -92,9 +94,12 @@ const changeAdminStatus = async (userId, makeAdmin) => {
 };
 
 const deleteUser = async (userId) => {
-  const response = await fetch("http://localhost:5000/api/users/" + userId, {
-    method: "DELETE",
-  });
+  const response = await fetch(
+    "http://localhost:5000/api/users/user/" + userId,
+    {
+      method: "DELETE",
+    }
+  );
   return response.json();
 };
 

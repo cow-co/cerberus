@@ -13,8 +13,6 @@ function MainPage() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
 
-  // TODO Break App bar into separate component
-  // TODO On app bar component mount, if connect.sid exists, ping off to a "checkSession" endpoint which will return the username if the session is valid
   return (
     <Box sx={{flexGrow: 1}}>
       <HeaderBar 

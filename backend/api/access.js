@@ -51,7 +51,6 @@ router.delete("/logout", verifySession, async (req, res) => {
 // Expects req.body to contain:
 // - userId (string)
 // - makeAdmin (boolean)
-// TODO Test that only admins can do this
 router.put("/admin", verifySession, checkAdmin, async (req, res) => {
   let status = statusCodes.OK;
   let response = {

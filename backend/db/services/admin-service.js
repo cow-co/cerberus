@@ -2,8 +2,6 @@ const Admin = require("../models/Admin");
 const User = require("../models/User");
 
 // TODO Call these from the API
-// TODO the way I envisage this working is that the admin types in a username, searches it, then submits the found user record
-//  (the UI layer will pick out the user _id and send it)
 const isUserAdmin = async (userId) => {
   const adminRecord = await Admin.findOne({ userId: userId });
   return adminRecord !== null;

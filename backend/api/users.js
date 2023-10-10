@@ -11,7 +11,7 @@ const {
 
 // TODO update to use access-manager findUser method
 
-router.get("/:username", verifySession, async (req, res) => {
+router.get("/user/:username", verifySession, async (req, res) => {
   let status = statusCodes.OK;
   let response = {
     user: {},
@@ -33,7 +33,7 @@ router.get("/:username", verifySession, async (req, res) => {
   res.status(status).json(response);
 });
 
-router.delete("/:userId", verifySession, checkAdmin, async (req, res) => {
+router.delete("/user/:userId", verifySession, checkAdmin, async (req, res) => {
   let status = statusCodes.OK;
   let response = {
     errors: [],

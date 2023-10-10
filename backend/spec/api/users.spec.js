@@ -24,7 +24,7 @@ describe("User tests", () => {
       name: "username",
       hashedPassword: "hashed",
     });
-    const res = await agent.get("/api/users/username");
+    const res = await agent.get("/api/users/user/username");
     expect(res.statusCode).to.equal(200);
     expect(res.body.user.name).to.equal("username");
   });
@@ -35,7 +35,7 @@ describe("User tests", () => {
       name: "username",
       hashedPassword: "hashed",
     });
-    const res = await agent.get("/api/users/username");
+    const res = await agent.get("/api/users/user/username");
     expect(res.statusCode).to.equal(200);
     expect(res.body.user.hashedPassword).to.equal(undefined);
   });
@@ -76,7 +76,7 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(200);
     expect(delStub.calledOnce).to.be.true;
@@ -112,7 +112,7 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(403);
   });
@@ -142,7 +142,7 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(400);
   });
@@ -153,7 +153,7 @@ describe("User tests", () => {
       name: "username",
       hashedPassword: "hashed",
     });
-    const res = await agent.get("/api/users/username");
+    const res = await agent.get("/api/users/user/username");
     expect(res.statusCode).to.equal(200);
     expect(res.body.user.hashedPassword).to.equal(undefined);
   });

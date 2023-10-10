@@ -1,13 +1,16 @@
-import { AppBar, Toolbar, Button, Typography } from '@mui/material';
-import { checkSessionCookie } from '../../functions/apiCalls';
-import { setUsername } from '../../common/redux/users-slice';
-import { addAlert, removeAlert } from '../../common/redux/alerts-slice';
-import { generateAlert } from '../../common/utils';
-import { useDispatch } from 'react-redux';
+import { AppBar, Toolbar, Button, Typography } from "@mui/material";
+import { checkSessionCookie, logout } from "../../functions/apiCalls";
+import { setUsername } from "../../common/redux/users-slice";
+import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
+import { generateAlert } from "../../common/utils";
+import { useDispatch, useSelector } from "react-redux";
 import Cookies from "js-cookie";
+import conf from "../../common/config/properties";
+import { useEffect } from "react";
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
+  const username = useSelector((state) => state.users.username);
   useEffect(() => {
     const checkSession = async () => {
       const user = await checkSessionCookie();
@@ -30,17 +33,15 @@ const HeaderBar = (props) => {
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         dispatch(setUsername(""));
-        // FIXME This should probably be a dispatch I guess - it doesn't automatically update the app bar
         Cookies.remove("connect.sid");
-        Cookies.remove("JSESSIONID");
     }
   }
 
   let loginoutButton = null;
-  if (!isLoggedIn()) {
-    loginoutButton = <Button onClick={props.handleLoginFormOpen}>Log In</Button>
-  } else {
+  if (username) {
     loginoutButton = <Button onClick={handleLogout}>Log Out</Button>
+  } else {
+    loginoutButton = <Button onClick={props.handleLoginFormOpen}>Log In</Button>
   }
 
   return (
