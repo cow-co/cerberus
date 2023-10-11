@@ -19,6 +19,10 @@ const {
   checkAdmin,
 } = require("../security/user-and-access-manager");
 
+/**
+ * `implantId` must be the one assigned by the implant itself, NOT the database key.
+ * Requires user to be logged in.
+ */
 router.get("/tasks/:implantId", verifySession, async (req, res) => {
   log(
     `/tasks/${req.params.implantId}`,
@@ -75,7 +79,7 @@ router.get("/task-types", async (req, res) => {
  * - `name` (string)
  * - `params` (array of *unique* strings)
  */
-router.put("/task-types", verifySession, checkAdmin, async (req, res) => {
+router.post("/task-types", verifySession, checkAdmin, async (req, res) => {
   log("/task-types", "Creating a task type...", levels.DEBUG);
   let response = {
     taskType: null,
@@ -85,10 +89,10 @@ router.put("/task-types", verifySession, checkAdmin, async (req, res) => {
   try {
     const validity = validateTaskType(req.body);
     if (validity.isValid) {
+      response.taskType = await createTaskType(req.body);
+    } else {
       status = statusCodes.BAD_REQUEST;
       response.errors = validity.errors;
-    } else {
-      response.taskType = await createTaskType(req.body);
     }
   } catch (err) {
     log("/task-types", err, levels.ERROR);

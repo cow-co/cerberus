@@ -70,7 +70,6 @@ const validateTask = async (task) => {
   return validity;
 };
 
-// TODO: Test!
 const validateTaskType = (taskType) => {
   let validity = {
     isValid: true,
@@ -83,7 +82,7 @@ const validateTaskType = (taskType) => {
     ];
   } else {
     const distinctParams = new Set(taskType.params);
-    if (distinctParams.size() !== taskType.params.length) {
+    if (distinctParams.size !== taskType.params.length) {
       validity.isValid = false;
       validity.errors = ["Task Type params must have distinct names"];
     }
