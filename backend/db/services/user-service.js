@@ -7,6 +7,12 @@ const User = require("../models/User");
  */
 
 /**
+ * @typedef {object} User
+ * @property {string} name
+ * @property {string} hashedPassword
+ */
+
+/**
  * @param {string} username
  * @returns
  */
@@ -24,6 +30,10 @@ const findUserById = async (userId) => {
   return user;
 };
 
+/**
+ * @param {User} user
+ * @returns
+ */
 const createUser = async (user) => {
   return await User.create(user);
 };

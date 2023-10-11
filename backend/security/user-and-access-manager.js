@@ -9,7 +9,12 @@ const { extractUserDetails } = require("./pki");
 const { findUser } = require("../db/services/user-service");
 const { isUserAdmin, removeAdmin } = require("../db/services/admin-service");
 
-// Basically checks the provided credentials
+/**
+ * Basically checks the provided credentials
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {function} next
+ */
 const authenticate = async (req, res, next) => {
   log("access-manager#authenticate", "Authenticating...", levels.DEBUG);
   let username = null;
@@ -65,7 +70,12 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Checks that the session cookie is valid; if not, redirects to the login page
+/**
+ * Checks that the session cookie is valid; if not, redirects to the login page
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {function} next
+ */
 const verifySession = async (req, res, next) => {
   log(
     "verifySession",
@@ -85,14 +95,21 @@ const verifySession = async (req, res, next) => {
   }
 };
 
-// Destroys the stored session token
+/**
+ * Destroys the stored session token
+ * @param {Session} session
+ */
 const logout = async (session) => {
   session.destroy();
 };
 
-// Creates a user - specifically for DB-backed user management.
-// Returns an error if user management is AD-backed.
-// In a proper environment we'd probably want email verification. TBH we'd want AD auth anyway so it's kinda moot
+/**
+ * Creates a user - specifically for DB-backed user management.
+ * In a proper environment we'd probably want email verification. TBH we'd want AD auth anyway so it's kinda moot
+ * @param {string} username
+ * @param {string} password
+ * @returns An error if user management is backed by an external system (eg. AD).
+ */
 const register = async (username, password) => {
   username = username.trim();
   let response = {
@@ -113,6 +130,11 @@ const register = async (username, password) => {
   return response;
 };
 
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {function} next
+ */
 const checkAdmin = async (req, res, next) => {
   const username = req.session.username;
   let isAdmin = false;
@@ -132,6 +154,10 @@ const checkAdmin = async (req, res, next) => {
   }
 };
 
+/**
+ * @param {string} userId
+ * @returns
+ */
 const removeUser = async (userId) => {
   let errors = [];
   try {
@@ -166,6 +192,10 @@ const removeUser = async (userId) => {
   return errors;
 };
 
+/**
+ * @param {string} userName
+ * @returns
+ */
 const findUserByName = async (userName) => {
   let errors = [];
   let user = null;
@@ -198,6 +228,10 @@ const findUserByName = async (userName) => {
   };
 };
 
+/**
+ * @param {string} userId
+ * @returns
+ */
 const findUserById = async (userId) => {
   let errors = [];
   let user = null;
