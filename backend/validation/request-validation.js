@@ -2,6 +2,10 @@ const { levels, log } = require("../utils/logger");
 const net = require("net");
 const { getTaskTypeById } = require("../db/services/tasks-service");
 
+/**
+ * @param {beacon} beacon
+ * @returns Validity status (isValid and errors)
+ */
 const validateBeacon = (beacon) => {
   log(
     "validateBeacon",
@@ -37,6 +41,10 @@ const validateBeacon = (beacon) => {
   return validity;
 };
 
+/**
+ * @param {Task} task
+ * @returns Validity status (isValid and errors)
+ */
 const validateTask = async (task) => {
   log("validateTask", `Validating task ${JSON.stringify(task)}`, levels.DEBUG);
 
@@ -70,6 +78,10 @@ const validateTask = async (task) => {
   return validity;
 };
 
+/**
+ * @param {TaskType} taskType
+ * @returns Validity status (isValid and errors)
+ */
 const validateTaskType = (taskType) => {
   let validity = {
     isValid: true,
