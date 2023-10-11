@@ -5,11 +5,15 @@ const {
   createTask,
   getTaskTypes,
   deleteTask,
+  createTaskType,
 } = require("../db/services/tasks-service");
 const router = express.Router();
 const { levels, log } = require("../utils/logger");
 const statusCodes = require("../config/statusCodes");
-const { validateTask } = require("../validation/request-validation");
+const {
+  validateTask,
+  validateTaskType,
+} = require("../validation/request-validation");
 const {
   verifySession,
   checkAdmin,
@@ -66,8 +70,32 @@ router.get("/task-types", async (req, res) => {
   return res.status(returnStatus).json(responseJSON);
 });
 
+/**
+ * Expects req.body to contain:
+ * - `name` (string)
+ * - `params` (array of *unique* strings)
+ */
 router.put("/task-types", verifySession, checkAdmin, async (req, res) => {
   log("/task-types", "Creating a task type...", levels.DEBUG);
+  let response = {
+    taskType: null,
+    errors: [],
+  };
+  let status = statusCodes.OK;
+  try {
+    const validity = validateTaskType(req.body);
+    if (validity.isValid) {
+      status = statusCodes.BAD_REQUEST;
+      response.errors = validity.errors;
+    } else {
+      response.taskType = await createTaskType(req.body);
+    }
+  } catch (err) {
+    log("/task-types", err, levels.ERROR);
+    response.errors = ["Internal Server Error"];
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+  }
+  res.status(status).json(response);
 });
 
 router.post("/tasks", async (req, res) => {

@@ -70,7 +70,29 @@ const validateTask = async (task) => {
   return validity;
 };
 
+// TODO: Test!
+const validateTaskType = (taskType) => {
+  let validity = {
+    isValid: true,
+    errors: [],
+  };
+  if (!taskType.name || taskType.params === undefined) {
+    validity.isValid = false;
+    validity.errors = [
+      "Task Type must have a name and an array (can be empty) of param names",
+    ];
+  } else {
+    const distinctParams = new Set(taskType.params);
+    if (distinctParams.size() !== taskType.params.length) {
+      validity.isValid = false;
+      validity.errors = ["Task Type params must have distinct names"];
+    }
+  }
+  return validity;
+};
+
 module.exports = {
   validateBeacon,
   validateTask,
+  validateTaskType,
 };
