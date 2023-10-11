@@ -1,5 +1,4 @@
 const Admin = require("../models/Admin");
-const User = require("../models/User");
 
 // TODO Call these from the API
 const isUserAdmin = async (userId) => {

@@ -1,12 +1,12 @@
-const logger = require("../utils/logger");
+const { levels, log } = require("../utils/logger");
 const net = require("net");
 const { getTaskTypeById } = require("../db/services/tasks-service");
 
 const validateBeacon = (beacon) => {
-  logger.log(
+  log(
     "validateBeacon",
     `Validating beacon ${JSON.stringify(beacon)}`,
-    logger.levels.DEBUG
+    levels.DEBUG
   );
 
   let validity = {
@@ -38,11 +38,7 @@ const validateBeacon = (beacon) => {
 };
 
 const validateTask = async (task) => {
-  logger.log(
-    "validateTask",
-    `Validating task ${JSON.stringify(task)}`,
-    logger.levels.DEBUG
-  );
+  log("validateTask", `Validating task ${JSON.stringify(task)}`, levels.DEBUG);
 
   let validity = {
     isValid: true,
@@ -74,7 +70,28 @@ const validateTask = async (task) => {
   return validity;
 };
 
+const validateTaskType = (taskType) => {
+  let validity = {
+    isValid: true,
+    errors: [],
+  };
+  if (!taskType.name || taskType.params === undefined) {
+    validity.isValid = false;
+    validity.errors = [
+      "Task Type must have a name and an array (can be empty) of param names",
+    ];
+  } else {
+    const distinctParams = new Set(taskType.params);
+    if (distinctParams.size !== taskType.params.length) {
+      validity.isValid = false;
+      validity.errors = ["Task Type params must have distinct names"];
+    }
+  }
+  return validity;
+};
+
 module.exports = {
   validateBeacon,
   validateTask,
+  validateTaskType,
 };

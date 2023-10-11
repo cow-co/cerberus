@@ -56,10 +56,11 @@ const createTask = async (task) => {
 };
 
 const createTaskType = async (taskType) => {
-  await TaskType.create({
+  const created = await TaskType.create({
     name: taskType.name,
     params: taskType.params,
   });
+  return created;
 };
 
 const deleteTask = async (taskId) => {

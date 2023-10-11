@@ -118,7 +118,7 @@ const checkAdmin = async (req, res, next) => {
   let isAdmin = false;
 
   if (username) {
-    const user = await findUser(username);
+    const user = await findUser(username); // FIXME Should go to the findUser in here (for if we are using AD)
     isAdmin = await isUserAdmin(user._id);
   }
 
