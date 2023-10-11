@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const statusCodes = require("../config/statusCodes");
-const logger = require("../utils/logger");
+const { levels, log } = require("../utils/logger");
 const { validateBeacon } = require("../validation/request-validation");
 const {
   findImplantById,
@@ -14,11 +14,7 @@ const {
 } = require("../db/services/tasks-service");
 
 router.post("", async (req, res) => {
-  logger.log(
-    "/beacon",
-    `Received beacon: ${JSON.stringify(req.body)}`,
-    logger.levels.DEBUG
-  );
+  log("/beacon", `Received beacon: ${JSON.stringify(req.body)}`, levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
@@ -61,7 +57,7 @@ router.post("", async (req, res) => {
       tasks: [],
       errors: ["Internal Server Error"],
     };
-    logger.log("/beacon", err, logger.levels.ERROR);
+    log("/beacon", err, levels.ERROR);
   }
   return res.status(returnStatus).json(responseJSON);
 });

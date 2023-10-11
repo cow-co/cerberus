@@ -7,16 +7,19 @@ const {
   deleteTask,
 } = require("../db/services/tasks-service");
 const router = express.Router();
-const logger = require("../utils/logger");
+const { levels, log } = require("../utils/logger");
 const statusCodes = require("../config/statusCodes");
 const { validateTask } = require("../validation/request-validation");
-const { verifySession } = require("../security/user-and-access-manager");
+const {
+  verifySession,
+  checkAdmin,
+} = require("../security/user-and-access-manager");
 
 router.get("/tasks/:implantId", verifySession, async (req, res) => {
-  logger.log(
+  log(
     `/tasks/${req.params.implantId}`,
     "Getting tasks for implant...",
-    logger.levels.DEBUG
+    levels.DEBUG
   );
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
@@ -29,7 +32,7 @@ router.get("/tasks/:implantId", verifySession, async (req, res) => {
       errors: [],
     };
   } catch (err) {
-    logger.log(`/tasks/${req.params.implantId}`, err, logger.levels.ERROR);
+    log(`/tasks/${req.params.implantId}`, err, levels.ERROR);
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
       tasks: [],
@@ -41,7 +44,7 @@ router.get("/tasks/:implantId", verifySession, async (req, res) => {
 });
 
 router.get("/task-types", async (req, res) => {
-  logger.log("/task-types", "Getting task types...", logger.levels.DEBUG);
+  log("/task-types", "Getting task types...", levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
@@ -52,7 +55,7 @@ router.get("/task-types", async (req, res) => {
       errors: [],
     };
   } catch (err) {
-    logger.log("/task-types", err, logger.levels.ERROR);
+    log("/task-types", err, levels.ERROR);
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
       taskTypes: [],
@@ -63,12 +66,12 @@ router.get("/task-types", async (req, res) => {
   return res.status(returnStatus).json(responseJSON);
 });
 
+router.put("/task-types", verifySession, checkAdmin, async (req, res) => {
+  log("/task-types", "Creating a task type...", levels.DEBUG);
+});
+
 router.post("/tasks", async (req, res) => {
-  logger.log(
-    "/tasks",
-    `Creating task ${JSON.stringify(req.body)}`,
-    logger.levels.DEBUG
-  );
+  log("/tasks", `Creating task ${JSON.stringify(req.body)}`, levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
@@ -80,7 +83,7 @@ router.post("/tasks", async (req, res) => {
         errors: [],
       };
     } catch (err) {
-      logger.log("/tasks", err, logger.levels.ERROR);
+      log("/tasks", err, levels.ERROR);
       returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
       responseJSON = {
         errors: ["Internal Server Error"],
@@ -97,10 +100,10 @@ router.post("/tasks", async (req, res) => {
 });
 
 router.delete("/tasks/:taskId", async (req, res) => {
-  logger.log(
+  log(
     `DELETE /tasks/${req.params.taskId}`,
     `Deleting task ${req.params.taskId}`,
-    logger.levels.INFO
+    levels.INFO
   );
 
   let responseJSON = {
@@ -115,21 +118,17 @@ router.delete("/tasks/:taskId", async (req, res) => {
       responseJSON.errors.push(
         `Task with ID ${req.params.taskId} does not exist.`
       );
-      logger.log(
-        `DELETE /tasks/${req.params.taskId}`,
-        "Task not found",
-        logger.levels.ERROR
-      );
+      log(`DELETE /tasks/${req.params.taskId}`, "Task not found", levels.ERROR);
     } else {
       if (task.sent) {
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors.push(
           "Cannot delete a task that has been sent to an implant."
         );
-        logger.log(
+        log(
           `DELETE /tasks/${req.params.taskId}`,
           "Task already sent",
-          logger.levels.ERROR
+          levels.ERROR
         );
       } else {
         await deleteTask(req.params.taskId);
@@ -138,7 +137,7 @@ router.delete("/tasks/:taskId", async (req, res) => {
   } catch (err) {
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON.errors.push("Internal Server Error");
-    logger.log(`DELETE /tasks/${req.params.taskId}`, err, logger.levels.ERROR);
+    log(`DELETE /tasks/${req.params.taskId}`, err, levels.ERROR);
   }
 
   return res.status(returnStatus).json(responseJSON);

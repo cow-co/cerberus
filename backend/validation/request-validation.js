@@ -1,12 +1,12 @@
-const logger = require("../utils/logger");
+const { levels, log } = require("../utils/logger");
 const net = require("net");
 const { getTaskTypeById } = require("../db/services/tasks-service");
 
 const validateBeacon = (beacon) => {
-  logger.log(
+  log(
     "validateBeacon",
     `Validating beacon ${JSON.stringify(beacon)}`,
-    logger.levels.DEBUG
+    levels.DEBUG
   );
 
   let validity = {
@@ -38,11 +38,7 @@ const validateBeacon = (beacon) => {
 };
 
 const validateTask = async (task) => {
-  logger.log(
-    "validateTask",
-    `Validating task ${JSON.stringify(task)}`,
-    logger.levels.DEBUG
-  );
+  log("validateTask", `Validating task ${JSON.stringify(task)}`, levels.DEBUG);
 
   let validity = {
     isValid: true,
