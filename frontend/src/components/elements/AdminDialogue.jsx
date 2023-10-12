@@ -33,7 +33,6 @@ const AdminDialogue = (props) => {
       setHelpText("Could not change user's admin status");
       setUser({id: "", name: ""});
     } else {
-        // FIXME This alert might not be working?
         const alert = generateAlert("Successfully changed user admin status", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
