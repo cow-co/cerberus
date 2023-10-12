@@ -2,6 +2,10 @@ const { passwordRequirements } = require("../config/security-config");
 
 const DIGITS_REGEX = /[0-9]+/g;
 
+/**
+ * @param {string} password
+ * @returns errors
+ */
 const validatePassword = (password) => {
   let errors = [];
 

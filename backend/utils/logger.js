@@ -7,6 +7,12 @@ const levels = {
   WARN: "WARN",
 };
 
+/**
+ *
+ * @param {string} location Where the log event is occurring
+ * @param {object} message The object to log, usually a string or exception
+ * @param {'INFO' | 'DEBUG' | 'ERROR' | 'WARN'} level The log level
+ */
 const log = (location, message, level) => {
   message = `[${level}] ${location} ${message}`;
   switch (level) {

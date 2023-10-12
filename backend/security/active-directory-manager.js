@@ -3,7 +3,11 @@ const ActiveDirectory = require("activedirectory");
 
 const ad = new ActiveDirectory(securityConfig.adConfig);
 
-// Password will be null if using PKI
+/**
+ * @param {string} username
+ * @param {string} password Will be null if using PKI for authentication
+ * @returns true if authenticated, false otherwise
+ */
 const authenticate = async (username, password) => {
   let success = false;
   if (securityConfig.usePKI) {
@@ -21,10 +25,18 @@ const authenticate = async (username, password) => {
   return success;
 };
 
+/**
+ * @param {string} userId
+ * @returns
+ */
 const findUserById = async (userId) => {
   return findUserByName(userId);
 };
 
+/**
+ * @param {string} username
+ * @returns
+ */
 const findUserByName = async (username) => {
   let foundUser = null;
   ad.findUser(username, (err, user) => {

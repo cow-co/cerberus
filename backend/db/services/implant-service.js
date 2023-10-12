@@ -1,5 +1,15 @@
 const Implant = require("../models/Implant");
 
+/**
+ * @typedef {object} Implant
+ * @property {string} id
+ * @property {string} ip
+ * @property {string} os
+ * @property {number} beaconIntervalSeconds
+ * @property {number} lastCheckinTimeSeconds
+ *
+ * @param {Implant} details The implant to add
+ */
 const addImplant = async (details) => {
   await Implant.create({
     id: details.id,
@@ -11,6 +21,9 @@ const addImplant = async (details) => {
   });
 };
 
+/**
+ * @param {Implant} details The implant to update with
+ */
 const updateImplant = async (details) => {
   await Implant.findOneAndUpdate(
     { id: details.id },
@@ -25,12 +38,19 @@ const updateImplant = async (details) => {
   );
 };
 
+/**
+ * @param {string} id Implant to find. NOT the database ID; this is assigned by the implant itself when beaconing.
+ * @returns The implant (or null)
+ */
 const findImplantById = async (id) => {
   let implant = null;
   implant = await Implant.findOne({ id: id });
   return implant;
 };
 
+/**
+ * @returns All the implant records
+ */
 const getAllImplants = async () => {
   let implants = [];
   implants = await Implant.find();
