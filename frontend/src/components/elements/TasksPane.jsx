@@ -10,7 +10,6 @@ import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { v4 as uuidv4 } from "uuid";
 
-// TODO Handle auth errors etc
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);

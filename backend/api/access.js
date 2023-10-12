@@ -8,7 +8,7 @@ const {
   logout,
   register,
 } = require("../security/user-and-access-manager");
-const { findUser, findUserById } = require("../db/services/user-service");
+const { findUserById } = require("../security/user-and-access-manager");
 const { addAdmin, removeAdmin } = require("../db/services/admin-service");
 
 // Expects request body to contain:
@@ -58,7 +58,7 @@ router.put("/admin", verifySession, checkAdmin, async (req, res) => {
   };
 
   const chosenUser = req.body.userId.trim();
-  const user = await findUserById(chosenUser); // TODO this should go to the user manager, in order to support AD auth
+  const user = await findUserById(chosenUser);
   if (user) {
     if (req.body.makeAdmin) {
       await addAdmin(user._id);

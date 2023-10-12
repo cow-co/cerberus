@@ -1,29 +1,30 @@
+import conf from "../common/config/properties";
+
 const fetchTasks = async (implantId, showSent) => {
-  // TODO Make the backend URL configurable#
+  if (showSent === undefined) {
+    showSent = true;
+  }
   const response = await fetch(
-    `http://localhost:5000/api/tasks/${implantId}?includeSent=true`
+    `${conf.apiURL}apitasks/${implantId}?includeSent=${showSent}`
   );
   const json = await response.json();
   return json;
 };
 
 const fetchTaskTypes = async () => {
-  // TODO Make the backend URL configurable#
-  const response = await fetch("http://localhost:5000/api/task-types");
+  const response = await fetch(`${conf.apiURL}task-types`);
   const json = await response.json();
   return json;
 };
 
 const fetchImplants = async () => {
-  // TODO Make the backend URL configurable
-  const response = await fetch("http://localhost:5000/api/implants");
+  const response = await fetch(`${conf.apiURL}implants`);
   const json = await response.json();
   return json;
 };
 
 const createTask = async (task) => {
-  // TODO Make the backend URL configurable
-  const response = await fetch("http://localhost:5000/api/tasks", {
+  const response = await fetch(`${conf.apiURL}tasks`, {
     method: "POST",
     headers: new Headers({ "content-type": "application/json" }),
     body: JSON.stringify(task),
@@ -33,7 +34,7 @@ const createTask = async (task) => {
 };
 
 const deleteTask = async (task) => {
-  const response = await fetch(`http://localhost:5000/api/tasks/${task._id}`, {
+  const response = await fetch(`${conf.apiURL}tasks/${task._id}`, {
     method: "DELETE",
   });
   const json = await response.json();
@@ -41,7 +42,7 @@ const deleteTask = async (task) => {
 };
 
 const register = async (username, password) => {
-  const response = await fetch("http://localhost:5000/api/access/register", {
+  const response = await fetch(`${conf.apiURL}access/register`, {
     method: "POST",
     headers: new Headers({ "content-type": "application/json" }),
     body: JSON.stringify({
@@ -54,7 +55,7 @@ const register = async (username, password) => {
 };
 
 const login = async (username, password) => {
-  const response = await fetch("http://localhost:5000/api/access/login", {
+  const response = await fetch(`${conf.apiURL}access/login`, {
     method: "POST",
     headers: new Headers({ "content-type": "application/json" }),
     body: JSON.stringify({
@@ -67,7 +68,7 @@ const login = async (username, password) => {
 };
 
 const logout = async () => {
-  const response = await fetch("http://localhost:5000/api/access/logout", {
+  const response = await fetch(`${conf.apiURL}access/logout`, {
     method: "DELETE",
   });
   const json = await response.json();
@@ -75,14 +76,12 @@ const logout = async () => {
 };
 
 const findUserByName = async (username) => {
-  const response = await fetch(
-    "http://localhost:5000/api/users/user/" + username
-  );
+  const response = await fetch(`${conf.apiURL}users/user/${username}`);
   return response.json();
 };
 
 const changeAdminStatus = async (userId, makeAdmin) => {
-  const response = await fetch("http://localhost:5000/api/access/admin", {
+  const response = await fetch(`${conf.apiURL}access/admin`, {
     method: "PUT",
     headers: new Headers({ "content-type": "application/json" }),
     body: JSON.stringify({
@@ -94,17 +93,14 @@ const changeAdminStatus = async (userId, makeAdmin) => {
 };
 
 const deleteUser = async (userId) => {
-  const response = await fetch(
-    "http://localhost:5000/api/users/user/" + userId,
-    {
-      method: "DELETE",
-    }
-  );
+  const response = await fetch(`${conf.apiURL}users/user/${userId}`, {
+    method: "DELETE",
+  });
   return response.json();
 };
 
 const checkSessionCookie = async () => {
-  const response = await fetch("http://localhost:5000/api/users/check-session");
+  const response = await fetch(`${conf.apiURL}users/check-session`);
   return response.json();
 };
 

@@ -3,6 +3,7 @@ const TaskType = require("../models/TaskType");
 
 /**
  * @typedef {object} TaskType
+ * @property {string | undefined} id
  * @property {string} name
  * @property {Array<string>} params
  *
@@ -53,7 +54,6 @@ const getTaskTypes = async () => {
 };
 
 /**
- *
  * @param {string} id
  * @returns
  */
@@ -74,12 +74,12 @@ const taskSent = async (mongoId) => {
 
 /**
  * @param {Task} task
+ * @returns
  */
 const createTask = async (task) => {
-  // TODO should we validate that the task type actually exists? or should we leave that as a client-responsibility?
-  //  Will an invalid task type cause security issues or anything major like that?
   const existing = await getTasksForImplant(task.implantId, true);
   let order = 0;
+
   // getTasksForImplant returns the list sorted by order value
   if (existing.length > 0) {
     order = existing[0].order + 1;

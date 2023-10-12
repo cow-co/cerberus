@@ -9,8 +9,6 @@ const {
   findUserById,
 } = require("../security/user-and-access-manager");
 
-// TODO update to use access-manager findUser method
-
 router.get("/user/:username", verifySession, async (req, res) => {
   let status = statusCodes.OK;
   let response = {
