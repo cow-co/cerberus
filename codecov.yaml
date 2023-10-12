@@ -1,0 +1,8 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        branches: 
+          - main
+        if_ci_failed: error 
