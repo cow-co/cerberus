@@ -56,14 +56,13 @@ router.put("/admin", verifySession, checkAdmin, async (req, res) => {
   let response = {
     errors: [],
   };
-
   const chosenUser = req.body.userId.trim();
-  const user = await findUserById(chosenUser);
-  if (user) {
+  const result = await findUserById(chosenUser);
+  if (result.user) {
     if (req.body.makeAdmin) {
-      await addAdmin(user._id);
+      await addAdmin(result.user.id);
     } else {
-      await removeAdmin(user._id);
+      await removeAdmin(result.user.id);
     }
   } else {
     status = statusCodes.BAD_REQUEST;

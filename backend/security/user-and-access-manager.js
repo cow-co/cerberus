@@ -139,18 +139,27 @@ const checkAdmin = async (req, res, next) => {
   const username = req.session.username;
   let isAdmin = false;
 
+  // This ensures we call this method after logging in
   if (username) {
-    const user = await findUserByName(username);
-    isAdmin = await isUserAdmin(user._id);
-  }
-
-  if (!isAdmin) {
-    log("checkAdmin", "User is not an admin", levels.WARN);
+    const result = await findUserByName(username);
+    if (result.errors.length > 0) {
+      res.status(statusCodes.FORBIDDEN).json({ errors });
+    } else {
+      isAdmin = await isUserAdmin(result.user.id);
+      if (isAdmin) {
+        next();
+      } else {
+        log("checkAdmin", "User is not an admin", levels.WARN);
+        res
+          .status(statusCodes.FORBIDDEN)
+          .json({ errors: ["You must be an admin to do this"] });
+      }
+    }
+  } else {
+    log("checkAdmin", "User is not logged in", levels.WARN);
     res
       .status(statusCodes.FORBIDDEN)
-      .json({ errors: ["You must be an admin to do this"] });
-  } else {
-    next();
+      .json({ errors: ["You must be logged in to do this"] });
   }
 };
 

@@ -1,3 +1,4 @@
+const { log, levels } = require("../../utils/logger");
 const Admin = require("../models/Admin");
 
 /**
@@ -28,7 +29,12 @@ const addAdmin = async (userId) => {
  */
 const removeAdmin = async (userId) => {
   const existingAdminRecord = await Admin.findOne({ userId: userId });
-  if (existingAdminRecord !== null) {
+  if (existingAdminRecord) {
+    log(
+      "removeAdmin",
+      `Deleting admin record for user ID ${userId}`,
+      levels.INFO
+    );
     await existingAdminRecord.deleteOne();
   }
 };
