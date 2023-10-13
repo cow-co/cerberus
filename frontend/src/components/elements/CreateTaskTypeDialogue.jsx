@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
-import { fetchTaskTypes } from '../../functions/apiCalls';
-import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, TextField, Typography } from '@mui/material';
-import { useSelector, useDispatch } from "react-redux";
-import { setTaskTypes } from "../../common/redux/tasks-slice";
+import { useState } from 'react';
+import { FormControl, Dialog, DialogTitle, Button, TextField, Typography } from '@mui/material';
 
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
@@ -59,6 +56,7 @@ const CreateTaskDialogue = (props) => {
         <TextField className='text-input' variant="outlined" id="name-input" value={taskType.name} onChange={handleNameUpdate} />
         <Typography variant="h6">Parameters</Typography>
         {paramsSettings}
+        <Button onClick={handleAddParam}>Add Parameter</Button>
         <Button onClick={handleSubmit}>Create</Button>
       </FormControl>
     </Dialog>
