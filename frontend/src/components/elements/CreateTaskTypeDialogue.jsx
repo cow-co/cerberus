@@ -65,7 +65,7 @@ const CreateTaskDialogue = (props) => {
   const paramsSettings = taskType.params.map((param) => (
     <ListItem className="listElement" key={param.id} >
       <Grid item xs={11}>
-        <TextField className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamUpdate} />
+        <TextField fullWidth className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamUpdate} />
       </Grid>
       <Grid item xs={1}>
         <IconButton onClick={() => deleteParam(param.id)}><DeleteForeverIcon /></IconButton>

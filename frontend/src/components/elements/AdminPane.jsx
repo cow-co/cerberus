@@ -9,8 +9,7 @@ import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { changeAdminStatus, deleteUser, findUserByName } from '../../functions/apiCalls';
 import { generateAlert } from "../../common/utils";
 
-const AdminPane = (props) => {
-  const {onClose, open} = props;
+const AdminPane = () => {
   const [user, setUser] = useState({id: "", name: ""});
   const [searchError, setSearchError] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);

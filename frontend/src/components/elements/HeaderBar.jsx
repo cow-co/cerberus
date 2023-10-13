@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Button, Typography } from "@mui/material";
+import { AppBar, Toolbar, Button, Typography, Link } from "@mui/material";
 import { checkSessionCookie, logout } from "../../functions/apiCalls";
 import { setUsername } from "../../common/redux/users-slice";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Cookies from "js-cookie";
 import conf from "../../common/config/properties";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
@@ -53,7 +53,7 @@ const HeaderBar = (props) => {
           </Typography>
           <Button onClick={props.handleRegisterFormOpen}>Register</Button>
           {loginoutButton}
-          <Link to={"admin"}>Admin</Link>
+          <Link underline="none" component={RouterLink} to={"admin"}>Admin</Link>
         </Toolbar>
       </AppBar>);
 }

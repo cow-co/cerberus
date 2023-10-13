@@ -6,6 +6,7 @@ const {
   getTaskTypes,
   deleteTask,
   createTaskType,
+  getTaskTypeById,
 } = require("../db/services/tasks-service");
 const router = express.Router();
 const { levels, log } = require("../utils/logger");
@@ -18,6 +19,7 @@ const {
   verifySession,
   checkAdmin,
 } = require("../security/user-and-access-manager");
+const { deleteTaskType } = require("../../frontend/src/functions/apiCalls");
 
 /**
  * `implantId` must be the one assigned by the implant itself, NOT the database key.
@@ -51,7 +53,7 @@ router.get("/tasks/:implantId", verifySession, async (req, res) => {
   return res.status(returnStatus).json(responseJSON);
 });
 
-router.get("/task-types", async (req, res) => {
+router.get("/task-types", verifySession, async (req, res) => {
   log("/task-types", "Getting task types...", levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
@@ -102,7 +104,7 @@ router.post("/task-types", verifySession, checkAdmin, async (req, res) => {
   res.status(status).json(response);
 });
 
-router.post("/tasks", async (req, res) => {
+router.post("/tasks", verifySession, async (req, res) => {
   log("/tasks", `Creating task ${JSON.stringify(req.body)}`, levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
@@ -131,7 +133,7 @@ router.post("/tasks", async (req, res) => {
   return res.status(returnStatus).json(responseJSON);
 });
 
-router.delete("/tasks/:taskId", async (req, res) => {
+router.delete("/tasks/:taskId", verifySession, async (req, res) => {
   log(
     `DELETE /tasks/${req.params.taskId}`,
     `Deleting task ${req.params.taskId}`,
@@ -174,5 +176,46 @@ router.delete("/tasks/:taskId", async (req, res) => {
 
   return res.status(returnStatus).json(responseJSON);
 });
+
+router.delete(
+  "/tasks-types/:taskTypeId",
+  verifySession,
+  checkAdmin,
+  async (req, res) => {
+    log(
+      `DELETE /task-types/${req.params.taskTypeId}`,
+      `Deleting task type ${req.params.taskTypeId}`,
+      levels.INFO
+    );
+
+    let responseJSON = {
+      errors: [],
+    };
+    let returnStatus = statusCodes.OK;
+
+    try {
+      const taskType = await getTaskTypeById(req.params.taskTypeId);
+      if (!taskType) {
+        returnStatus = statusCodes.BAD_REQUEST;
+        responseJSON.errors.push(
+          `Task with ID ${req.params.taskTypeId} does not exist.`
+        );
+        log(
+          `DELETE /tasks/${req.params.taskTypeId}`,
+          "Task not found",
+          levels.ERROR
+        );
+      } else {
+        await deleteTaskType(req.params.taskTypeId);
+      }
+    } catch (err) {
+      returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+      responseJSON.errors.push("Internal Server Error");
+      log(`DELETE /task-types/${req.params.taskTypeId}`, err, levels.ERROR);
+    }
+
+    return res.status(returnStatus).json(responseJSON);
+  }
+);
 
 module.exports = router;

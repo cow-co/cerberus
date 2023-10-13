@@ -371,4 +371,33 @@ describe("Tasks API Tests", () => {
     const res = await agent.delete("/api/tasks/some-mongo-id");
     expect(res.statusCode).to.equal(400);
   });
+
+  it("should delete a task type", async () => {
+    // Stub user-search
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+
+    // Stub for login
+    sinon.stub(argon2, "verify").returns(true);
+
+    // Stub the admin-checks
+    const adminStub = sinon.stub(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
+    sinon.stub(TaskType, "findById").returns({
+      _id: "some-mongo-id",
+      name: "Task",
+      params: ["param1"],
+    });
+    sinon.stub(TaskType, "findByIdAndDelete");
+    const res = await agent.delete("/api/task-types/some-mongo-id");
+    expect(res.statusCode).to.equal(200);
+  });
+
+  // TODO Test for deleting non-existent task type
 });

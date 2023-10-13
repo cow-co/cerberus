@@ -10,14 +10,12 @@ import HeaderBar from "../elements/HeaderBar";
 function AdminPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
 
   console.log("Rendering Admin Page");
 
   return (
     <Box sx={{flexGrow: 1}}>
       <HeaderBar 
-        handleAdminFormOpen={() => setAdminOpen(true)} 
         handleLoginFormOpen={() => setLoginOpen(true)} 
         handleRegisterFormOpen={() => setRegisterOpen(true)}
       />

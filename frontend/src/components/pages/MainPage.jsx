@@ -5,24 +5,20 @@ import RegisterDialogue from "../elements/RegisterDialogue";
 import TasksPane from "../elements/TasksPane";
 import { useState } from 'react';
 import { Box, Grid } from '@mui/material';
-import AdminDialogue from "../elements/AdminDialogue";
 import HeaderBar from "../elements/HeaderBar";
 
 function MainPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
 
   return (
     <Box sx={{flexGrow: 1}}>
       <HeaderBar 
-        handleAdminFormOpen={() => setAdminOpen(true)} 
         handleLoginFormOpen={() => setLoginOpen(true)} 
         handleRegisterFormOpen={() => setRegisterOpen(true)}
       />
       <LoginDialogue open={loginOpen} onClose={() => setLoginOpen(false)} />
       <RegisterDialogue open={registerOpen} onClose={() => setRegisterOpen(false)} />
-      <AdminDialogue open={adminOpen} onClose={() => setAdminOpen(false)} />
       <Grid container spacing={2}>
         <Grid item xs={6}>
           <TasksPane />

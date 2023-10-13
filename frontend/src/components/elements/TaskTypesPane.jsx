@@ -1,4 +1,4 @@
-import { Box, Button, List, Typography } from '@mui/material';
+import { Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskTypeItem from './TaskTypeItem';
@@ -51,8 +51,8 @@ function TaskTypesPane() {
     }
   }
 
-  const handleDelete = async (task) => {
-    const errors = await deleteTaskType(task);
+  const handleDelete = async (taskType) => {
+    const errors = await deleteTaskType(taskType._id);
 
     if (errors.length > 0) {
       errors.forEach((error) => {
@@ -94,7 +94,7 @@ function TaskTypesPane() {
 
   if (taskTypes !== undefined && taskTypes !== null) {
     taskTypesItems = taskTypes.map(taskType => {
-      return <TaskTypeItem taskType={taskType} key={taskType.order} deleteTask={() => handleDelete(taskType)} />
+      return <TaskTypeItem taskType={taskType} key={taskType.order} deleteTaskType={() => handleDelete(taskType)} />
     });
   }
 
