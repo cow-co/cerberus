@@ -373,30 +373,30 @@ describe("Tasks API Tests", () => {
   });
 
   it("should delete a task type", async () => {
-    // Stub user-search
+    // Stub for login
     const findWrapper = sinon.stub(User, "findOne");
     findWrapper.returns({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
-
-    // Stub for login
     sinon.stub(argon2, "verify").returns(true);
-
     // Stub the admin-checks
     const adminStub = sinon.stub(Admin, "findOne");
     adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
       userId: "650a3a2a7dcd3241ecee2d71",
     });
-    sinon.stub(TaskType, "findById").returns({
-      _id: "some-mongo-id",
-      name: "Task",
-      params: ["param1"],
-    });
-    sinon.stub(TaskType, "findByIdAndDelete");
-    const res = await agent.delete("/api/task-types/some-mongo-id");
+    const delStub = sinon.stub(TaskType, "findByIdAndDelete");
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .delete("/api/task-types/tasktypeid1")
+      .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(200);
+    expect(delStub.calledOnce).to.be.true;
   });
 
   // TODO Test for deleting non-existent task type

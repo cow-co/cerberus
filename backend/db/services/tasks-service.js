@@ -108,11 +108,17 @@ const createTaskType = async (taskType) => {
 };
 
 /**
- *
  * @param {string} taskId
  */
 const deleteTask = async (taskId) => {
   await Task.findByIdAndDelete(taskId);
+};
+
+/**
+ * @param {string} taskTypeId
+ */
+const deleteTaskType = async (taskTypeId) => {
+  await TaskType.findByIdAndDelete(taskTypeId);
 };
 
 module.exports = {
@@ -124,4 +130,5 @@ module.exports = {
   getTaskTypeById,
   createTaskType,
   deleteTask,
+  deleteTaskType,
 };

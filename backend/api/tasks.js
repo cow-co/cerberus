@@ -5,6 +5,7 @@ const {
   createTask,
   getTaskTypes,
   deleteTask,
+  deleteTaskType,
   createTaskType,
   getTaskTypeById,
 } = require("../db/services/tasks-service");
@@ -19,7 +20,6 @@ const {
   verifySession,
   checkAdmin,
 } = require("../security/user-and-access-manager");
-const { deleteTaskType } = require("../../frontend/src/functions/apiCalls");
 
 /**
  * `implantId` must be the one assigned by the implant itself, NOT the database key.
@@ -178,7 +178,7 @@ router.delete("/tasks/:taskId", verifySession, async (req, res) => {
 });
 
 router.delete(
-  "/tasks-types/:taskTypeId",
+  "/task-types/:taskTypeId",
   verifySession,
   checkAdmin,
   async (req, res) => {
@@ -198,11 +198,11 @@ router.delete(
       if (!taskType) {
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors.push(
-          `Task with ID ${req.params.taskTypeId} does not exist.`
+          `Task type with ID ${req.params.taskTypeId} does not exist.`
         );
         log(
-          `DELETE /tasks/${req.params.taskTypeId}`,
-          "Task not found",
+          `DELETE /task-types/${req.params.taskTypeId}`,
+          `Task type ${req.params.taskTypeId} not found`,
           levels.ERROR
         );
       } else {
