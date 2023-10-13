@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FormControl, Dialog, DialogTitle, Button, TextField, Typography } from '@mui/material';
+import { FormControl, Dialog, DialogTitle, Button, TextField, Typography, ListItem } from '@mui/material';
+import { v4 as uuidv4 } from "uuid";
 
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
@@ -18,7 +19,18 @@ const CreateTaskDialogue = (props) => {
       name: taskType.name,
       params: taskType.params
     };
-    updated.params.push("");
+    updated.params.push({
+      id: uuidv4(),
+      name: ""
+    });
+    setTaskType(updated);
+  }
+
+  const deleteParam = (id) => {
+    let updated = {
+      name: taskType.name,
+      params: taskType.params.filter(param => param.id !== id)
+    };
     setTaskType(updated);
   }
 
@@ -37,16 +49,23 @@ const CreateTaskDialogue = (props) => {
       name: taskType.name,
       params: taskType.params
     };
-    updated.params.forEach((param, index) => {
-      if (index === id) {
-        param = value;
+    updated.params.forEach((param) => {
+      if (param.id === id) {
+        param.name = value;
       }
     });
     setTaskType(updated);
   }
   
-  const paramsSettings = taskType.params.map((param, index) => (
-    <TextField className='text-input' variant="outlined" key={index} id={index} value={param} onChange={handleParamUpdate} />
+  const paramsSettings = taskType.params.map((param) => (
+    <ListItem>
+      <Grid item xs={8}>
+        <TextField className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamUpdate} />
+      </Grid>
+      <Grid item xs={4}>
+        <IconButton onClick={() => deleteParam(param.id)}><DeleteForeverIcon /></IconButton>
+      </Grid>
+    </ListItem>
   ));
 
   return (

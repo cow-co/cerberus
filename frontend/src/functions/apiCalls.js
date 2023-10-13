@@ -5,7 +5,7 @@ const fetchTasks = async (implantId, showSent) => {
     showSent = true;
   }
   const response = await fetch(
-    `${conf.apiURL}apitasks/${implantId}?includeSent=${showSent}`
+    `${conf.apiURL}tasks/${implantId}?includeSent=${showSent}`
   );
   const json = await response.json();
   return json;

@@ -7,7 +7,6 @@ const TaskTypeItem = ({taskType, deleteTaskType}) => {
     return <ListItem key={param}>{param}</ListItem>
   });
 
-  // TODO Update the CSS to tighten up the gap between params
   return (
       <ListItem className={"listElement"} key={taskType.name}>
         <Grid item xs={4}>

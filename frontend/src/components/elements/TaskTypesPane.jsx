@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
+import { Box, Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskTypeItem from './TaskTypeItem';
@@ -10,8 +10,6 @@ import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { v4 as uuidv4 } from "uuid";
 
-// TODO Need to implement react-router to route to this page
-// TODO need to put links to this page and the main page in the header bar
 function TaskTypesPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
   const taskTypes = useSelector((state) => state.tasks.taskTypes);
@@ -100,7 +98,6 @@ function TaskTypesPane() {
     });
   }
 
-  // TODO Implement the dialogue
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Task Types</Typography>
@@ -108,8 +105,8 @@ function TaskTypesPane() {
         <List>
           {taskTypesItems}
         </List>
-        <Button variant='contained' onClick={handleFormOpen}>Create Task Type</Button>
       </Box>
+      <Button variant='contained' onClick={handleFormOpen}>Create Task Type</Button>
       <CreateTaskTypeDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
     </Container>
       
