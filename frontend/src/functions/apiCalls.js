@@ -33,8 +33,26 @@ const createTask = async (task) => {
   return json.errors;
 };
 
+const createTaskType = async (taskType) => {
+  const response = await fetch(`${conf.apiURL}task-types`, {
+    method: "POST",
+    headers: new Headers({ "content-type": "application/json" }),
+    body: JSON.stringify(taskType),
+  });
+  const json = await response.json();
+  return json.errors;
+};
+
 const deleteTask = async (task) => {
   const response = await fetch(`${conf.apiURL}tasks/${task._id}`, {
+    method: "DELETE",
+  });
+  const json = await response.json();
+  return json.errors;
+};
+
+const deleteTaskType = async (taskTypeId) => {
+  const response = await fetch(`${conf.apiURL}task-types/${taskTypeId}`, {
     method: "DELETE",
   });
   const json = await response.json();
@@ -109,7 +127,9 @@ export {
   fetchTasks,
   fetchTaskTypes,
   createTask,
+  createTaskType,
   deleteTask,
+  deleteTaskType,
   register,
   login,
   logout,

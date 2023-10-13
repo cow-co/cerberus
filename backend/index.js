@@ -43,6 +43,8 @@ if (process.env.NODE_ENV === "production") {
       cookie: {
         maxAge: 8 * 60 * 60 * 1000, // Eight hours
         httpOnly: false,
+        sameSite: "strict",
+        secure: true,
       },
     })
   );

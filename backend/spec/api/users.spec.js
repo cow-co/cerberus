@@ -111,7 +111,6 @@ describe("User tests", () => {
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
-    console.log("BLOOOOOOOOOOOOOOOOOOP");
     const res = await agent
       .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
