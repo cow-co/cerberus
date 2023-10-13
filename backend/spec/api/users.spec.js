@@ -117,7 +117,7 @@ describe("User tests", () => {
     expect(res.statusCode).to.equal(403);
   });
 
-  it("should fail to delete a user - user does not exist", async () => {
+  it("should return success when deleting a user that does not exist", async () => {
     // Stubbing the user-search
     const findWrapper = sinon.stub(User, "findOne");
     findWrapper.returns({
@@ -144,7 +144,7 @@ describe("User tests", () => {
     const res = await agent
       .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).to.equal(200);
   });
 
   it("should remove hashed password from user in response", async () => {

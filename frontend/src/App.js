@@ -10,7 +10,6 @@ const router = createBrowserRouter([
     path: "/",
     element: <MainPage />,
   },
-  // TODO We could make this an Admin page instead, and move the user-management stuff to it, in the right-hand pane (task types on the left)
   {
     path: "admin",
     element: <AdminPage />,

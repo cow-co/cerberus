@@ -75,6 +75,7 @@ describe("Tasks API Tests", () => {
       name: "Name 2",
       params: ["param1", "param2"],
     });
+    byIdStub.withArgs("tasktypeid3").returns(null);
 
     sinon.stub(accessManager, "verifySession").callsArg(2);
     agent = require("supertest").agent(require("../../index"));
@@ -351,11 +352,11 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).to.equal(200);
   });
 
-  it("should fail to delete a task - non-existent ID", async () => {
+  it("should return success when the task ID does not exist", async () => {
     sinon.stub(Task, "findById").returns(null);
     sinon.stub(Task, "findByIdAndDelete");
     const res = await agent.delete("/api/tasks/some-mongo-if");
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).to.equal(200);
   });
 
   it("should fail to delete a task - task already sent", async () => {
@@ -399,5 +400,29 @@ describe("Tasks API Tests", () => {
     expect(delStub.calledOnce).to.be.true;
   });
 
-  // TODO Test for deleting non-existent task type
+  it("should return success if deleting a non-existent task type", async () => {
+    // Stub for login
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    sinon.stub(argon2, "verify").returns(true);
+
+    // Stub the admin-checks
+    const adminStub = sinon.stub(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .delete("/api/task-types/tasktypeid3")
+      .set("Cookie", cookies[0]);
+    expect(res.statusCode).to.equal(200);
+  });
 });

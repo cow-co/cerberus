@@ -11,6 +11,11 @@ const {
 const { log, levels } = require("../utils/logger");
 
 router.get("/user/:username", verifySession, async (req, res) => {
+  log(
+    `GET /users/user/${req.params.username}`,
+    `getting user ${req.params.username}`,
+    levels.INFO
+  );
   let status = statusCodes.OK;
   let response = {
     user: {},
@@ -40,6 +45,11 @@ router.get("/user/:username", verifySession, async (req, res) => {
 });
 
 router.delete("/user/:userId", verifySession, checkAdmin, async (req, res) => {
+  log(
+    `DELETE /users/user/${req.params.userId}`,
+    `Deleting user ${req.params.userId}`,
+    levels.INFO
+  );
   let status = statusCodes.OK;
   let response = {
     errors: [],
@@ -48,15 +58,18 @@ router.delete("/user/:userId", verifySession, checkAdmin, async (req, res) => {
 
   try {
     const result = await findUserById(chosenUser);
-    if (!result.user) {
-      response.errors = result.errors;
-      status = statusCodes.BAD_REQUEST;
-    } else {
+    if (result.user) {
       const errors = await removeUser(chosenUser);
       response.errors = errors;
       if (errors.length > 0) {
         status = statusCodes.INTERNAL_SERVER_ERROR;
       }
+    } else {
+      log(
+        `DELETE /users/user/${req.params.userId}`,
+        `User with ID ${req.params.userId} does not exist`,
+        levels.WARN
+      );
     }
   } catch (err) {
     log("DELETE /user/:userId", err, levels.ERROR);

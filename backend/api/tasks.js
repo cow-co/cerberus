@@ -147,13 +147,7 @@ router.delete("/tasks/:taskId", verifySession, async (req, res) => {
 
   try {
     const task = await getTaskById(req.params.taskId);
-    if (task === undefined || task === null) {
-      returnStatus = statusCodes.BAD_REQUEST;
-      responseJSON.errors.push(
-        `Task with ID ${req.params.taskId} does not exist.`
-      );
-      log(`DELETE /tasks/${req.params.taskId}`, "Task not found", levels.ERROR);
-    } else {
+    if (task) {
       if (task.sent) {
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors.push(
@@ -167,6 +161,12 @@ router.delete("/tasks/:taskId", verifySession, async (req, res) => {
       } else {
         await deleteTask(req.params.taskId);
       }
+    } else {
+      log(
+        `DELETE /tasks/${req.params.taskId}`,
+        `Task with ID ${req.params.taskId} does not exist`,
+        levels.WARN
+      );
     }
   } catch (err) {
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
@@ -195,18 +195,14 @@ router.delete(
 
     try {
       const taskType = await getTaskTypeById(req.params.taskTypeId);
-      if (!taskType) {
-        returnStatus = statusCodes.BAD_REQUEST;
-        responseJSON.errors.push(
-          `Task type with ID ${req.params.taskTypeId} does not exist.`
-        );
+      if (taskType) {
+        await deleteTaskType(req.params.taskTypeId);
+      } else {
         log(
           `DELETE /task-types/${req.params.taskTypeId}`,
-          `Task type ${req.params.taskTypeId} not found`,
-          levels.ERROR
+          `Task type with ID ${req.params.taskTypeId} does not exist`,
+          levels.WARN
         );
-      } else {
-        await deleteTaskType(req.params.taskTypeId);
       }
     } catch (err) {
       returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
