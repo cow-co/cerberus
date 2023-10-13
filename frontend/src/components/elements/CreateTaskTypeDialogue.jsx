@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FormControl, Dialog, DialogTitle, Button, TextField, Typography, ListItem } from '@mui/material';
+import { FormControl, Dialog, DialogTitle, Button, TextField, Typography, ListItem, Grid, IconButton, List } from '@mui/material';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 
 const CreateTaskDialogue = (props) => {
@@ -11,7 +12,11 @@ const CreateTaskDialogue = (props) => {
   }
 
   const handleSubmit = () => {
-    onSubmit(taskType);
+    const data = {
+      name: taskType.name,
+      params: taskType.params.map(param => param.name)
+    };
+    onSubmit(data);
   }
   
   const handleAddParam = () => {
@@ -58,11 +63,11 @@ const CreateTaskDialogue = (props) => {
   }
   
   const paramsSettings = taskType.params.map((param) => (
-    <ListItem>
-      <Grid item xs={8}>
+    <ListItem className="listElement" key={param.id} >
+      <Grid item xs={11}>
         <TextField className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamUpdate} />
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={1}>
         <IconButton onClick={() => deleteParam(param.id)}><DeleteForeverIcon /></IconButton>
       </Grid>
     </ListItem>
@@ -74,7 +79,9 @@ const CreateTaskDialogue = (props) => {
       <FormControl fullWidth>
         <TextField className='text-input' variant="outlined" id="name-input" value={taskType.name} onChange={handleNameUpdate} />
         <Typography variant="h6">Parameters</Typography>
-        {paramsSettings}
+        <List>
+          {paramsSettings}
+        </List>
         <Button onClick={handleAddParam}>Add Parameter</Button>
         <Button onClick={handleSubmit}>Create</Button>
       </FormControl>

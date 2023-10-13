@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Cookies from "js-cookie";
 import conf from "../../common/config/properties";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
@@ -52,7 +53,7 @@ const HeaderBar = (props) => {
           </Typography>
           <Button onClick={props.handleRegisterFormOpen}>Register</Button>
           {loginoutButton}
-          <Button onClick={props.handleAdminFormOpen}>Admin</Button>
+          <Link to={"admin"}>Admin</Link>
         </Toolbar>
       </AppBar>);
 }

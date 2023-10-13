@@ -4,15 +4,15 @@ import RegisterDialogue from "../elements/RegisterDialogue";
 import TaskTypesPane from "../elements/TaskTypesPane";
 import { useState } from 'react';
 import { Box, Grid } from '@mui/material';
-import AdminDialogue from "../elements/AdminDialogue";
+import AdminPane from "../elements/AdminPane";
 import HeaderBar from "../elements/HeaderBar";
 
-function TaskTypesPage() {
+function AdminPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
 
-  console.log("Rendering Task Types Page");
+  console.log("Rendering Admin Page");
 
   return (
     <Box sx={{flexGrow: 1}}>
@@ -23,10 +23,12 @@ function TaskTypesPage() {
       />
       <LoginDialogue open={loginOpen} onClose={() => setLoginOpen(false)} />
       <RegisterDialogue open={registerOpen} onClose={() => setRegisterOpen(false)} />
-      <AdminDialogue open={adminOpen} onClose={() => setAdminOpen(false)} />
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <TaskTypesPane />
+        </Grid>
+        <Grid item xs={6}>
+          <AdminPane />
         </Grid>
         <Grid item xs={12}>
           <Box display="flex" justifyContent="center" alignItems="center">
@@ -38,4 +40,4 @@ function TaskTypesPage() {
   )
 }
 
-export default TaskTypesPage;
+export default AdminPage;

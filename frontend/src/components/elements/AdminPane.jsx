@@ -1,15 +1,15 @@
-// This dialogue allows an admin to promote/demote another user to/from admin
+// This pane allows an admin to promote/demote another user to/from admin
 // Also in future will allow creation of task types
 
 import { useState } from 'react';
-import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormControlLabel, FormGroup } from '@mui/material';
+import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormControlLabel, FormGroup, Container } from '@mui/material';
 import { useDispatch } from "react-redux";
 import conf from "../../common/config/properties";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { changeAdminStatus, deleteUser, findUserByName } from '../../functions/apiCalls';
 import { generateAlert } from "../../common/utils";
 
-const AdminDialogue = (props) => {
+const AdminPane = (props) => {
   const {onClose, open} = props;
   const [user, setUser] = useState({id: "", name: ""});
   const [searchError, setSearchError] = useState(false);
@@ -81,8 +81,8 @@ const AdminDialogue = (props) => {
   }  
 
   return (
-    <Dialog className="form-dialog" onClose={onClose} open={open} fullWidth maxWidth="md">
-      <DialogTitle>Administrator Interface</DialogTitle>
+    <Container fixed>
+      <Typography align="center" variant="h3">Administrator Interface</Typography>
       <FormGroup>
         <TextField className="text-input" variant="outlined" value={user.name} label="User to find" type="search" onChange={handleChange} error={searchError} helperText={helpText} />
         <FormControlLabel control={<Checkbox checked={makeAdmin} onClick={() => setMakeAdmin(!makeAdmin)} />} label="Make User Admin" />
@@ -97,8 +97,8 @@ const AdminDialogue = (props) => {
         <Button onClick={handleSubmitDelete}>Confirm</Button>
         <Button onClick={() => setConfirmationOpen(false)}>Cancel</Button>
       </Dialog>
-    </Dialog>
+    </Container>
   );
 }
 
-export default AdminDialogue;
+export default AdminPane;

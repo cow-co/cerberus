@@ -101,11 +101,9 @@ function TaskTypesPane() {
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Task Types</Typography>
-      <Box display="flex" justifyContent="center" alignItems="center">
-        <List>
-          {taskTypesItems}
-        </List>
-      </Box>
+      <List>
+        {taskTypesItems}
+      </List>
       <Button variant='contained' onClick={handleFormOpen}>Create Task Type</Button>
       <CreateTaskTypeDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
     </Container>
