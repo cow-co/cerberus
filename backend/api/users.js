@@ -18,7 +18,7 @@ router.get("/user/:username", verifySession, async (req, res) => {
   );
   let status = statusCodes.OK;
   let response = {
-    user: {},
+    user: null,
     errors: [],
   };
 
@@ -31,9 +31,6 @@ router.get("/user/:username", verifySession, async (req, res) => {
         id: result.user.id,
         name: result.user.name,
       };
-    } else {
-      status = statusCodes.BAD_REQUEST;
-      response.errors.push("User not found");
     }
   } catch (err) {
     log("GET /user/:username", err, levels.ERROR);

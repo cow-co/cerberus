@@ -11,6 +11,7 @@ const ad = new ActiveDirectory(securityConfig.adConfig);
 const authenticate = async (username, password) => {
   let success = false;
   if (securityConfig.usePKI) {
+    // TODO Test this, ideally
     ad.userExists(username, (err, exists) => {
       success = exists;
     });
@@ -39,6 +40,7 @@ const findUserById = async (userId) => {
  */
 const findUserByName = async (username) => {
   let foundUser = null;
+  // TODO Test this, ideally
   ad.findUser(username, (err, user) => {
     foundUser = user;
   });

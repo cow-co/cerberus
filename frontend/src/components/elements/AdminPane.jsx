@@ -69,13 +69,16 @@ const AdminPane = () => {
       });
       setSearchError(true);
       setHelpText("Could not find user");
-    } else {
+    } else if (response.user !== null) {
         const alert = generateAlert("Successfully found", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         setUser({id: response.user.id, name: response.user.name});
         setSearchError(false);
         setHelpText("Found User");
+    } else {
+      setSearchError(true);
+      setHelpText("Could not find user");
     }
   }  
 

@@ -8,6 +8,7 @@ const { addAdmin, numAdmins } = require("./services/admin-service");
 const { register } = require("../security/user-and-access-manager");
 const securityConfig = require("../config/security-config");
 
+// TODO Test this?
 const seedTaskTypes = async () => {
   const defaultTaskTypes = [
     {
@@ -33,6 +34,7 @@ const seedTaskTypes = async () => {
   }
 };
 
+// TODO Test this
 const seedInitialAdmin = async () => {
   let existing = await findUser(securityConfig.initialAdmin.username);
   const adminCount = await numAdmins();

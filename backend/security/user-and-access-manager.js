@@ -77,6 +77,7 @@ const authenticate = async (req, res, next) => {
  * @param {function} next
  */
 const verifySession = async (req, res, next) => {
+  // TODO Test this method ideally (maybe just as a unit test, not as an end-to-end request test)
   log(
     "verifySession",
     "Verifying Session..." + JSON.stringify(req.session.username),
@@ -175,6 +176,7 @@ const removeUser = async (userId) => {
         await dbUserManager.deleteUser(userId);
         await removeAdmin(userId);
         break;
+      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         log(
           "removeUser",
@@ -213,6 +215,7 @@ const findUserByName = async (userName) => {
       case securityConfig.availableAuthMethods.DB:
         user = await dbUserManager.findUserByName(userName);
         break;
+      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         user = await adUserManager.findUserByName(userName);
         break;
@@ -249,6 +252,7 @@ const findUserById = async (userId) => {
       case securityConfig.availableAuthMethods.DB:
         user = await dbUserManager.findUserById(userId);
         break;
+      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         user = await adUserManager.findUserById(userId);
         break;

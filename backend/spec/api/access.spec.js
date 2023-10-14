@@ -10,7 +10,7 @@ const ActiveDirectory = require("activedirectory");
 const Task = require("../../db/models/Task");
 const Admin = require("../../db/models/Admin");
 
-describe("User tests", () => {
+describe("Access tests", () => {
   afterEach(() => {
     sinon.restore();
   });
@@ -163,12 +163,16 @@ describe("User tests", () => {
       username: "user",
       hashedPassword: "hashed",
     });
-    findWrapper.withArgs({ name: "user2" }).returns({
-      _id: "650a3a2a7dcd3241ecee2d70",
-      username: "user2",
-      hashedPassword: "hashed",
-      save: () => {},
-    });
+
+    sinon
+      .stub(User, "findById")
+      .withArgs("650a3a2a7dcd3241ecee2d70")
+      .returns({
+        _id: "650a3a2a7dcd3241ecee2d70",
+        username: "user2",
+        hashedPassword: "hashed",
+        save: () => {},
+      });
 
     sinon.stub(Admin, "findOne").returns({
       userId: "650a3a2a7dcd3241ecee2d71",
@@ -195,13 +199,8 @@ describe("User tests", () => {
       username: "user",
       hashedPassword: "hashed",
     });
-    findWrapper.withArgs({ name: "user2" }).returns({
-      _id: "650a3a2a7dcd3241ecee2d70",
-      username: "user2",
-      hashedPassword: "hashed",
-      save: () => {},
-    });
     sinon.stub(argon2, "verify").returns(true);
+
     const adminStub = sinon.stub(Admin, "findOne");
     adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
       userId: "650a3a2a7dcd3241ecee2d71",
@@ -216,6 +215,15 @@ describe("User tests", () => {
         return { userId: "650a3a2a7dcd3241ecee2d70" };
       },
     });
+    sinon
+      .stub(User, "findById")
+      .withArgs("650a3a2a7dcd3241ecee2d70")
+      .returns({
+        _id: "650a3a2a7dcd3241ecee2d70",
+        username: "user2",
+        hashedPassword: "hashed",
+        save: () => {},
+      });
 
     const loginRes = await agent
       .post("/api/access/login")
@@ -226,6 +234,72 @@ describe("User tests", () => {
       .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: false });
     expect(res.statusCode).to.equal(200);
+  });
+
+  it("should fail to add an admin - user does not exist", async () => {
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+
+    sinon.stub(User, "findById").returns(null);
+
+    sinon.stub(Admin, "findOne").returns({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
+    sinon.stub(Admin, "create").returns({
+      userId: "650a3a2a7dcd3241ecee2d70",
+    });
+    sinon.stub(argon2, "verify").returns(true);
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .put("/api/access/admin")
+      .set("Cookie", cookies[0])
+      .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
+    expect(res.statusCode).to.equal(400);
+  });
+
+  it("should fail to add an admin - exception thrown", async () => {
+    // Login/Auth stubs
+    const findWrapper = sinon.stub(User, "findOne");
+    findWrapper.returns({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    const adminStub = sinon.stub(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
+    sinon.stub(argon2, "verify").returns(true);
+
+    // Test-relevant stubs
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d70" }).returns(null);
+    sinon.stub(Admin, "create").throws("TypeError");
+    sinon
+      .stub(User, "findById")
+      .withArgs("650a3a2a7dcd3241ecee2d70")
+      .returns({
+        _id: "650a3a2a7dcd3241ecee2d70",
+        username: "user2",
+        hashedPassword: "hashed",
+        save: () => {},
+      });
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .put("/api/access/admin")
+      .set("Cookie", cookies[0])
+      .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
+    expect(res.statusCode).to.equal(500);
   });
 
   it("should fail to log in with invalid auth type", async () => {

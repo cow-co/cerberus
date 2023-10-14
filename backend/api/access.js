@@ -72,6 +72,11 @@ router.delete("/logout", verifySession, async (req, res) => {
  * - makeAdmin (boolean)
  */
 router.put("/admin", verifySession, checkAdmin, async (req, res) => {
+  log(
+    "/admin",
+    `Changing admin status of ${req.body.userId} to ${req.body.makeAdmin}`,
+    levels.INFO
+  );
   let status = statusCodes.OK;
   let response = {
     errors: [],
@@ -87,6 +92,11 @@ router.put("/admin", verifySession, checkAdmin, async (req, res) => {
         await removeAdmin(result.user.id);
       }
     } else {
+      log(
+        "/admin",
+        "Tried to make a non-existent user into an admin",
+        levels.WARN
+      );
       status = statusCodes.BAD_REQUEST;
       response.errors.push("User not found");
     }
