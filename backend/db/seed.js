@@ -31,23 +31,18 @@ const seedTaskTypes = async () => {
 };
 
 const seedInitialAdmin = async () => {
-  console.log("Counting admins...");
   const adminCount = await adminService.numAdmins();
-  console.log(adminCount);
   if (adminCount === 0) {
-    console.log("Finding user...");
     let existing = await accessManager.findUserByName(
       securityConfig.initialAdmin.username
     );
-    if (!existing) {
-      console.log("Registering...");
+    if (!existing.user) {
       existing = await accessManager.register(
         securityConfig.initialAdmin.username,
         securityConfig.initialAdmin.password
       );
 
       if (existing.errors.length === 0) {
-        console.log("Adding the new user...");
         await adminService.addAdmin(existing._id);
       } else {
         log(
@@ -59,7 +54,6 @@ const seedInitialAdmin = async () => {
         );
       }
     } else {
-      console.log("Adding the existing user...");
       await adminService.addAdmin(existing._id);
     }
   }
