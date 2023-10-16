@@ -15,6 +15,8 @@ const HeaderBar = (props) => {
   useEffect(() => {
     const checkSession = async () => {
       const user = await checkSessionCookie();
+      // TODO HANDLE ERROR
+      
       dispatch(setUsername(user.username));
     }
     checkSession();

@@ -13,6 +13,7 @@ const fetchTasks = async (implantId, showSent) => {
 
 const fetchTaskTypes = async () => {
   const response = await fetch(`${conf.apiURL}task-types`);
+  console.log("RESPONSE " + JSON.stringify(response));
   const json = await response.json();
   return json;
 };
