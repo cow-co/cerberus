@@ -1,12 +1,9 @@
-const {
-  getNumDbVersions,
-  updateDBVersion,
-} = require("./services/db-state-service");
-const { createTaskType } = require("./services/tasks-service");
-const { findUser } = require("./services/user-service");
-const { addAdmin, numAdmins } = require("./services/admin-service");
-const { register } = require("../security/user-and-access-manager");
+const dbStateService = require("./services/db-state-service");
+const taskTypeService = require("./services/tasks-service");
+const adminService = require("./services/admin-service");
+const accessManager = require("../security/user-and-access-manager");
 const securityConfig = require("../config/security-config");
+const { log, levels } = require("../utils/logger");
 
 const seedTaskTypes = async () => {
   const defaultTaskTypes = [
@@ -24,35 +21,43 @@ const seedTaskTypes = async () => {
     },
   ];
 
-  const numDbVersions = await getNumDbVersions();
+  const numDbVersions = await dbStateService.getNumDbVersions();
   if (numDbVersions === 0) {
     defaultTaskTypes.forEach(
-      async (taskType) => await createTaskType(taskType)
+      async (taskType) => await taskTypeService.createTaskType(taskType)
     );
-    await updateDBVersion();
+    await dbStateService.updateDBVersion();
   }
 };
 
 const seedInitialAdmin = async () => {
-  let existing = await findUser(securityConfig.initialAdmin.username);
-  const adminCount = await numAdmins();
+  const adminCount = await adminService.numAdmins();
   if (adminCount === 0) {
-    if (!existing) {
-      existing = await register(
+    let existing = await accessManager.findUserByName(
+      securityConfig.initialAdmin.username
+    );
+    if (!existing.user) {
+      existing = await accessManager.register(
         securityConfig.initialAdmin.username,
         securityConfig.initialAdmin.password
       );
 
       if (existing.errors.length === 0) {
-        addAdmin(existing._id);
+        await adminService.addAdmin(existing._id);
+      } else {
+        log(
+          "seedInitialAdmin",
+          `Errors when creating initial admin: ${JSON.stringify(
+            existing.errors
+          )}`,
+          levels.ERROR
+        );
       }
     } else {
-      addAdmin(existing._id);
+      await adminService.addAdmin(existing._id);
     }
   }
 };
 
-module.exports = {
-  seedTaskTypes,
-  seedInitialAdmin,
-};
+exports.seedTaskTypes = seedTaskTypes;
+exports.seedInitialAdmin = seedInitialAdmin;

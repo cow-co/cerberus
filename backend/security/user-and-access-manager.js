@@ -5,9 +5,8 @@ const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
-const { extractUserDetails } = require("./pki");
-const { findUser } = require("../db/services/user-service");
-const { isUserAdmin, removeAdmin } = require("../db/services/admin-service");
+const pki = require("./pki");
+const adminService = require("../db/services/admin-service");
 
 /**
  * Basically checks the provided credentials
@@ -23,7 +22,7 @@ const authenticate = async (req, res, next) => {
   let status = statusCodes.BAD_REQUEST;
 
   if (securityConfig.usePKI) {
-    username = extractUserDetails(req);
+    username = pki.extractUserDetails(req);
   } else {
     username = req.body.username;
     password = req.body.password;
@@ -77,6 +76,7 @@ const authenticate = async (req, res, next) => {
  * @param {function} next
  */
 const verifySession = async (req, res, next) => {
+  // TODO Test this method ideally (maybe just as a unit test, not as an end-to-end request test)
   log(
     "verifySession",
     "Verifying Session..." + JSON.stringify(req.session.username),
@@ -145,7 +145,7 @@ const checkAdmin = async (req, res, next) => {
     if (result.errors.length > 0) {
       res.status(statusCodes.FORBIDDEN).json({ errors });
     } else {
-      isAdmin = await isUserAdmin(result.user.id);
+      isAdmin = await adminService.isUserAdmin(result.user.id);
       if (isAdmin) {
         next();
       } else {
@@ -173,8 +173,9 @@ const removeUser = async (userId) => {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
         await dbUserManager.deleteUser(userId);
-        await removeAdmin(userId);
+        await adminService.removeAdmin(userId);
         break;
+      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         log(
           "removeUser",
@@ -213,6 +214,7 @@ const findUserByName = async (userName) => {
       case securityConfig.availableAuthMethods.DB:
         user = await dbUserManager.findUserByName(userName);
         break;
+      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         user = await adUserManager.findUserByName(userName);
         break;
@@ -249,6 +251,7 @@ const findUserById = async (userId) => {
       case securityConfig.availableAuthMethods.DB:
         user = await dbUserManager.findUserById(userId);
         break;
+      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         user = await adUserManager.findUserById(userId);
         break;

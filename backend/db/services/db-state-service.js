@@ -20,7 +20,7 @@ const getNumDbVersions = async () => {
 const updateDBVersion = async () => {
   const states = await DBState.find().sort({ appliedDate: "desc" });
   let mostRecentVer = 0;
-  if (states !== undefined && states !== null && states.length > 0) {
+  if (states && states.length > 0) {
     mostRecentVer = states[0].version;
   }
 
@@ -28,7 +28,6 @@ const updateDBVersion = async () => {
     version: mostRecentVer + 1,
     appliedDate: Date.now(),
   };
-
   await DBState.create(newVer);
 };
 

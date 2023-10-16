@@ -6,13 +6,16 @@ import { setTaskTypes } from "../../common/redux/tasks-slice";
 
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
-  const taskTypes = useSelector((state) => state.tasks.taskTypes);
+  const taskTypes = useSelector((state) => {
+    return state.tasks.taskTypes
+  });
   const dispatch = useDispatch();
   const [task, setTask] = useState({type: {id: "", name: ""}, params: []});
 
   useEffect(() => {
     const getData = async () => {
       const types = await fetchTaskTypes();
+      // TODO ERROR HANDLING
       dispatch(setTaskTypes(types.taskTypes));
     }
     getData();

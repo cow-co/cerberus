@@ -27,4 +27,6 @@ module.exports = {
     username: `${process.env.CERBERUS_INIT_ADMIN_USER}`,
     password: `${process.env.CERBERUS_INIT_ADMIN_PASS}`,
   },
+  certFile: "../powershellcert.pfx",
+  certPassword: "password1234",
 };

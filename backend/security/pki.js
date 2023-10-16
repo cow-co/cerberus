@@ -6,6 +6,7 @@ const { levels, log } = require("../utils/logger");
  * @returns The CN of the certificate subject
  */
 const extractUserDetails = (req) => {
+  // TODO Test this (just as a standard unit test, not as a request-test)
   const clientCert = req.socket.getPeerCertificate();
   let username = null;
 

@@ -10,11 +10,14 @@ const { levels, log } = require("./utils/logger");
 const YAML = require("yamljs");
 const swaggerDoc = YAML.load("openapi/openapi.yaml");
 const path = require("path");
-const { seedTaskTypes, seedInitialAdmin } = require("./db/seed");
+const seeding = require("./db/seed");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const securityConfig = require("./config/security-config");
 const { SwaggerTheme } = require("swagger-themes");
+const https = require("https");
+const fs = require("fs");
+const http = require("http");
 
 const app = express();
 app.use(express.json());
@@ -43,13 +46,15 @@ if (process.env.NODE_ENV === "production") {
       cookie: {
         maxAge: 8 * 60 * 60 * 1000, // Eight hours
         httpOnly: false,
+        sameSite: "strict",
+        secure: true,
       },
     })
   );
 
   (async () => {
-    await seedTaskTypes();
-    await seedInitialAdmin();
+    await seeding.seedTaskTypes();
+    await seeding.seedInitialAdmin();
   })();
 } else {
   app.use(
@@ -81,9 +86,8 @@ app.use(
 );
 
 const port = process.env.PORT || 5000;
-let server = app.listen(port, async () => {
-  log("index.js", `server running on port ${port}`, levels.INFO);
-});
+
+let server = null;
 
 const stop = () => {
   log("index.js", "Closing server...", levels.INFO);
@@ -99,12 +103,27 @@ const stop = () => {
 
 const serveProdClient = () => {
   if (process.env.NODE_ENV === "production") {
+    server = https
+      .createServer(
+        {
+          pfx: fs.readFileSync(securityConfig.certFile), // TODO handle different cert types
+          passphrase: securityConfig.certPassword,
+        },
+        app
+      )
+      .listen(port, async () => {
+        log("index.js", `server running on port ${port}`, levels.INFO);
+      });
     app.use(express.static("client/build"));
     app.get(/^\/(?!api).*/, (req, res) => {
       res.sendFile(path.join(__dirname, "./build/index.html"));
     });
 
     log("index.js", "Serving React App...", levels.INFO);
+  } else {
+    server = http.createServer(app).listen(port, async () => {
+      log("index.js", `server running on port ${port}`, levels.INFO);
+    });
   }
 };
 serveProdClient();

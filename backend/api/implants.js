@@ -1,18 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const { getAllImplants } = require("../db/services/implant-service");
+const implantService = require("../db/services/implant-service");
 const statusCodes = require("../config/statusCodes");
-const { verifySession } = require("../security/user-and-access-manager");
+const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
-router.get("", verifySession, async (req, res) => {
+router.get("", accessManager.verifySession, async (req, res) => {
   let responseJSON = {
     implants: null,
     errors: [],
   };
   let status = statusCodes.OK;
   try {
-    responseJSON.implants = await getAllImplants();
+    responseJSON.implants = await implantService.getAllImplants();
   } catch (err) {
     log("implants/", err, levels.ERROR);
     responseJSON.errors = ["Internal Server Error"];

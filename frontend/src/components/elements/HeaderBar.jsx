@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Button, Typography } from "@mui/material";
+import { AppBar, Toolbar, Button, Typography, Link } from "@mui/material";
 import { checkSessionCookie, logout } from "../../functions/apiCalls";
 import { setUsername } from "../../common/redux/users-slice";
 import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Cookies from "js-cookie";
 import conf from "../../common/config/properties";
 import { useEffect } from "react";
+import { Link as RouterLink } from "react-router-dom";
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
@@ -14,6 +15,8 @@ const HeaderBar = (props) => {
   useEffect(() => {
     const checkSession = async () => {
       const user = await checkSessionCookie();
+      // TODO HANDLE ERROR
+      
       dispatch(setUsername(user.username));
     }
     checkSession();
@@ -52,7 +55,7 @@ const HeaderBar = (props) => {
           </Typography>
           <Button onClick={props.handleRegisterFormOpen}>Register</Button>
           {loginoutButton}
-          <Button onClick={props.handleAdminFormOpen}>Admin</Button>
+          <Link underline="none" component={RouterLink} to={"admin"}>Admin</Link>
         </Toolbar>
       </AppBar>);
 }

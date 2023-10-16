@@ -312,7 +312,7 @@ paths:
         - Tasks
       responses:
         "200": # status code
-          description: Successfully deleted
+          description: Successfully deleted (or did not exist in the first place)
           content:
             application/json:
               schema:
@@ -425,7 +425,7 @@ paths:
         - Users
       responses:
         "200": # status code
-          description: Successfully logged out
+          description: Successfully logged out (or was not logged in)
           content:
             application/json:
               schema:

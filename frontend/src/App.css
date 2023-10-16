@@ -61,3 +61,7 @@
 .form-dialog>.MuiDialog-container>.MuiPaper-root {
   padding: 0 10px 10px 10px;
 }
+
+.MuiGrid-item > h4 {
+  margin: 0;
+}
