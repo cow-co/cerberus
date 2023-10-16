@@ -15,8 +15,11 @@ const CreateTaskDialogue = (props) => {
   useEffect(() => {
     const getData = async () => {
       const types = await fetchTaskTypes();
-      // TODO ERROR HANDLING
-      dispatch(setTaskTypes(types.taskTypes));
+      if (types.errors.length === 0) {
+        dispatch(setTaskTypes(types.taskTypes));
+      } else {
+        console.log("Error fetching task types: " + JSON.stringify(types.errors));
+      }
     }
     getData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
