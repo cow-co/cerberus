@@ -3,15 +3,8 @@ const router = express.Router();
 const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
 const { validateBeacon } = require("../validation/request-validation");
-const {
-  findImplantById,
-  addImplant,
-  updateImplant,
-} = require("../db/services/implant-service");
-const {
-  getTasksForImplant,
-  taskSent,
-} = require("../db/services/tasks-service");
+const implantService = require("../db/services/implant-service");
+const tasksService = require("../db/services/tasks-service");
 
 router.post("", async (req, res) => {
   log("/beacon", `Received beacon: ${JSON.stringify(req.body)}`, levels.DEBUG);
@@ -29,20 +22,20 @@ router.post("", async (req, res) => {
         lastCheckinTimeSeconds: Date.now(),
       };
 
-      if ((await findImplantById(beacon.id)) === null) {
-        await addImplant(beacon);
+      if ((await implantService.findImplantById(beacon.id)) === null) {
+        await implantService.addImplant(beacon);
       } else {
-        await updateImplant(beacon);
+        await implantService.updateImplant(beacon);
       }
 
-      const tasks = await getTasksForImplant(beacon.id, false);
+      const tasks = await tasksService.getTasksForImplant(beacon.id, false);
       responseJSON = {
         tasks,
         errors: [],
       };
 
       await tasks.forEach(async (task) => {
-        await taskSent(task._id);
+        await tasksService.taskSent(task._id);
       });
     } else {
       responseJSON = {

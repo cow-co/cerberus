@@ -10,7 +10,7 @@ const { levels, log } = require("./utils/logger");
 const YAML = require("yamljs");
 const swaggerDoc = YAML.load("openapi/openapi.yaml");
 const path = require("path");
-const { seedTaskTypes, seedInitialAdmin } = require("./db/seed");
+const seeding = require("./db/seed");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const securityConfig = require("./config/security-config");
@@ -50,8 +50,8 @@ if (process.env.NODE_ENV === "production") {
   );
 
   (async () => {
-    await seedTaskTypes();
-    await seedInitialAdmin();
+    await seeding.seedTaskTypes();
+    await seeding.seedInitialAdmin();
   })();
 } else {
   app.use(

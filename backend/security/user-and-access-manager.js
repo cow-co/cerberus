@@ -5,8 +5,8 @@ const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
-const { extractUserDetails } = require("./pki");
-const { isUserAdmin, removeAdmin } = require("../db/services/admin-service");
+const pki = require("./pki");
+const adminService = require("../db/services/admin-service");
 
 /**
  * Basically checks the provided credentials
@@ -22,7 +22,7 @@ const authenticate = async (req, res, next) => {
   let status = statusCodes.BAD_REQUEST;
 
   if (securityConfig.usePKI) {
-    username = extractUserDetails(req);
+    username = pki.extractUserDetails(req);
   } else {
     username = req.body.username;
     password = req.body.password;
@@ -145,7 +145,7 @@ const checkAdmin = async (req, res, next) => {
     if (result.errors.length > 0) {
       res.status(statusCodes.FORBIDDEN).json({ errors });
     } else {
-      isAdmin = await isUserAdmin(result.user.id);
+      isAdmin = await adminService.isUserAdmin(result.user.id);
       if (isAdmin) {
         next();
       } else {
@@ -173,7 +173,7 @@ const removeUser = async (userId) => {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
         await dbUserManager.deleteUser(userId);
-        await removeAdmin(userId);
+        await adminService.removeAdmin(userId);
         break;
       // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:

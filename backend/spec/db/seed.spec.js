@@ -1,17 +1,18 @@
 const seeding = require("../../db/seed");
 const adminService = require("../../db/services/admin-service");
+const accessManager = require("../../security/user-and-access-manager");
 
 describe("Seeding tests", () => {
-  it("should seed", async () => {
-    const numSpy = spyOn(adminService, "numAdmins").and.callFake(() => {
-      console.log("FAKEY");
-    });
+  it("should seed admin - no admins, no users", async () => {
+    spyOn(adminService, "numAdmins").and.returnValue(0);
     const addSpy = spyOn(adminService, "addAdmin");
-    const accessManager = require("../../security/user-and-access-manager");
-    const nameSpy = spyOn(accessManager, "findUserByName");
-    const regSpy = spyOn(accessManager, "register");
+    spyOn(accessManager, "findUserByName").and.returnValue(null);
+    const regSpy = spyOn(accessManager, "register").and.returnValue({
+      _id: "id",
+      errors: [],
+    });
     await seeding.seedInitialAdmin();
-    expect(numSpy).toHaveBeenCalledTimes(1);
-    expect(nameSpy).toHaveBeenCalledTimes(1);
+    expect(addSpy).toHaveBeenCalledTimes(1);
+    expect(regSpy).toHaveBeenCalledTimes(1);
   });
 });

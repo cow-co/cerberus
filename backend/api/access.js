@@ -1,15 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const statusCodes = require("../config/statusCodes");
-const {
-  authenticate,
-  verifySession,
-  checkAdmin,
-  logout,
-  register,
-} = require("../security/user-and-access-manager");
-const { findUserById } = require("../security/user-and-access-manager");
-const { addAdmin, removeAdmin } = require("../db/services/admin-service");
+const accessManager = require("../security/user-and-access-manager");
+const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
 /**
@@ -27,7 +20,7 @@ router.post("/register", async (req, res) => {
   };
 
   try {
-    const result = await register(username, password);
+    const result = await accessManager.register(username, password);
 
     if (result.errors.length > 0) {
       responseJSON.errors = result.errors;
@@ -47,13 +40,13 @@ router.post("/register", async (req, res) => {
  * - username
  * - password
  */
-router.post("/login", authenticate, async (req, res) => {
+router.post("/login", accessManager.authenticate, async (req, res) => {
   res
     .status(statusCodes.OK)
     .json({ username: req.session.username, errors: [] });
 });
 
-router.delete("/logout", verifySession, async (req, res) => {
+router.delete("/logout", accessManager.verifySession, async (req, res) => {
   try {
     logout(req.session);
     res.status(statusCodes.OK).json({ errors: [] });
@@ -71,42 +64,47 @@ router.delete("/logout", verifySession, async (req, res) => {
  * - userId (string)
  * - makeAdmin (boolean)
  */
-router.put("/admin", verifySession, checkAdmin, async (req, res) => {
-  log(
-    "/admin",
-    `Changing admin status of ${req.body.userId} to ${req.body.makeAdmin}`,
-    levels.INFO
-  );
-  let status = statusCodes.OK;
-  let response = {
-    errors: [],
-  };
-  const chosenUser = req.body.userId.trim();
+router.put(
+  "/admin",
+  accessManager.verifySession,
+  accessManager.checkAdmin,
+  async (req, res) => {
+    log(
+      "/admin",
+      `Changing admin status of ${req.body.userId} to ${req.body.makeAdmin}`,
+      levels.INFO
+    );
+    let status = statusCodes.OK;
+    let response = {
+      errors: [],
+    };
+    const chosenUser = req.body.userId.trim();
 
-  try {
-    const result = await findUserById(chosenUser);
-    if (result.user) {
-      if (req.body.makeAdmin) {
-        await addAdmin(result.user.id);
+    try {
+      const result = await accessManager.findUserById(chosenUser);
+      if (result.user) {
+        if (req.body.makeAdmin) {
+          await adminService.addAdmin(result.user.id);
+        } else {
+          await adminService.removeAdmin(result.user.id);
+        }
       } else {
-        await removeAdmin(result.user.id);
+        log(
+          "/admin",
+          "Tried to make a non-existent user into an admin",
+          levels.WARN
+        );
+        status = statusCodes.BAD_REQUEST;
+        response.errors.push("User not found");
       }
-    } else {
-      log(
-        "/admin",
-        "Tried to make a non-existent user into an admin",
-        levels.WARN
-      );
-      status = statusCodes.BAD_REQUEST;
-      response.errors.push("User not found");
+    } catch (err) {
+      log("/admin", err, levels.ERROR);
+      response.errors = ["Internal Server Error"];
+      status = statusCodes.INTERNAL_SERVER_ERROR;
     }
-  } catch (err) {
-    log("/admin", err, levels.ERROR);
-    response.errors = ["Internal Server Error"];
-    status = statusCodes.INTERNAL_SERVER_ERROR;
-  }
 
-  res.status(status).json(response);
-});
+    res.status(status).json(response);
+  }
+);
 
 module.exports = router;
