@@ -1,6 +1,5 @@
 let agent;
 const expect = require("chai").expect;
-const sinon = require("sinon");
 const User = require("../../db/models/User");
 const accessManager = require("../../security/user-and-access-manager");
 const Admin = require("../../db/models/Admin");

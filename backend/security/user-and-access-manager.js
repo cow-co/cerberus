@@ -6,7 +6,6 @@ const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
 const { extractUserDetails } = require("./pki");
-const { findUser } = require("../db/services/user-service");
 const { isUserAdmin, removeAdmin } = require("../db/services/admin-service");
 
 /**
