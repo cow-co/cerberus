@@ -27,6 +27,7 @@ describe("AD User Manager Tests", () => {
     );
     const res = await adUserManager.authenticate("user", null);
     expect(res).to.be.true;
+    securityConfig.usePKI = false;
   });
 
   it("should fail to authenticate - pki", async () => {
@@ -36,6 +37,7 @@ describe("AD User Manager Tests", () => {
     );
     const res = await adUserManager.authenticate("user", null);
     expect(res).to.be.false;
+    securityConfig.usePKI = false;
   });
 
   it("should find a user", async () => {
@@ -46,6 +48,7 @@ describe("AD User Manager Tests", () => {
     );
     const res = await adUserManager.findUserByName("user");
     expect(res).to.deep.equal({ id: "123", name: "user" });
+    securityConfig.usePKI = false;
   });
 
   it("should not find a user", async () => {
@@ -55,5 +58,6 @@ describe("AD User Manager Tests", () => {
     );
     const res = await adUserManager.findUserByName("user");
     expect(res).to.equal(null);
+    securityConfig.usePKI = false;
   });
 });

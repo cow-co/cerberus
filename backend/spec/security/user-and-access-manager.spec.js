@@ -29,7 +29,7 @@ describe("Access Manager tests", () => {
     let called = false;
     let resStatus = 200;
     let res = {};
-    accessManager.authenticate(
+    await accessManager.authenticate(
       {
         body: {
           username: "ksdah",
@@ -55,5 +55,46 @@ describe("Access Manager tests", () => {
     expect(res.errors.length).to.equal(1);
   });
 
-  it("should handle check-admin user missing properly", async () => {});
+  it("should handle check-admin user missing properly", async () => {
+    let resStatus = 200;
+    let res = {};
+    await accessManager.checkAdmin(
+      { session: {} },
+      {
+        status: (status) => {
+          resStatus = status;
+          return { json: (data) => (res = data) };
+        },
+      },
+      () => {}
+    );
+    expect(resStatus).to.equal(403);
+    expect(res.errors.length).to.equal(1);
+  });
+
+  it("should return an error when removing a user backed by AD", async () => {
+    const prev = securityConfig.authMethod;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+
+    const errors = await accessManager.removeUser("userId");
+    expect(errors.length).to.equal(1);
+
+    securityConfig.authMethod = prev;
+  });
+
+  it("should return an error when removing a user with unsupported auth method", async () => {
+    const prev = securityConfig.authMethod;
+    securityConfig.authMethod = "FAKE";
+
+    const errors = await accessManager.removeUser("userId");
+    expect(errors.length).to.equal(1);
+
+    securityConfig.authMethod = prev;
+  });
+
+  it("should return an error when exception in remove-user", async () => {
+    spyOn(dbManager, "deleteUser").and.throwError("TypeError");
+    const errors = await accessManager.removeUser("userId");
+    expect(errors.length).to.equal(1);
+  });
 });

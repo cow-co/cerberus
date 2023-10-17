@@ -175,7 +175,6 @@ const removeUser = async (userId) => {
         await dbUserManager.deleteUser(userId);
         await adminService.removeAdmin(userId);
         break;
-      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         log(
           "removeUser",
@@ -186,7 +185,6 @@ const removeUser = async (userId) => {
         break;
 
       default:
-        // TODO TEST
         log(
           "removeUser",
           `Auth method ${securityConfig.authMethod} not supported`,
