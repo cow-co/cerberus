@@ -88,7 +88,7 @@ const verifySession = async (req, res, next) => {
     // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
     // to manually submit anything
     if (securityConfig.usePKI) {
-      authenticate(req, res, next);
+      await authenticate(req, res, next);
     } else {
       res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
     }
@@ -213,13 +213,11 @@ const findUserByName = async (userName) => {
       case securityConfig.availableAuthMethods.DB:
         user = await dbUserManager.findUserByName(userName);
         break;
-      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         user = await adUserManager.findUserByName(userName);
         break;
 
       default:
-        // TODO TEST
         log(
           "findUserByName",
           `Auth method ${securityConfig.authMethod} not supported`,
@@ -251,13 +249,11 @@ const findUserById = async (userId) => {
       case securityConfig.availableAuthMethods.DB:
         user = await dbUserManager.findUserById(userId);
         break;
-      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         user = await adUserManager.findUserById(userId);
         break;
 
       default:
-        // TODO TEST
         log(
           "findUserById",
           `Auth method ${securityConfig.authMethod} not supported`,

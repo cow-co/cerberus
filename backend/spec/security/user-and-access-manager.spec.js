@@ -2,6 +2,7 @@ const securityConfig = require("../../config/security-config");
 const pki = require("../../security/pki");
 const accessManager = require("../../security/user-and-access-manager");
 const dbManager = require("../../security/database-manager");
+const adManager = require("../../security/active-directory-manager");
 const expect = require("chai").expect;
 
 describe("Access Manager tests", () => {
@@ -96,5 +97,61 @@ describe("Access Manager tests", () => {
     spyOn(dbManager, "deleteUser").and.throwError("TypeError");
     const errors = await accessManager.removeUser("userId");
     expect(errors.length).to.equal(1);
+  });
+
+  it("should find user by name from AD", async () => {
+    const prev = securityConfig.authMethod;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    spyOn(adManager, "findUserByName").and.returnValue({
+      id: "id",
+      name: "user",
+    });
+
+    const res = await accessManager.findUserByName("user");
+
+    expect(res.errors.length).to.equal(0);
+    expect(res.user.name).to.equal("user");
+
+    securityConfig.authMethod = prev;
+  });
+
+  it("should return an error when finding a user by name with unsupported auth method", async () => {
+    const prev = securityConfig.authMethod;
+    securityConfig.authMethod = "FAKE";
+
+    const res = await accessManager.findUserByName("user");
+
+    expect(res.errors.length).to.equal(1);
+    expect(res.user).to.equal(null);
+
+    securityConfig.authMethod = prev;
+  });
+
+  it("should find user by ID from AD", async () => {
+    const prev = securityConfig.authMethod;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    spyOn(adManager, "findUserById").and.returnValue({
+      id: "id",
+      name: "user",
+    });
+
+    const res = await accessManager.findUserById("userId");
+
+    expect(res.errors.length).to.equal(0);
+    expect(res.user.name).to.equal("user");
+
+    securityConfig.authMethod = prev;
+  });
+
+  it("should return an error when finding a user by ID with unsupported auth method", async () => {
+    const prev = securityConfig.authMethod;
+    securityConfig.authMethod = "FAKE";
+
+    const res = await accessManager.findUserById("userId");
+
+    expect(res.errors.length).to.equal(1);
+    expect(res.user).to.equal(null);
+
+    securityConfig.authMethod = prev;
   });
 });
