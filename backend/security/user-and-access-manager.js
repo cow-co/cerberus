@@ -76,7 +76,6 @@ const authenticate = async (req, res, next) => {
  * @param {function} next
  */
 const verifySession = async (req, res, next) => {
-  // TODO Test this method ideally (maybe just as a unit test, not as an end-to-end request test)
   log(
     "verifySession",
     "Verifying Session..." + JSON.stringify(req.session.username),

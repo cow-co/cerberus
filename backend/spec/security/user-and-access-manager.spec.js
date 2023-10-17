@@ -154,4 +154,47 @@ describe("Access Manager tests", () => {
 
     securityConfig.authMethod = prev;
   });
+
+  it("should successfully verify session", async () => {
+    let called = false;
+    await accessManager.verifySession(
+      {
+        session: {
+          username: "user",
+        },
+      },
+      null,
+      () => {
+        called = true;
+      }
+    );
+    expect(called).to.be.true;
+  });
+
+  it("should fail to verify session", async () => {
+    let called = false;
+    let resStatus = 200;
+    let res = {};
+    await accessManager.verifySession(
+      {
+        session: {},
+      },
+      {
+        status: (statusCode) => {
+          resStatus = statusCode;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+    expect(called).to.be.false;
+    expect(res.errors.length).to.equal(1);
+    expect(resStatus).to.equal(403);
+  });
 });
