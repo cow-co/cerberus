@@ -23,7 +23,7 @@ describe("Access tests", () => {
   });
 
   it("should create a user", async () => {
-    sinon.stub(User, "create").returns({
+    const userSpy = spyOn(User, "create").and.returnValue({
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
@@ -32,6 +32,7 @@ describe("Access tests", () => {
       .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
+    expect(userSpy.calls.count()).to.equal(1);
   });
 
   it("should fail to create a user - AD-backed", async () => {
@@ -77,25 +78,26 @@ describe("Access tests", () => {
   });
 
   it("should log in", async () => {
-    sinon.stub(User, "findOne").returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
     });
-    sinon.stub(argon2, "verify").returns(true);
+    spyOn(argon2, "verify").and.returnValue(true);
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
+    expect(res.headers["set-cookie"]).to.not.equal(undefined); // Checking that it sets a cookie (the session cookie)
   });
 
   it("should fail to log in", async () => {
-    sinon.stub(User, "findOne").returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
     });
-    sinon.stub(argon2, "verify").returns(false);
+    spyOn(argon2, "verify").and.returnValue(false);
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -103,13 +105,13 @@ describe("Access tests", () => {
   });
 
   it("should log the user in automatically when using PKI", async () => {
-    sinon.stub(User, "findOne").returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
     });
-    sinon.stub(Task, "find").returns({
-      sort: sinon.stub().returns([
+    spyOn(Task, "find").and.returnValue({
+      sort: () => [
         {
           _id: "some-mongo-id",
           order: 1,
@@ -126,9 +128,9 @@ describe("Access tests", () => {
           params: ["param1"],
           sent: true,
         },
-      ]),
+      ],
     });
-    sinon.stub(pki, "extractUserDetails").returns("user");
+    spyOn(pki, "extractUserDetails").and.returnValue("user");
 
     const wasFalse = securityConfig.usePKI ? false : true;
     if (wasFalse) {
@@ -157,68 +159,73 @@ describe("Access tests", () => {
   });
 
   it("should successfully add an admin", async () => {
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
+    const findAdminSpy = spyOn(Admin, "findOne");
+    findAdminSpy
+      .withArgs({ userId: "650a3a2a7dcd3241ecee2d71" })
+      .and.returnValue({
+        userId: "650a3a2a7dcd3241ecee2d71",
+      });
+    spyOn(argon2, "verify").and.returnValue(true);
 
-    sinon
-      .stub(User, "findById")
+    spyOn(User, "findById")
       .withArgs("650a3a2a7dcd3241ecee2d70")
-      .returns({
+      .and.returnValue({
         _id: "650a3a2a7dcd3241ecee2d70",
         username: "user2",
         hashedPassword: "hashed",
         save: () => {},
       });
-
-    sinon.stub(Admin, "findOne").returns({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-    sinon.stub(Admin, "create").returns({
+    findAdminSpy
+      .withArgs({ userId: "650a3a2a7dcd3241ecee2d70" })
+      .and.returnValue(null);
+    const createAdminSpy = spyOn(Admin, "create").and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d70",
     });
-    sinon.stub(argon2, "verify").returns(true);
+
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
+
     const res = await agent
       .put("/api/access/admin")
       .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
+
     expect(res.statusCode).to.equal(200);
+    expect(createAdminSpy.calls.count()).to.equal(1);
   });
 
   it("should successfully remove an admin", async () => {
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
-    sinon.stub(argon2, "verify").returns(true);
+    spyOn(argon2, "verify").and.returnValue(true);
 
-    const adminStub = sinon.stub(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+    const adminStub = spyOn(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d71",
       deleteOne: () => {
         return { userId: "650a3a2a7dcd3241ecee2d71" };
       },
     });
 
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d70" }).returns({
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d70" }).and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d70",
       deleteOne: () => {
         return { userId: "650a3a2a7dcd3241ecee2d70" };
       },
     });
-    sinon
-      .stub(User, "findById")
+    spyOn(User, "findById")
       .withArgs("650a3a2a7dcd3241ecee2d70")
-      .returns({
+      .and.returnValue({
         _id: "650a3a2a7dcd3241ecee2d70",
         username: "user2",
         hashedPassword: "hashed",
@@ -237,22 +244,21 @@ describe("Access tests", () => {
   });
 
   it("should fail to add an admin - user does not exist", async () => {
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
 
-    sinon.stub(User, "findById").returns(null);
+    spyOn(User, "findById").and.returnValue(null);
 
-    sinon.stub(Admin, "findOne").returns({
+    spyOn(Admin, "findOne").and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d71",
     });
-    sinon.stub(Admin, "create").returns({
+    spyOn(Admin, "create").and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d70",
     });
-    sinon.stub(argon2, "verify").returns(true);
+    spyOn(argon2, "verify").and.returnValue(true);
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -266,25 +272,25 @@ describe("Access tests", () => {
 
   it("should fail to add an admin - exception thrown", async () => {
     // Login/Auth stubs
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
-    const adminStub = sinon.stub(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+    const adminStub = spyOn(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d71",
     });
-    sinon.stub(argon2, "verify").returns(true);
+    spyOn(argon2, "verify").and.returnValue(true);
 
     // Test-relevant stubs
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d70" }).returns(null);
-    sinon.stub(Admin, "create").throws("TypeError");
-    sinon
-      .stub(User, "findById")
+    adminStub
+      .withArgs({ userId: "650a3a2a7dcd3241ecee2d70" })
+      .and.returnValue(null);
+    spyOn(Admin, "create").and.throwError("TypeError");
+    spyOn(User, "findById")
       .withArgs("650a3a2a7dcd3241ecee2d70")
-      .returns({
+      .and.returnValue({
         _id: "650a3a2a7dcd3241ecee2d70",
         username: "user2",
         hashedPassword: "hashed",

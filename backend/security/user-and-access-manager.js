@@ -76,7 +76,6 @@ const authenticate = async (req, res, next) => {
  * @param {function} next
  */
 const verifySession = async (req, res, next) => {
-  // TODO Test this method ideally (maybe just as a unit test, not as an end-to-end request test)
   log(
     "verifySession",
     "Verifying Session..." + JSON.stringify(req.session.username),
@@ -88,7 +87,7 @@ const verifySession = async (req, res, next) => {
     // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
     // to manually submit anything
     if (securityConfig.usePKI) {
-      authenticate(req, res, next);
+      await authenticate(req, res, next);
     } else {
       res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
     }
@@ -175,7 +174,6 @@ const removeUser = async (userId) => {
         await dbUserManager.deleteUser(userId);
         await adminService.removeAdmin(userId);
         break;
-      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         log(
           "removeUser",
@@ -214,7 +212,6 @@ const findUserByName = async (userName) => {
       case securityConfig.availableAuthMethods.DB:
         user = await dbUserManager.findUserByName(userName);
         break;
-      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         user = await adUserManager.findUserByName(userName);
         break;
@@ -251,7 +248,6 @@ const findUserById = async (userId) => {
       case securityConfig.availableAuthMethods.DB:
         user = await dbUserManager.findUserById(userId);
         break;
-      // TODO Test this code path
       case securityConfig.availableAuthMethods.AD:
         user = await adUserManager.findUserById(userId);
         break;

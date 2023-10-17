@@ -1,6 +1,8 @@
 const seeding = require("../../db/seed");
 const adminService = require("../../db/services/admin-service");
 const accessManager = require("../../security/user-and-access-manager");
+const dbStateService = require("../../db/services/db-state-service");
+const taskTypeService = require("../../db/services/tasks-service");
 
 describe("Seeding tests", () => {
   it("should seed admin - no admins, no users", async () => {
@@ -38,5 +40,13 @@ describe("Seeding tests", () => {
     const addSpy = spyOn(adminService, "addAdmin");
     await seeding.seedInitialAdmin();
     expect(addSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it("should seed tasktypes", async () => {
+    spyOn(dbStateService, "getNumDbVersions").and.returnValue(0);
+    const taskTypeSpy = spyOn(taskTypeService, "createTaskType");
+    spyOn(dbStateService, "updateDBVersion");
+    await seeding.seedTaskTypes();
+    expect(taskTypeSpy).toHaveBeenCalledTimes(3);
   });
 });
