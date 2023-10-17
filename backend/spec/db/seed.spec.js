@@ -1,6 +1,7 @@
 const seeding = require("../../db/seed");
 const adminService = require("../../db/services/admin-service");
 const accessManager = require("../../security/user-and-access-manager");
+const ActiveDirectory = require("activedirectory");
 
 describe("Seeding tests", () => {
   it("should seed admin - no admins, no users", async () => {
@@ -39,4 +40,6 @@ describe("Seeding tests", () => {
     await seeding.seedInitialAdmin();
     expect(addSpy).toHaveBeenCalledTimes(0);
   });
+
+  it("should seed tasktypes", () => {});
 });

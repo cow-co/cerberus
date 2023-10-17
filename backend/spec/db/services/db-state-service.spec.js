@@ -3,6 +3,7 @@ const sinon = require("sinon");
 const dbStateService = require("../../../db/services/db-state-service");
 const DBState = require("../../../db/models/DBState");
 
+//TODO Migrate these
 describe("DB State tests", () => {
   afterEach(() => {
     sinon.restore();

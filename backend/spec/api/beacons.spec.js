@@ -5,6 +5,7 @@ const Implant = require("../../db/models/Implant");
 const Task = require("../../db/models/Task");
 const accessManager = require("../../security/user-and-access-manager");
 
+//TODO Migrate these
 describe("Beacon API tests", () => {
   afterEach(() => {
     sinon.restore();

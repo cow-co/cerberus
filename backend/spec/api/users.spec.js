@@ -6,6 +6,7 @@ const sinon = require("sinon");
 const Admin = require("../../db/models/Admin");
 const argon2 = require("argon2");
 
+//TODO Migrate these
 describe("User tests", () => {
   afterEach(() => {
     sinon.restore();
