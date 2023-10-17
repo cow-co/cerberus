@@ -22,7 +22,6 @@ const authenticate = async (req, res, next) => {
   let status = statusCodes.BAD_REQUEST;
 
   if (securityConfig.usePKI) {
-    // TODO Test
     username = pki.extractUserDetails(req);
   } else {
     username = req.body.username;
@@ -52,7 +51,6 @@ const authenticate = async (req, res, next) => {
         break;
     }
   } catch (err) {
-    // TODO Test
     log("authenticate", err, levels.ERROR);
     errors.push("Internal Server Error");
     status = statusCodes.INTERNAL_SERVER_ERROR;
@@ -158,7 +156,6 @@ const checkAdmin = async (req, res, next) => {
       }
     }
   } else {
-    // TODO TEST
     log("checkAdmin", "User is not logged in", levels.WARN);
     res
       .status(statusCodes.FORBIDDEN)
