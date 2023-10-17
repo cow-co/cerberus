@@ -11,7 +11,6 @@ const ad = new ActiveDirectory(securityConfig.adConfig);
 const authenticate = async (username, password) => {
   let success = false;
   if (securityConfig.usePKI) {
-    // TODO Test this, ideally
     ad.userExists(username, (err, exists) => {
       success = exists;
     });
@@ -44,10 +43,15 @@ const findUserByName = async (username) => {
   ad.findUser(username, (err, user) => {
     foundUser = user;
   });
-  return {
-    id: foundUser.sn,
-    name: foundUser.sAMAccountName,
-  };
+
+  if (foundUser !== null) {
+    return {
+      id: foundUser.sn,
+      name: foundUser.sAMAccountName,
+    };
+  } else {
+    return null;
+  }
 };
 
 module.exports = {
