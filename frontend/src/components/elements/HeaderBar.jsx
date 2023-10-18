@@ -8,37 +8,45 @@ import Cookies from "js-cookie";
 import conf from "../../common/config/properties";
 import { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
+import { useErrorHandler } from "react-error-boundary";
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
   const username = useSelector((state) => state.users.username);
+  const handleError = useErrorHandler();
+
   useEffect(() => {
     const checkSession = async () => {
-      const user = await checkSessionCookie();
-      // TODO HANDLE ERROR
-      
-      dispatch(setUsername(user.username));
+      try {
+        const user = await checkSessionCookie();      
+        dispatch(setUsername(user.username));
+      } catch (err) {
+        handleError(err);
+      }
     }
     checkSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   
   const handleLogout = async () => {
-    // TODO Handle Error
-    const errors = await logout();
-    if (errors.length > 0) {
-      errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
-    } else {
+    try {
+      const errors = await logout();
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          const alert = generateAlert(error, "error");
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+        });
+      } else {
         const alert = generateAlert("Successfully logged out", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         dispatch(setUsername(""));
         Cookies.remove("connect.sid");
-    }
+      }
+    } catch (err) {
+      handleError(err);
+    }    
   }
 
   let loginoutButton = null;

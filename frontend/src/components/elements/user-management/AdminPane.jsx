@@ -8,6 +8,7 @@ import conf from "../../../common/config/properties";
 import { addAlert, removeAlert } from "../../../common/redux/alerts-slice";
 import { changeAdminStatus, deleteUser, findUserByName } from '../../../functions/apiCalls';
 import { generateAlert } from "../../../common/utils";
+import { useErrorHandler } from "react-error-boundary";
 
 const AdminPane = () => {
   const [user, setUser] = useState({id: "", name: ""});
@@ -16,73 +17,86 @@ const AdminPane = () => {
   const [makeAdmin, setMakeAdmin] = useState(false);
   const [helpText, setHelpText] = useState("");
   const dispatch = useDispatch();
+  const handleError = useErrorHandler();
 
   const handleChange = (event) => {
     setUser({name: event.target.value});
   }
 
   const handleSubmitAdminStatus = async () => {
-    // TODO Handle error
-    const errors = await changeAdminStatus(user.id, makeAdmin);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
-      setHelpText("Could not change user's admin status");
-      setUser({id: "", name: ""});
-    } else {
-        const alert = generateAlert("Successfully changed user admin status", "success");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-        setHelpText("Changed user admin status");
+    try {
+      const errors = await changeAdminStatus(user.id, makeAdmin);
+
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          const alert = generateAlert(error, "error");
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+        });
+
+        setHelpText("Could not change user's admin status");
         setUser({id: "", name: ""});
+      } else {
+          const alert = generateAlert("Successfully changed user admin status", "success");
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+
+          setHelpText("Changed user admin status");
+          setUser({id: "", name: ""});
+      }
+    } catch (err) {
+      handleError(err);
     }
   }
 
   const handleSubmitDelete = async () => {
-    // TODO Handle error
-    const errors = await deleteUser(user.id);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
-      setHelpText("Could not delete user");
-      setUser({id: "", name: ""});
-    } else {
+    try {
+      const errors = await deleteUser(user.id);
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          const alert = generateAlert(error, "error");
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+        });
+        setHelpText("Could not delete user");
+        setUser({id: "", name: ""});
+      } else {
         const alert = generateAlert("Successfully deleted user", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         setHelpText("User deleted");
         setUser({id: "", name: ""});
+      }
+    } catch (err) {
+      handleError(err);
     }
   }
 
   const handleSearch = async () => {
-    // TODO Handle Error
-    const response = await findUserByName(user.name);
-    if (response.errors.length > 0) {
-      response.errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
-      setSearchError(true);
-      setHelpText("Could not find user");
-    } else if (response.user !== null) {
+    try {
+      const response = await findUserByName(user.name);
+      if (response.errors.length > 0) {
+        response.errors.forEach((error) => {
+          const alert = generateAlert(error, "error");
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+        });
+        setSearchError(true);
+        setHelpText("Could not find user");
+      } else if (response.user !== null) {
         const alert = generateAlert("Successfully found", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
         setUser({id: response.user.id, name: response.user.name});
         setSearchError(false);
         setHelpText("Found User");
-    } else {
-      setSearchError(true);
-      setHelpText("Could not find user");
-    }
+      } else {
+        setSearchError(true);
+        setHelpText("Could not find user");
+      }
+    } catch (err) {
+      handleError(err);
+    }    
   }  
 
   return (

@@ -9,6 +9,7 @@ import { setTasks } from "../../../common/redux/tasks-slice";
 import conf from "../../../common/config/properties";
 import { addAlert, removeAlert } from "../../../common/redux/alerts-slice";
 import { v4 as uuidv4 } from "uuid";
+import { useErrorHandler } from "react-error-boundary";
 
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
@@ -16,6 +17,7 @@ function TasksPane() {
   const tasks = useSelector((state) => state.tasks.tasks);
   const selectedImplant = useSelector((state) => state.implants.selected);
   const dispatch = useDispatch();
+  const handleError = useErrorHandler();
 
   const handleToggle = () => {
     setShowSent(!showSent);
@@ -31,68 +33,83 @@ function TasksPane() {
 
   const handleFormSubmit = async (data) => {
     data.implantId = selectedImplant.id;
-    // TODO Handle error
-    const errors = await createTask(data);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
+
+    try {
+      const errors = await createTask(data);
+
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          const uuid = uuidv4();
+          const alert = {
+            id: uuid,
+            type: "error",
+            message: error
+          };
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        });
+      } else {
+        handleFormClose();
+
+        const newList = await fetchTasks(selectedImplant.id, showSent);
+        dispatch(setTasks(newList.tasks));
+
         const uuid = uuidv4();
         const alert = {
           id: uuid,
-          type: "error",
-          message: error
+          type: "success",
+          message: "Successfully Created Task"
         };
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
-    } else {
-      handleFormClose();
-      const newList = await fetchTasks(selectedImplant.id, showSent);
-      dispatch(setTasks(newList.tasks));
-      const uuid = uuidv4();
-      const alert = {
-        id: uuid,
-        type: "success",
-        message: "Successfully Created Task"
-      };
-      dispatch(addAlert(alert));
-      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      }
+    } catch (err) {
+      handleError(err);
     }
   }
 
   const handleDelete = async (task) => {
-    const errors = await deleteTask(task);
+    try {
+      const errors = await deleteTask(task);
 
-    if (errors.length > 0) {
-      errors.forEach((error) => {
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          const uuid = uuidv4();
+          const alert = {
+            id: uuid,
+            type: "error",
+            message: error
+          };
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        });
+      } else {
+        const newList = await fetchTasks(selectedImplant.id, showSent);
+        dispatch(setTasks(newList.tasks));
+
         const uuid = uuidv4();
         const alert = {
           id: uuid,
-          type: "error",
-          message: error
+          type: "success",
+          message: "Successfully Deleted Task"
         };
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
-    } else {
-      const newList = await fetchTasks(selectedImplant.id, showSent);
-      dispatch(setTasks(newList.tasks));
-      const uuid = uuidv4();
-      const alert = {
-        id: uuid,
-        type: "success",
-        message: "Successfully Deleted Task"
-      };
-      dispatch(addAlert(alert));
-      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      }
+    } catch (err) {
+      handleError(err);
     }
-
   }
 
   useEffect(() => {
     async function callFetcher() {
       if (selectedImplant.id) {
-        const received = await fetchTasks(selectedImplant.id);
-        dispatch(setTasks(received.tasks));
+        try {
+          const received = await fetchTasks(selectedImplant.id);
+          dispatch(setTasks(received.tasks));
+        } catch (err) {
+          handleError(err);
+        }
       }
     }
     callFetcher()

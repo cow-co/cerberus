@@ -9,11 +9,13 @@ import { setTaskTypes } from "../../../common/redux/tasks-slice";
 import conf from "../../../common/config/properties";
 import { addAlert, removeAlert } from "../../../common/redux/alerts-slice";
 import { v4 as uuidv4 } from "uuid";
+import { useErrorHandler } from "react-error-boundary";
 
 function TaskTypesPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
   const taskTypes = useSelector((state) => state.tasks.taskTypes);
   const dispatch = useDispatch();
+  const handleError = useErrorHandler();
 
   const handleFormOpen = () => {
     setDialogueOpen(true);
@@ -24,31 +26,37 @@ function TaskTypesPane() {
   }
 
   const handleFormSubmit = async (data) => {
-    // TODO Handle error
-    const errors = await createTaskType(data);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
+    try {
+      const errors = await createTaskType(data);
+
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          const uuid = uuidv4();
+          const alert = {
+            id: uuid,
+            type: "error",
+            message: error
+          };
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+        });
+      } else {
+        handleFormClose();
+
+        const newList = await fetchTaskTypes();
+        dispatch(setTaskTypes(newList.taskTypes));
+        
         const uuid = uuidv4();
         const alert = {
           id: uuid,
-          type: "error",
-          message: error
+          type: "success",
+          message: "Successfully Created Task Type"
         };
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
-    } else {
-      handleFormClose();
-      const newList = await fetchTaskTypes();
-      dispatch(setTaskTypes(newList.taskTypes));
-      const uuid = uuidv4();
-      const alert = {
-        id: uuid,
-        type: "success",
-        message: "Successfully Created Task Type"
-      };
-      dispatch(addAlert(alert));
-      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      }
+    } catch (err) {
+      handleError(err);
     }
   }
 
