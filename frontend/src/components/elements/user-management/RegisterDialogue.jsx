@@ -5,30 +5,38 @@ import { useDispatch } from "react-redux";
 import conf from "../../../common/config/properties";
 import { addAlert, removeAlert } from "../../../common/redux/alerts-slice";
 import { generateAlert } from "../../../common/utils";
+import { useErrorHandler } from "react-error-boundary";
 
 const RegisterDialogue = (props) => {
   const {onClose, open} = props;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
+  const handleError = useErrorHandler();
 
   const handleClose = () => {
     onClose();
   }
 
   const handleSubmit = async () => {
-    const errors = await register(username, password);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
-    } else {
+    try {
+      const errors = await register(username, password);
+      
+      if (errors.length > 0) {
+        errors.forEach((error) => {
+          const alert = generateAlert(error, "error");
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+        });
+      } else {
         const alert = generateAlert("Successfully registered", "success");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+
         handleClose();
+      }
+    } catch (err) {
+      handleError(err);
     }
   }
 

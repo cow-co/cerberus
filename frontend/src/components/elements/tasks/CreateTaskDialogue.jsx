@@ -3,6 +3,7 @@ import { fetchTaskTypes } from '../../../functions/apiCalls';
 import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
 import { setTaskTypes } from "../../../common/redux/tasks-slice";
+import { useErrorHandler } from "react-error-boundary";
 
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
@@ -11,14 +12,19 @@ const CreateTaskDialogue = (props) => {
   });
   const dispatch = useDispatch();
   const [task, setTask] = useState({type: {id: "", name: ""}, params: []});
+  const handleError = useErrorHandler();
 
   useEffect(() => {
     const getData = async () => {
-      const types = await fetchTaskTypes();
-      if (types.errors.length === 0) {
-        dispatch(setTaskTypes(types.taskTypes));
-      } else {
-        console.log("Error fetching task types: " + JSON.stringify(types.errors));
+      try {
+        const types = await fetchTaskTypes();
+        if (types.errors.length === 0) {
+          dispatch(setTaskTypes(types.taskTypes));
+        } else {
+          console.log("Error fetching task types: " + JSON.stringify(types.errors));
+        }
+      } catch (err) {
+        handleError(err);
       }
     }
     getData();

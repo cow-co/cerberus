@@ -22,6 +22,7 @@ const AdminPane = () => {
   }
 
   const handleSubmitAdminStatus = async () => {
+    // TODO Handle error
     const errors = await changeAdminStatus(user.id, makeAdmin);
     if (errors.length > 0) {
       errors.forEach((error) => {
@@ -41,6 +42,7 @@ const AdminPane = () => {
   }
 
   const handleSubmitDelete = async () => {
+    // TODO Handle error
     const errors = await deleteUser(user.id);
     if (errors.length > 0) {
       errors.forEach((error) => {
@@ -60,6 +62,7 @@ const AdminPane = () => {
   }
 
   const handleSearch = async () => {
+    // TODO Handle Error
     const response = await findUserByName(user.name);
     if (response.errors.length > 0) {
       response.errors.forEach((error) => {

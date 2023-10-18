@@ -31,6 +31,7 @@ function TasksPane() {
 
   const handleFormSubmit = async (data) => {
     data.implantId = selectedImplant.id;
+    // TODO Handle error
     const errors = await createTask(data);
     if (errors.length > 0) {
       errors.forEach((error) => {

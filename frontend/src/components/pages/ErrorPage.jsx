@@ -1,8 +1,12 @@
 import {useRouteError} from "react-router-dom";
 import { Box, Grid, Typography } from '@mui/material';
 
-function ErrorPage() {
-  const error = useRouteError();
+function ErrorPage(props) {
+  let error = useRouteError();
+  if (props.error) {
+    error = props.error;
+  }
+  
   console.error(error);
 
   return (

@@ -24,6 +24,7 @@ const HeaderBar = (props) => {
   }, [])
   
   const handleLogout = async () => {
+    // TODO Handle Error
     const errors = await logout();
     if (errors.length > 0) {
       errors.forEach((error) => {

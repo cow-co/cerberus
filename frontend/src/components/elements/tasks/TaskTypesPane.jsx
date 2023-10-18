@@ -24,6 +24,7 @@ function TaskTypesPane() {
   }
 
   const handleFormSubmit = async (data) => {
+    // TODO Handle error
     const errors = await createTaskType(data);
     if (errors.length > 0) {
       errors.forEach((error) => {
