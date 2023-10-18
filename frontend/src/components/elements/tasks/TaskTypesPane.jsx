@@ -2,12 +2,12 @@ import { Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskTypeItem from './TaskTypeItem';
-import { createTaskType, fetchTaskTypes, deleteTaskType } from '../../functions/apiCalls';
+import { createTaskType, fetchTaskTypes, deleteTaskType } from '../../../functions/apiCalls';
 import CreateTaskTypeDialogue from './CreateTaskTypeDialogue';
 import { useSelector, useDispatch } from "react-redux";
-import { setTaskTypes } from "../../common/redux/tasks-slice";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
+import { setTaskTypes } from "../../../common/redux/tasks-slice";
+import conf from "../../../common/config/properties";
+import { addAlert, removeAlert } from "../../../common/redux/alerts-slice";
 import { v4 as uuidv4 } from "uuid";
 
 function TaskTypesPane() {

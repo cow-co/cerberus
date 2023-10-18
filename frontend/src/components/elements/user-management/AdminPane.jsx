@@ -4,10 +4,10 @@
 import { useState } from 'react';
 import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormControlLabel, FormGroup, Container } from '@mui/material';
 import { useDispatch } from "react-redux";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { changeAdminStatus, deleteUser, findUserByName } from '../../functions/apiCalls';
-import { generateAlert } from "../../common/utils";
+import conf from "../../../common/config/properties";
+import { addAlert, removeAlert } from "../../../common/redux/alerts-slice";
+import { changeAdminStatus, deleteUser, findUserByName } from '../../../functions/apiCalls';
+import { generateAlert } from "../../../common/utils";
 
 const AdminPane = () => {
   const [user, setUser] = useState({id: "", name: ""});

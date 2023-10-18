@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
-import { login } from "../../functions/apiCalls";
+import { login } from "../../../functions/apiCalls";
 import { useDispatch } from "react-redux";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { setUsername } from "../../common/redux/users-slice";
-import { generateAlert } from "../../common/utils";
+import conf from "../../../common/config/properties";
+import { addAlert, removeAlert } from "../../../common/redux/alerts-slice";
+import { setUsername } from "../../../common/redux/users-slice";
+import { generateAlert } from "../../../common/utils";
 
 const LoginDialogue = (props) => {
   const {onClose, open} = props;

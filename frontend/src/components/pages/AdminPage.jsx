@@ -1,10 +1,10 @@
 import AlertsBar from "../elements/AlertsBar";
-import LoginDialogue from "../elements/LoginDialogue";
-import RegisterDialogue from "../elements/RegisterDialogue";
-import TaskTypesPane from "../elements/TaskTypesPane";
+import LoginDialogue from "../elements/user-management/LoginDialogue";
+import RegisterDialogue from "../elements/user-management/RegisterDialogue";
+import TaskTypesPane from "../elements/tasks/TaskTypesPane";
 import { useState } from 'react';
 import { Box, Grid } from '@mui/material';
-import AdminPane from "../elements/AdminPane";
+import AdminPane from "../elements/user-management/AdminPane";
 import HeaderBar from "../elements/HeaderBar";
 
 function AdminPage() {

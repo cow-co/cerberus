@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { fetchTaskTypes } from '../../functions/apiCalls';
+import { fetchTaskTypes } from '../../../functions/apiCalls';
 import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
-import { setTaskTypes } from "../../common/redux/tasks-slice";
+import { setTaskTypes } from "../../../common/redux/tasks-slice";
 
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;

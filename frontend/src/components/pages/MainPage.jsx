@@ -1,8 +1,8 @@
 import AlertsBar from "../elements/AlertsBar";
-import ImplantsPane from "../elements/ImplantsPane";
-import LoginDialogue from "../elements/LoginDialogue";
-import RegisterDialogue from "../elements/RegisterDialogue";
-import TasksPane from "../elements/TasksPane";
+import ImplantsPane from "../elements/implants/ImplantsPane";
+import LoginDialogue from "../elements/user-management/LoginDialogue";
+import RegisterDialogue from "../elements/user-management/RegisterDialogue";
+import TasksPane from "../elements/tasks/TasksPane";
 import { useState } from 'react';
 import { Box, Grid } from '@mui/material';
 import HeaderBar from "../elements/HeaderBar";

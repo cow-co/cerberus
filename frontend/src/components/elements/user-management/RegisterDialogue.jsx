@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
-import { register } from "../../functions/apiCalls";
+import { register } from "../../../functions/apiCalls";
 import { useDispatch } from "react-redux";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { generateAlert } from "../../common/utils";
+import conf from "../../../common/config/properties";
+import { addAlert, removeAlert } from "../../../common/redux/alerts-slice";
+import { generateAlert } from "../../../common/utils";
 
 const RegisterDialogue = (props) => {
   const {onClose, open} = props;
