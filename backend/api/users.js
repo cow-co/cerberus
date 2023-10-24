@@ -80,6 +80,7 @@ router.get("/check-session", accessManager.verifySession, async (req, res) => {
   let status = statusCodes.OK;
   let response = {
     username: req.session.username,
+    errors: [],
   };
   res.status(status).json(response);
 });

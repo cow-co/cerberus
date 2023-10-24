@@ -24,9 +24,9 @@ function TaskTypesPane() {
   }
 
   const handleFormSubmit = async (data) => {
-    const errors = await createTaskType(data);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
+    const response = await createTaskType(data);
+    if (response.errors.length > 0) {
+      response.errors.forEach((error) => {
         const uuid = uuidv4();
         const alert = {
           id: uuid,

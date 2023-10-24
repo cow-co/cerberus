@@ -22,7 +22,7 @@ const AdminPane = () => {
   }
 
   const handleSubmitAdminStatus = async () => {
-    const errors = await changeAdminStatus(user.id, makeAdmin);
+    const { errors } = await changeAdminStatus(user.id, makeAdmin);
     if (errors.length > 0) {
       errors.forEach((error) => {
         const alert = generateAlert(error, "error");
@@ -41,7 +41,7 @@ const AdminPane = () => {
   }
 
   const handleSubmitDelete = async () => {
-    const errors = await deleteUser(user.id);
+    const { errors } = await deleteUser(user.id);
     if (errors.length > 0) {
       errors.forEach((error) => {
         const alert = generateAlert(error, "error");
