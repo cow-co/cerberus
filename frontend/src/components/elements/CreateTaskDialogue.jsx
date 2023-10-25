@@ -1,19 +1,26 @@
 import { useState, useEffect } from 'react';
-import { fetchTaskTypes } from '../../functions/apiCalls';
+import { fetchTaskTypes } from '../../common/apiCalls';
 import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
 import { setTaskTypes } from "../../common/redux/tasks-slice";
+import { createErrorAlert } from '../../common/redux/dispatchers';
 
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
-  const taskTypes = useSelector((state) => state.tasks.taskTypes);
+  const taskTypes = useSelector((state) => {
+    return state.tasks.taskTypes
+  });
   const dispatch = useDispatch();
   const [task, setTask] = useState({type: {id: "", name: ""}, params: []});
 
   useEffect(() => {
     const getData = async () => {
       const types = await fetchTaskTypes();
-      dispatch(setTaskTypes(types.taskTypes));
+      if (types.errors.length === 0) {
+        dispatch(setTaskTypes(types.taskTypes));
+      } else {
+        createErrorAlert(types.errors);
+      }
     }
     getData();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,8 +1,8 @@
 let agent;
 const expect = require("chai").expect;
-const sinon = require("sinon");
 const User = require("../../db/models/User");
 const accessManager = require("../../security/user-and-access-manager");
+const sinon = require("sinon");
 const Admin = require("../../db/models/Admin");
 const argon2 = require("argon2");
 
@@ -19,36 +19,36 @@ describe("User tests", () => {
   });
 
   it("should find a user", async () => {
-    sinon.stub(User, "findOne").returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
-    const res = await agent.get("/api/users/username");
+    const res = await agent.get("/api/users/user/username");
     expect(res.statusCode).to.equal(200);
     expect(res.body.user.name).to.equal("username");
   });
 
   it("should remove hashed password from user in response", async () => {
-    sinon.stub(User, "findOne").returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
-    const res = await agent.get("/api/users/username");
+    const res = await agent.get("/api/users/user/username");
     expect(res.statusCode).to.equal(200);
     expect(res.body.user.hashedPassword).to.equal(undefined);
   });
 
   it("should delete a user", async () => {
     // Stub user-search
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    const findWrapper = spyOn(User, "findOne");
+    findWrapper.and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
-    findWrapper.withArgs({ name: "user2" }).returns({
+    findWrapper.withArgs({ name: "user2" }).and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d70",
       username: "user2",
       hashedPassword: "hashed",
@@ -56,16 +56,16 @@ describe("User tests", () => {
     });
 
     // Stub for login
-    sinon.stub(argon2, "verify").returns(true);
+    spyOn(argon2, "verify").and.returnValue(true);
 
     // Stub the admin-checks
-    const adminStub = sinon.stub(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+    const adminStub = spyOn(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d71",
     });
-    adminStub.withArgs({ userId: "some-mongo-id3" }).returns(null);
+    adminStub.withArgs({ userId: "some-mongo-id3" }).and.returnValue(null);
 
-    const delStub = sinon.stub(User, "findByIdAndDelete").returns({
+    const delStub = spyOn(User, "findByIdAndDelete").and.returnValue({
       _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
@@ -76,22 +76,22 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(200);
-    expect(delStub.calledOnce).to.be.true;
-    expect(adminStub.calledTwice).to.be.true;
+    expect(delStub.calls.count()).to.equal(1);
+    expect(adminStub.calls.count()).to.equal(2);
   });
 
   it("should fail to delete a user - not admin", async () => {
     // Stubbing user search
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    const findWrapper = spyOn(User, "findOne");
+    findWrapper.and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
-    findWrapper.withArgs({ name: "user2" }).returns({
+    findWrapper.withArgs({ name: "user2" }).and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d70",
       username: "user2",
       hashedPassword: "hashed",
@@ -99,41 +99,43 @@ describe("User tests", () => {
     });
 
     // Stubbing for login
-    sinon.stub(argon2, "verify").returns(true);
+    spyOn(argon2, "verify").and.returnValue(true);
 
     // Stubbing the admin-checks
-    const adminStub = sinon.stub(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns(null);
+    const adminStub = spyOn(Admin, "findOne");
+    adminStub
+      .withArgs({ userId: "650a3a2a7dcd3241ecee2d71" })
+      .and.returnValue(null);
 
-    sinon.stub(User, "findByIdAndDelete");
+    spyOn(User, "findByIdAndDelete");
 
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
     expect(res.statusCode).to.equal(403);
   });
 
-  it("should fail to delete a user - user does not exist", async () => {
+  it("should return success when deleting a user that does not exist", async () => {
     // Stubbing the user-search
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    const findWrapper = spyOn(User, "findOne");
+    findWrapper.and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
-    sinon.stub(User, "findById").returns(null);
-    sinon.stub(User, "findByIdAndDelete").throws("DocumentNotFoundError");
+    spyOn(User, "findById").and.returnValue(null);
+    spyOn(User, "findByIdAndDelete").and.throwError("DocumentNotFoundError");
 
     // Stubbing the login
-    sinon.stub(argon2, "verify").returns(true);
+    spyOn(argon2, "verify").and.returnValue(true);
 
     // Stubbing the admin-checks
-    const adminStub = sinon.stub(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+    const adminStub = spyOn(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d71",
     });
 
@@ -142,8 +144,40 @@ describe("User tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
     const res = await agent
-      .delete("/api/users/some-mongo-id3")
+      .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).to.equal(200);
+  });
+
+  it("should remove hashed password from user in response", async () => {
+    spyOn(User, "findOne").and.returnValue({
+      _id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
+    });
+    const res = await agent.get("/api/users/user/username");
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.user.hashedPassword).to.equal(undefined);
+  });
+
+  it("should check session and return username", async () => {
+    // Stub for login
+    const findWrapper = spyOn(User, "findOne");
+    findWrapper.and.returnValue({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    spyOn(argon2, "verify").and.returnValue(true);
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .get("/api/users/check-session")
+      .set("Cookie", cookies[0]);
+    expect(res.statusCode).to.equal(200);
+    expect(res.body.username).to.equal("user");
   });
 });

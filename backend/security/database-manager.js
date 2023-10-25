@@ -3,8 +3,12 @@ const argon2 = require("argon2");
 const securityConfig = require("../config/security-config");
 const { levels, log } = require("../utils/logger");
 const { validatePassword } = require("../validation/security-validation");
-const User = require("../db/models/User");
 
+/**
+ * @param {string} username
+ * @param {string} password
+ * @returns User ID and any errors
+ */
 const register = async (username, password) => {
   let response = {
     userId: "",
@@ -36,7 +40,11 @@ const register = async (username, password) => {
   return response;
 };
 
-// Password should be null if using PKI (since PKI login doesn't use a password)
+/**
+ * @param {string} username
+ * @param {string} password Should be null if using PKI (since PKI login doesn't use a password)
+ * @returns
+ */
 const authenticate = async (username, password) => {
   log("database-manager#authenticate", "DB Authentication...", levels.DEBUG);
   let user = null;
@@ -61,10 +69,18 @@ const authenticate = async (username, password) => {
   return authenticated;
 };
 
+/**
+ * @param {string} userId
+ * @returns
+ */
 const deleteUser = async (userId) => {
   return userService.deleteUser(userId);
 };
 
+/**
+ * @param {string} userId
+ * @returns null, if the user is not found
+ */
 const findUserById = async (userId) => {
   const user = await userService.findUserById(userId);
   if (!user) {
@@ -77,6 +93,10 @@ const findUserById = async (userId) => {
   }
 };
 
+/**
+ * @param {string} username
+ * @returns null, if the user is not found
+ */
 const findUserByName = async (username) => {
   const user = await userService.findUser(username);
   if (!user) {

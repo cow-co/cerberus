@@ -18,10 +18,10 @@ describe("Beacon API tests", () => {
   });
 
   it("should succeed", async () => {
-    sinon.stub(Implant, "findOne").returns(null);
-    sinon.stub(Implant, "create").returns(null);
-    sinon.stub(Task, "find").returns({
-      sort: sinon.stub().returns([
+    spyOn(Implant, "findOne").and.returnValue(null);
+    spyOn(Implant, "create").and.returnValue(null);
+    spyOn(Task, "find").and.returnValue({
+      sort: () => [
         {
           _id: "some-mongo-id",
           order: 1,
@@ -30,9 +30,10 @@ describe("Beacon API tests", () => {
           params: [],
           sent: false,
         },
-      ]),
+      ],
     });
-    sinon.stub(Task, "findByIdAndUpdate").returns({});
+    spyOn(Task, "findByIdAndUpdate").and.returnValue({});
+
     const res = await agent.post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",

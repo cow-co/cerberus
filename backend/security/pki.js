@@ -1,5 +1,10 @@
 const { levels, log } = require("../utils/logger");
 
+/**
+ * Checks that the certificate is valid, and grabs the CN from it.
+ * @param {import("express").Request} req The HTTP request
+ * @returns The CN of the certificate subject
+ */
 const extractUserDetails = (req) => {
   const clientCert = req.socket.getPeerCertificate();
   let username = null;

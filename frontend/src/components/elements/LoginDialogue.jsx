@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
-import { login } from "../../functions/apiCalls";
+import { login } from "../../common/apiCalls";
 import { useDispatch } from "react-redux";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
 import { setUsername } from "../../common/redux/users-slice";
-import { generateAlert } from "../../common/utils";
+import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../common/redux/dispatchers';
 
 const LoginDialogue = (props) => {
   const {onClose, open} = props;
@@ -17,19 +15,15 @@ const LoginDialogue = (props) => {
     onClose();
   }
 
+
   const handleSubmit = async () => {
     const response = await login(currentUsername, password);
     if (response.errors.length > 0) {
-      response.errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
+      createErrorAlert(response.errors);
     } else {
-        const alert = generateAlert("Successfully logged in", "success");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+        createSuccessAlert("Successfully logged in");
         dispatch(setUsername(response.username));
+        await loadTaskTypes();
         handleClose();
     }
   }

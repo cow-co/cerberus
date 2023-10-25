@@ -1,15 +1,17 @@
 import AlertsBar from "../elements/AlertsBar";
-import ImplantsPane from "../elements/ImplantsPane";
 import LoginDialogue from "../elements/LoginDialogue";
 import RegisterDialogue from "../elements/RegisterDialogue";
-import TasksPane from "../elements/TasksPane";
+import TaskTypesPane from "../elements/TaskTypesPane";
 import { useState } from 'react';
 import { Box, Grid } from '@mui/material';
+import AdminPane from "../elements/AdminPane";
 import HeaderBar from "../elements/HeaderBar";
 
-function MainPage() {
+function AdminPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+
+  console.log("Rendering Admin Page");
 
   return (
     <Box sx={{flexGrow: 1}}>
@@ -21,10 +23,10 @@ function MainPage() {
       <RegisterDialogue open={registerOpen} onClose={() => setRegisterOpen(false)} />
       <Grid container spacing={2}>
         <Grid item xs={6}>
-          <TasksPane />
+          <TaskTypesPane />
         </Grid>
         <Grid item xs={6}>
-          <ImplantsPane />
+          <AdminPane />
         </Grid>
         <Grid item xs={12}>
           <Box display="flex" justifyContent="center" alignItems="center">
@@ -36,4 +38,4 @@ function MainPage() {
   )
 }
 
-export default MainPage;
+export default AdminPage;

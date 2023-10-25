@@ -5,11 +5,15 @@ const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
-const { extractUserDetails } = require("./pki");
-const { findUser } = require("../db/services/user-service");
-const { isUserAdmin, removeAdmin } = require("../db/services/admin-service");
+const pki = require("./pki");
+const adminService = require("../db/services/admin-service");
 
-// Basically checks the provided credentials
+/**
+ * Basically checks the provided credentials
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {function} next
+ */
 const authenticate = async (req, res, next) => {
   log("access-manager#authenticate", "Authenticating...", levels.DEBUG);
   let username = null;
@@ -18,7 +22,7 @@ const authenticate = async (req, res, next) => {
   let status = statusCodes.BAD_REQUEST;
 
   if (securityConfig.usePKI) {
-    username = extractUserDetails(req);
+    username = pki.extractUserDetails(req);
   } else {
     username = req.body.username;
     password = req.body.password;
@@ -65,7 +69,12 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Checks that the session cookie is valid; if not, redirects to the login page
+/**
+ * Checks that the session cookie is valid; if not, redirects to the login page
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {function} next
+ */
 const verifySession = async (req, res, next) => {
   log(
     "verifySession",
@@ -78,21 +87,28 @@ const verifySession = async (req, res, next) => {
     // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
     // to manually submit anything
     if (securityConfig.usePKI) {
-      authenticate(req, res, next);
+      await authenticate(req, res, next);
     } else {
       res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
     }
   }
 };
 
-// Destroys the stored session token
+/**
+ * Destroys the stored session token
+ * @param {Session} session
+ */
 const logout = async (session) => {
   session.destroy();
 };
 
-// Creates a user - specifically for DB-backed user management.
-// Returns an error if user management is AD-backed.
-// In a proper environment we'd probably want email verification. TBH we'd want AD auth anyway so it's kinda moot
+/**
+ * Creates a user - specifically for DB-backed user management.
+ * In a proper environment we'd probably want email verification. TBH we'd want AD auth anyway so it's kinda moot
+ * @param {string} username
+ * @param {string} password
+ * @returns An error if user management is backed by an external system (eg. AD).
+ */
 const register = async (username, password) => {
   username = username.trim();
   let response = {
@@ -113,32 +129,50 @@ const register = async (username, password) => {
   return response;
 };
 
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {function} next
+ */
 const checkAdmin = async (req, res, next) => {
   const username = req.session.username;
   let isAdmin = false;
 
+  // This ensures we call this method after logging in
   if (username) {
-    const user = await findUser(username);
-    isAdmin = await isUserAdmin(user._id);
-  }
-
-  if (!isAdmin) {
-    log("checkAdmin", "User is not an admin", levels.WARN);
+    const result = await findUserByName(username);
+    if (result.errors.length > 0) {
+      res.status(statusCodes.FORBIDDEN).json({ errors });
+    } else {
+      isAdmin = await adminService.isUserAdmin(result.user.id);
+      if (isAdmin) {
+        next();
+      } else {
+        log("checkAdmin", "User is not an admin", levels.WARN);
+        res
+          .status(statusCodes.FORBIDDEN)
+          .json({ errors: ["You must be an admin to do this"] });
+      }
+    }
+  } else {
+    log("checkAdmin", "User is not logged in", levels.WARN);
     res
       .status(statusCodes.FORBIDDEN)
-      .json({ errors: ["You must be an admin to do this"] });
-  } else {
-    next();
+      .json({ errors: ["You must be logged in to do this"] });
   }
 };
 
+/**
+ * @param {string} userId
+ * @returns
+ */
 const removeUser = async (userId) => {
   let errors = [];
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
         await dbUserManager.deleteUser(userId);
-        await removeAdmin(userId);
+        await adminService.removeAdmin(userId);
         break;
       case securityConfig.availableAuthMethods.AD:
         log(
@@ -166,6 +200,10 @@ const removeUser = async (userId) => {
   return errors;
 };
 
+/**
+ * @param {string} userName
+ * @returns
+ */
 const findUserByName = async (userName) => {
   let errors = [];
   let user = null;
@@ -198,6 +236,10 @@ const findUserByName = async (userName) => {
   };
 };
 
+/**
+ * @param {string} userId
+ * @returns
+ */
 const findUserById = async (userId) => {
   let errors = [];
   let user = null;

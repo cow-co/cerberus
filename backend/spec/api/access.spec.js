@@ -10,7 +10,7 @@ const ActiveDirectory = require("activedirectory");
 const Task = require("../../db/models/Task");
 const Admin = require("../../db/models/Admin");
 
-describe("User tests", () => {
+describe("Access tests", () => {
   afterEach(() => {
     sinon.restore();
   });
@@ -23,7 +23,7 @@ describe("User tests", () => {
   });
 
   it("should create a user", async () => {
-    sinon.stub(User, "create").returns({
+    const userSpy = spyOn(User, "create").and.returnValue({
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
@@ -32,6 +32,7 @@ describe("User tests", () => {
       .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
+    expect(userSpy.calls.count()).to.equal(1);
   });
 
   it("should fail to create a user - AD-backed", async () => {
@@ -77,25 +78,26 @@ describe("User tests", () => {
   });
 
   it("should log in", async () => {
-    sinon.stub(User, "findOne").returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
     });
-    sinon.stub(argon2, "verify").returns(true);
+    spyOn(argon2, "verify").and.returnValue(true);
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
+    expect(res.headers["set-cookie"]).to.not.equal(undefined); // Checking that it sets a cookie (the session cookie)
   });
 
   it("should fail to log in", async () => {
-    sinon.stub(User, "findOne").returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
     });
-    sinon.stub(argon2, "verify").returns(false);
+    spyOn(argon2, "verify").and.returnValue(false);
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -103,13 +105,13 @@ describe("User tests", () => {
   });
 
   it("should log the user in automatically when using PKI", async () => {
-    sinon.stub(User, "findOne").returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id",
       username: "user",
       hashedPassword: "hashed",
     });
-    sinon.stub(Task, "find").returns({
-      sort: sinon.stub().returns([
+    spyOn(Task, "find").and.returnValue({
+      sort: () => [
         {
           _id: "some-mongo-id",
           order: 1,
@@ -126,9 +128,9 @@ describe("User tests", () => {
           params: ["param1"],
           sent: true,
         },
-      ]),
+      ],
     });
-    sinon.stub(pki, "extractUserDetails").returns("user");
+    spyOn(pki, "extractUserDetails").and.returnValue("user");
 
     const wasFalse = securityConfig.usePKI ? false : true;
     if (wasFalse) {
@@ -157,65 +159,78 @@ describe("User tests", () => {
   });
 
   it("should successfully add an admin", async () => {
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
-    findWrapper.withArgs({ name: "user2" }).returns({
-      _id: "650a3a2a7dcd3241ecee2d70",
-      username: "user2",
-      hashedPassword: "hashed",
-      save: () => {},
-    });
+    const findAdminSpy = spyOn(Admin, "findOne");
+    findAdminSpy
+      .withArgs({ userId: "650a3a2a7dcd3241ecee2d71" })
+      .and.returnValue({
+        userId: "650a3a2a7dcd3241ecee2d71",
+      });
+    spyOn(argon2, "verify").and.returnValue(true);
 
-    sinon.stub(Admin, "findOne").returns({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-    sinon.stub(Admin, "create").returns({
+    spyOn(User, "findById")
+      .withArgs("650a3a2a7dcd3241ecee2d70")
+      .and.returnValue({
+        _id: "650a3a2a7dcd3241ecee2d70",
+        username: "user2",
+        hashedPassword: "hashed",
+        save: () => {},
+      });
+    findAdminSpy
+      .withArgs({ userId: "650a3a2a7dcd3241ecee2d70" })
+      .and.returnValue(null);
+    const createAdminSpy = spyOn(Admin, "create").and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d70",
     });
-    sinon.stub(argon2, "verify").returns(true);
+
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
+
     const res = await agent
       .put("/api/access/admin")
       .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
+
     expect(res.statusCode).to.equal(200);
+    expect(createAdminSpy.calls.count()).to.equal(1);
   });
 
   it("should successfully remove an admin", async () => {
-    const findWrapper = sinon.stub(User, "findOne");
-    findWrapper.returns({
+    spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
       hashedPassword: "hashed",
     });
-    findWrapper.withArgs({ name: "user2" }).returns({
-      _id: "650a3a2a7dcd3241ecee2d70",
-      username: "user2",
-      hashedPassword: "hashed",
-      save: () => {},
-    });
-    sinon.stub(argon2, "verify").returns(true);
-    const adminStub = sinon.stub(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).returns({
+    spyOn(argon2, "verify").and.returnValue(true);
+
+    const adminStub = spyOn(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d71",
       deleteOne: () => {
         return { userId: "650a3a2a7dcd3241ecee2d71" };
       },
     });
 
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d70" }).returns({
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d70" }).and.returnValue({
       userId: "650a3a2a7dcd3241ecee2d70",
       deleteOne: () => {
         return { userId: "650a3a2a7dcd3241ecee2d70" };
       },
     });
+    spyOn(User, "findById")
+      .withArgs("650a3a2a7dcd3241ecee2d70")
+      .and.returnValue({
+        _id: "650a3a2a7dcd3241ecee2d70",
+        username: "user2",
+        hashedPassword: "hashed",
+        save: () => {},
+      });
 
     const loginRes = await agent
       .post("/api/access/login")
@@ -226,6 +241,71 @@ describe("User tests", () => {
       .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: false });
     expect(res.statusCode).to.equal(200);
+  });
+
+  it("should fail to add an admin - user does not exist", async () => {
+    spyOn(User, "findOne").and.returnValue({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+
+    spyOn(User, "findById").and.returnValue(null);
+
+    spyOn(Admin, "findOne").and.returnValue({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
+    spyOn(Admin, "create").and.returnValue({
+      userId: "650a3a2a7dcd3241ecee2d70",
+    });
+    spyOn(argon2, "verify").and.returnValue(true);
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .put("/api/access/admin")
+      .set("Cookie", cookies[0])
+      .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
+    expect(res.statusCode).to.equal(400);
+  });
+
+  it("should fail to add an admin - exception thrown", async () => {
+    // Login/Auth stubs
+    spyOn(User, "findOne").and.returnValue({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    const adminStub = spyOn(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
+    spyOn(argon2, "verify").and.returnValue(true);
+
+    // Test-relevant stubs
+    adminStub
+      .withArgs({ userId: "650a3a2a7dcd3241ecee2d70" })
+      .and.returnValue(null);
+    spyOn(Admin, "create").and.throwError("TypeError");
+    spyOn(User, "findById")
+      .withArgs("650a3a2a7dcd3241ecee2d70")
+      .and.returnValue({
+        _id: "650a3a2a7dcd3241ecee2d70",
+        username: "user2",
+        hashedPassword: "hashed",
+        save: () => {},
+      });
+
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .put("/api/access/admin")
+      .set("Cookie", cookies[0])
+      .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
+    expect(res.statusCode).to.equal(500);
   });
 
   it("should fail to log in with invalid auth type", async () => {

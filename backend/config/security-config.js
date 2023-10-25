@@ -3,7 +3,6 @@ const authMethods = {
   AD: "activedirectory",
 };
 
-// TODO Set initial admin stuff
 module.exports = {
   // If true, then mutual TLS will be enforced. The DN from the client cert
   // will be used instead of a username/password (the login functionality will simply be pass-through)
@@ -28,4 +27,7 @@ module.exports = {
     username: `${process.env.CERBERUS_INIT_ADMIN_USER}`,
     password: `${process.env.CERBERUS_INIT_ADMIN_PASS}`,
   },
+  certType: "PFX",
+  certFile: "../powershellcert.pfx",
+  certPassword: "password1234",
 };
