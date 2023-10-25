@@ -17,7 +17,7 @@ const HeaderBar = (props) => {
       const res = await checkSessionCookie();
       // TODO this error-alerting code is a bit duplicated all over - try pulling it out to a separate function?
       if (res.errors.length > 0) {
-        errors.forEach((error) => {
+        res.errors.forEach((error) => {
           const alert = generateAlert(error, "error");
           dispatch(addAlert(alert));
           setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);

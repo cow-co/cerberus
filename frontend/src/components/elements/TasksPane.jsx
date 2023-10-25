@@ -59,10 +59,10 @@ function TasksPane() {
   }
 
   const handleDelete = async (task) => {
-    const errors = await deleteTask(task);
+    const res = await deleteTask(task);
 
-    if (errors.length > 0) {
-      errors.forEach((error) => {
+    if (res.errors.length > 0) {
+      res.errors.forEach((error) => {
         const uuid = uuidv4();
         const alert = {
           id: uuid,

@@ -64,7 +64,7 @@ const createTask = async (task) => {
       errors: ["Error when calling API. Check console for details."],
     };
   }
-  return json.errors;
+  return json;
 };
 
 const createTaskType = async (taskType) => {
@@ -82,7 +82,7 @@ const createTaskType = async (taskType) => {
       errors: ["Error when calling API. Check console for details."],
     };
   }
-  return json.errors;
+  return json;
 };
 
 const deleteTask = async (task) => {
@@ -98,7 +98,7 @@ const deleteTask = async (task) => {
       errors: ["Error when calling API. Check console for details."],
     };
   }
-  return json.errors;
+  return json;
 };
 
 const deleteTaskType = async (taskTypeId) => {
@@ -114,7 +114,7 @@ const deleteTaskType = async (taskTypeId) => {
       errors: ["Error when calling API. Check console for details."],
     };
   }
-  return json.errors;
+  return json;
 };
 
 const register = async (username, password) => {
@@ -135,7 +135,7 @@ const register = async (username, password) => {
       errors: ["Error when calling API. Check console for details."],
     };
   }
-  return json.errors;
+  return json;
 };
 
 const login = async (username, password) => {
@@ -172,7 +172,7 @@ const logout = async () => {
       errors: ["Error when calling API. Check console for details."],
     };
   }
-  return json.errors;
+  return json;
 };
 
 const findUserByName = async (username) => {
