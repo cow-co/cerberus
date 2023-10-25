@@ -1,13 +1,11 @@
 import { AppBar, Toolbar, Button, Typography, Link } from "@mui/material";
-import { checkSessionCookie, logout } from "../../functions/apiCalls";
+import { checkSessionCookie, logout } from "../../common/apiCalls";
 import { setUsername } from "../../common/redux/users-slice";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { generateAlert } from "../../common/utils";
 import { useDispatch, useSelector } from "react-redux";
 import Cookies from "js-cookie";
-import conf from "../../common/config/properties";
 import { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
+import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
@@ -15,13 +13,8 @@ const HeaderBar = (props) => {
   useEffect(() => {
     const checkSession = async () => {
       const res = await checkSessionCookie();
-      // TODO this error-alerting code is a bit duplicated all over - try pulling it out to a separate function?
       if (res.errors.length > 0) {
-        res.errors.forEach((error) => {
-          const alert = generateAlert(error, "error");
-          dispatch(addAlert(alert));
-          setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-        });
+        createErrorAlert(res.errors);
       } else {
         dispatch(setUsername(res.username));
       }      
@@ -33,17 +26,11 @@ const HeaderBar = (props) => {
   const handleLogout = async () => {
     const { errors } = await logout();
     if (errors.length > 0) {
-      errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
+      createErrorAlert(errors);
     } else {
-        const alert = generateAlert("Successfully logged out", "success");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-        dispatch(setUsername(""));
-        Cookies.remove("connect.sid");
+      createSuccessAlert("Successfully logged out");
+      dispatch(setUsername(""));
+      Cookies.remove("connect.sid");
     }
   }
 

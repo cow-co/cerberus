@@ -3,11 +3,8 @@
 
 import { useState } from 'react';
 import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormControlLabel, FormGroup, Container } from '@mui/material';
-import { useDispatch } from "react-redux";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { changeAdminStatus, deleteUser, findUserByName } from '../../functions/apiCalls';
-import { generateAlert } from "../../common/utils";
+import { changeAdminStatus, deleteUser, findUserByName } from '../../common/apiCalls';
+import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 
 const AdminPane = () => {
   const [user, setUser] = useState({id: "", name: ""});
@@ -15,7 +12,6 @@ const AdminPane = () => {
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [makeAdmin, setMakeAdmin] = useState(false);
   const [helpText, setHelpText] = useState("");
-  const dispatch = useDispatch();
 
   const handleChange = (event) => {
     setUser({name: event.target.value});
@@ -24,58 +20,40 @@ const AdminPane = () => {
   const handleSubmitAdminStatus = async () => {
     const { errors } = await changeAdminStatus(user.id, makeAdmin);
     if (errors.length > 0) {
-      errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
+      createErrorAlert(errors);
       setHelpText("Could not change user's admin status");
       setUser({id: "", name: ""});
     } else {
-        const alert = generateAlert("Successfully changed user admin status", "success");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-        setHelpText("Changed user admin status");
-        setUser({id: "", name: ""});
+      createSuccessAlert("Successfully changed user admin status");
+      setHelpText("Changed user admin status");
+      setUser({id: "", name: ""});
     }
   }
 
   const handleSubmitDelete = async () => {
     const { errors } = await deleteUser(user.id);
     if (errors.length > 0) {
-      errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
+      createErrorAlert(errors);
       setHelpText("Could not delete user");
       setUser({id: "", name: ""});
     } else {
-        const alert = generateAlert("Successfully deleted user", "success");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-        setHelpText("User deleted");
-        setUser({id: "", name: ""});
+      createSuccessAlert("Successfully deleted user");
+      setHelpText("User deleted");
+      setUser({id: "", name: ""});
     }
   }
 
   const handleSearch = async () => {
     const response = await findUserByName(user.name);
     if (response.errors.length > 0) {
-      response.errors.forEach((error) => {
-        const alert = generateAlert(error, "error");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-      });
+      createErrorAlert(response.errors);
       setSearchError(true);
       setHelpText("Could not find user");
     } else if (response.user !== null) {
-        const alert = generateAlert("Successfully found", "success");
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
-        setUser({id: response.user.id, name: response.user.name});
-        setSearchError(false);
-        setHelpText("Found User");
+      createSuccessAlert("Successfully found");
+      setUser({id: response.user.id, name: response.user.name});
+      setSearchError(false);
+      setHelpText("Found User");
     } else {
       setSearchError(true);
       setHelpText("Could not find user");

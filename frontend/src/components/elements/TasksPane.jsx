@@ -2,13 +2,11 @@ import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
-import { createTask, fetchTasks, deleteTask } from '../../functions/apiCalls';
+import { createTask, fetchTasks, deleteTask } from '../../common/apiCalls';
 import CreateTaskDialogue from './CreateTaskDialogue';
 import { useSelector, useDispatch } from "react-redux";
 import { setTasks } from "../../common/redux/tasks-slice";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { v4 as uuidv4 } from "uuid";
+import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
@@ -33,28 +31,12 @@ function TasksPane() {
     data.implantId = selectedImplant.id;
     const response = await createTask(data);
     if (response.errors.length > 0) {
-      response.errors.forEach((error) => {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
+      createErrorAlert(response.errors);
     } else {
       handleFormClose();
       const newList = await fetchTasks(selectedImplant.id, showSent);
       dispatch(setTasks(newList.tasks));
-      const uuid = uuidv4();
-      const alert = {
-        id: uuid,
-        type: "success",
-        message: "Successfully Created Task"
-      };
-      dispatch(addAlert(alert));
-      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      createSuccessAlert("Successfully created task");
     }
   }
 
@@ -62,27 +44,11 @@ function TasksPane() {
     const res = await deleteTask(task);
 
     if (res.errors.length > 0) {
-      res.errors.forEach((error) => {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
+      createErrorAlert(res.errors);
     } else {
       const newList = await fetchTasks(selectedImplant.id, showSent);
       dispatch(setTasks(newList.tasks));
-      const uuid = uuidv4();
-      const alert = {
-        id: uuid,
-        type: "success",
-        message: "Successfully Deleted Task"
-      };
-      dispatch(addAlert(alert));
-      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      createSuccessAlert("Successfully deleted task");
     }
 
   }

@@ -1,6 +1,5 @@
-import conf from "../common/config/properties";
+import conf from "./config/properties";
 
-// TODO ensure the consumers all expect data of form {entity, errors}
 const fetchTasks = async (implantId, showSent) => {
   let json = null;
   try {

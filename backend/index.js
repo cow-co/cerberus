@@ -103,17 +103,25 @@ const stop = () => {
 
 const serveProdClient = () => {
   if (process.env.NODE_ENV === "production") {
-    server = https
-      .createServer(
-        {
-          pfx: fs.readFileSync(securityConfig.certFile), // TODO handle different cert types
-          passphrase: securityConfig.certPassword,
-        },
-        app
-      )
-      .listen(port, async () => {
-        log("index.js", `server running on port ${port}`, levels.INFO);
-      });
+    let opts;
+
+    if (securityConfig.certType === "PFX") {
+      opts = {
+        pfx: fs.readFileSync(securityConfig.certFile),
+        passphrase: securityConfig.certPassword,
+      };
+    } else {
+      // Default to PEM
+      opts = {
+        cert: fs.readFileSync(securityConfig.certFile),
+        key: fs.readFileSync(securityConfig.keyFile),
+        passphrase: securityConfig.certPassword,
+      };
+    }
+
+    server = https.createServer(opts, app).listen(port, async () => {
+      log("index.js", `server running on port ${port}`, levels.INFO);
+    });
     app.use(express.static("client/build"));
     app.get(/^\/(?!api).*/, (req, res) => {
       res.sendFile(path.join(__dirname, "./build/index.html"));
