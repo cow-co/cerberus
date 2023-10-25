@@ -1,126 +1,243 @@
 import conf from "../common/config/properties";
 
+// TODO ensure the consumers all expect data of form {entity, errors}
 const fetchTasks = async (implantId, showSent) => {
-  if (showSent === undefined) {
-    showSent = true;
+  let json = null;
+  try {
+    if (showSent === undefined) {
+      showSent = true;
+    }
+    const response = await fetch(
+      `${conf.apiURL}tasks/${implantId}?includeSent=${showSent}`
+    );
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
   }
-  const response = await fetch(
-    `${conf.apiURL}tasks/${implantId}?includeSent=${showSent}`
-  );
-  const json = await response.json();
   return json;
 };
 
 const fetchTaskTypes = async () => {
-  const response = await fetch(`${conf.apiURL}task-types`);
-  console.log("RESPONSE " + JSON.stringify(response));
-  const json = await response.json();
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}task-types`);
+    console.log("RESPONSE " + JSON.stringify(response));
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
   return json;
 };
 
 const fetchImplants = async () => {
-  const response = await fetch(`${conf.apiURL}implants`);
-  const json = await response.json();
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}implants`);
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
   return json;
 };
 
 const createTask = async (task) => {
-  const response = await fetch(`${conf.apiURL}tasks`, {
-    method: "POST",
-    headers: new Headers({ "content-type": "application/json" }),
-    body: JSON.stringify(task),
-  });
-  const json = await response.json();
-  return json.errors;
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}tasks`, {
+      method: "POST",
+      headers: new Headers({ "content-type": "application/json" }),
+      body: JSON.stringify(task),
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const createTaskType = async (taskType) => {
-  const response = await fetch(`${conf.apiURL}task-types`, {
-    method: "POST",
-    headers: new Headers({ "content-type": "application/json" }),
-    body: JSON.stringify(taskType),
-  });
-  const json = await response.json();
-  return json.errors;
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}task-types`, {
+      method: "POST",
+      headers: new Headers({ "content-type": "application/json" }),
+      body: JSON.stringify(taskType),
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const deleteTask = async (task) => {
-  const response = await fetch(`${conf.apiURL}tasks/${task._id}`, {
-    method: "DELETE",
-  });
-  const json = await response.json();
-  return json.errors;
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}tasks/${task._id}`, {
+      method: "DELETE",
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const deleteTaskType = async (taskTypeId) => {
-  const response = await fetch(`${conf.apiURL}task-types/${taskTypeId}`, {
-    method: "DELETE",
-  });
-  const json = await response.json();
-  return json.errors;
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}task-types/${taskTypeId}`, {
+      method: "DELETE",
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const register = async (username, password) => {
-  const response = await fetch(`${conf.apiURL}access/register`, {
-    method: "POST",
-    headers: new Headers({ "content-type": "application/json" }),
-    body: JSON.stringify({
-      username,
-      password,
-    }),
-  });
-  const json = await response.json();
-  return json.errors;
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/register`, {
+      method: "POST",
+      headers: new Headers({ "content-type": "application/json" }),
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const login = async (username, password) => {
-  const response = await fetch(`${conf.apiURL}access/login`, {
-    method: "POST",
-    headers: new Headers({ "content-type": "application/json" }),
-    body: JSON.stringify({
-      username,
-      password,
-    }),
-  });
-  const json = await response.json();
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/login`, {
+      method: "POST",
+      headers: new Headers({ "content-type": "application/json" }),
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
   return json; // Because we will want to extract the returned username (which will have been trimmed etc) as well as the errors
 };
 
 const logout = async () => {
-  const response = await fetch(`${conf.apiURL}access/logout`, {
-    method: "DELETE",
-  });
-  const json = await response.json();
-  return json.errors;
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/logout`, {
+      method: "DELETE",
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const findUserByName = async (username) => {
-  const response = await fetch(`${conf.apiURL}users/user/${username}`);
-  return response.json();
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}users/user/${username}`);
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const changeAdminStatus = async (userId, makeAdmin) => {
-  const response = await fetch(`${conf.apiURL}access/admin`, {
-    method: "PUT",
-    headers: new Headers({ "content-type": "application/json" }),
-    body: JSON.stringify({
-      userId,
-      makeAdmin,
-    }),
-  });
-  return response.json.errors;
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/admin`, {
+      method: "PUT",
+      headers: new Headers({ "content-type": "application/json" }),
+      body: JSON.stringify({
+        userId,
+        makeAdmin,
+      }),
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const deleteUser = async (userId) => {
-  const response = await fetch(`${conf.apiURL}users/user/${userId}`, {
-    method: "DELETE",
-  });
-  return response.json();
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}users/user/${userId}`, {
+      method: "DELETE",
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 const checkSessionCookie = async () => {
-  const response = await fetch(`${conf.apiURL}users/check-session`);
-  return response.json();
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}users/check-session`);
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
 };
 
 export {

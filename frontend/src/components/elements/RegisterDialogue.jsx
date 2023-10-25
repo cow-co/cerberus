@@ -17,9 +17,9 @@ const RegisterDialogue = (props) => {
   }
 
   const handleSubmit = async () => {
-    const errors = await register(username, password);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
+    const response = await register(username, password);
+    if (response.errors.length > 0) {
+      response.errors.forEach((error) => {
         const alert = generateAlert(error, "error");
         dispatch(addAlert(alert));
         setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);

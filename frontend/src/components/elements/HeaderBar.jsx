@@ -14,17 +14,24 @@ const HeaderBar = (props) => {
   const username = useSelector((state) => state.users.username);
   useEffect(() => {
     const checkSession = async () => {
-      const user = await checkSessionCookie();
-      // TODO HANDLE ERROR
-      
-      dispatch(setUsername(user.username));
+      const res = await checkSessionCookie();
+      // TODO this error-alerting code is a bit duplicated all over - try pulling it out to a separate function?
+      if (res.errors.length > 0) {
+        res.errors.forEach((error) => {
+          const alert = generateAlert(error, "error");
+          dispatch(addAlert(alert));
+          setTimeout(() => dispatch(removeAlert(alert.id)), conf.alertsTimeout);
+        });
+      } else {
+        dispatch(setUsername(res.username));
+      }      
     }
     checkSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   
   const handleLogout = async () => {
-    const errors = await logout();
+    const { errors } = await logout();
     if (errors.length > 0) {
       errors.forEach((error) => {
         const alert = generateAlert(error, "error");

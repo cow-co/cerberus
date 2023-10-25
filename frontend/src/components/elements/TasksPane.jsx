@@ -31,9 +31,9 @@ function TasksPane() {
 
   const handleFormSubmit = async (data) => {
     data.implantId = selectedImplant.id;
-    const errors = await createTask(data);
-    if (errors.length > 0) {
-      errors.forEach((error) => {
+    const response = await createTask(data);
+    if (response.errors.length > 0) {
+      response.errors.forEach((error) => {
         const uuid = uuidv4();
         const alert = {
           id: uuid,
@@ -59,10 +59,10 @@ function TasksPane() {
   }
 
   const handleDelete = async (task) => {
-    const errors = await deleteTask(task);
+    const res = await deleteTask(task);
 
-    if (errors.length > 0) {
-      errors.forEach((error) => {
+    if (res.errors.length > 0) {
+      res.errors.forEach((error) => {
         const uuid = uuidv4();
         const alert = {
           id: uuid,
