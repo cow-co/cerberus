@@ -19,4 +19,22 @@ describe("PKI Tests", () => {
     });
     expect(res).to.equal("user");
   });
+
+  it("should fail with untrusted cert", () => {
+    const res = pki.extractUserDetails({
+      client: {
+        authorized: false,
+      },
+      socket: {
+        getPeerCertificate: () => {
+          return {
+            subject: {
+              CN: "user",
+            },
+          };
+        },
+      },
+    });
+    expect(res).to.equal(null);
+  });
 });

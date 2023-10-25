@@ -39,7 +39,6 @@ const findUserById = async (userId) => {
  */
 const findUserByName = async (username) => {
   let foundUser = null;
-  // TODO Test this, ideally
   ad.findUser(username, (err, user) => {
     foundUser = user;
   });
