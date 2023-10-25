@@ -103,16 +103,18 @@ const stop = () => {
 
 const serveProdClient = () => {
   if (process.env.NODE_ENV === "production") {
-    // Default to PEM
-    let opts = {
-      cert: fs.readFileSync(securityConfig.certFile),
-      key: fs.readFileSync(securityConfig.keyFile),
-      passphrase: securityConfig.certPassword,
-    };
+    let opts;
 
     if (securityConfig.certType === "PFX") {
       opts = {
         pfx: fs.readFileSync(securityConfig.certFile),
+        passphrase: securityConfig.certPassword,
+      };
+    } else {
+      // Default to PEM
+      opts = {
+        cert: fs.readFileSync(securityConfig.certFile),
+        key: fs.readFileSync(securityConfig.keyFile),
         passphrase: securityConfig.certPassword,
       };
     }
