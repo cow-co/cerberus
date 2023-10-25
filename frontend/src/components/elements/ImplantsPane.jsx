@@ -3,12 +3,10 @@ import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
-import { fetchImplants } from '../../functions/apiCalls';
+import { fetchImplants } from '../../common/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
-import { v4 as uuidv4 } from "uuid";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
+import { createErrorAlert } from '../../common/redux/dispatchers';
 
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
@@ -29,16 +27,7 @@ const ImplantsPane = () => {
         dispatch(setImplants(filtered));
       }
     } else {
-      result.errors.forEach(error => {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
+      createErrorAlert(result.errors);
     }
   }
 

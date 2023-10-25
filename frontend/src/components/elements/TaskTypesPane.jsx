@@ -2,13 +2,11 @@ import { Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskTypeItem from './TaskTypeItem';
-import { createTaskType, fetchTaskTypes, deleteTaskType } from '../../functions/apiCalls';
+import { createTaskType, fetchTaskTypes, deleteTaskType } from '../../common/apiCalls';
 import CreateTaskTypeDialogue from './CreateTaskTypeDialogue';
 import { useSelector, useDispatch } from "react-redux";
 import { setTaskTypes } from "../../common/redux/tasks-slice";
-import conf from "../../common/config/properties";
-import { addAlert, removeAlert } from "../../common/redux/alerts-slice";
-import { v4 as uuidv4 } from "uuid";
+import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 
 function TaskTypesPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
@@ -26,56 +24,24 @@ function TaskTypesPane() {
   const handleFormSubmit = async (data) => {
     const response = await createTaskType(data);
     if (response.errors.length > 0) {
-      response.errors.forEach((error) => {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
+      createErrorAlert(response.errors);
     } else {
       handleFormClose();
       const newList = await fetchTaskTypes();
       dispatch(setTaskTypes(newList.taskTypes));
-      const uuid = uuidv4();
-      const alert = {
-        id: uuid,
-        type: "success",
-        message: "Successfully Created Task Type"
-      };
-      dispatch(addAlert(alert));
-      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      createSuccessAlert("Successfully created task type");
     }
   }
 
   const handleDelete = async (taskType) => {
-    const errors = await deleteTaskType(taskType._id);
+    const { errors } = await deleteTaskType(taskType._id);
 
     if (errors.length > 0) {
-      errors.forEach((error) => {
-        const uuid = uuidv4();
-        const alert = {
-          id: uuid,
-          type: "error",
-          message: error
-        };
-        dispatch(addAlert(alert));
-        setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
-      });
+      createErrorAlert(errors);
     } else {
       const newList = await fetchTaskTypes();
       dispatch(setTaskTypes(newList.taskTypes));
-      const uuid = uuidv4();
-      const alert = {
-        id: uuid,
-        type: "success",
-        message: "Successfully Deleted Task Type"
-      };
-      dispatch(addAlert(alert));
-      setTimeout(() => dispatch(removeAlert(uuid)), conf.alertsTimeout);
+      createSuccessAlert("Successfully deleted task type");
     }
 
   }
