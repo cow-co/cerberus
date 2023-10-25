@@ -16,7 +16,6 @@ const LoginDialogue = (props) => {
   }
 
 
-  // TODO Should load in implants and task types automatically after logging in
   const handleSubmit = async () => {
     const response = await login(currentUsername, password);
     if (response.errors.length > 0) {
@@ -25,7 +24,6 @@ const LoginDialogue = (props) => {
         createSuccessAlert("Successfully logged in");
         dispatch(setUsername(response.username));
         await loadTaskTypes();
-        await loadImplants();
         handleClose();
     }
   }
