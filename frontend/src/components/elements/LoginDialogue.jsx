@@ -3,7 +3,7 @@ import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/materi
 import { login } from "../../common/apiCalls";
 import { useDispatch } from "react-redux";
 import { setUsername } from "../../common/redux/users-slice";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert, loadImplants, loadTaskTypes } from '../../common/redux/dispatchers';
 
 const LoginDialogue = (props) => {
   const {onClose, open} = props;
@@ -24,6 +24,8 @@ const LoginDialogue = (props) => {
     } else {
         createSuccessAlert("Successfully logged in");
         dispatch(setUsername(response.username));
+        await loadTaskTypes();
+        await loadImplants();
         handleClose();
     }
   }

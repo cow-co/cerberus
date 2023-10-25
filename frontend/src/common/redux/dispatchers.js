@@ -2,6 +2,9 @@ import { addAlert, removeAlert } from "./alerts-slice";
 import { generateAlert } from "../utils";
 import conf from "../config/properties";
 import store from "./store";
+import { fetchImplants, fetchTaskTypes } from "../apiCalls";
+import { setTaskTypes } from "./tasks-slice";
+import { setImplants } from "./implants-slice";
 
 const createErrorAlert = (errors) => {
   errors.forEach((error) => {
@@ -17,4 +20,9 @@ const createSuccessAlert = (message) => {
   setTimeout(() => store.dispatch(removeAlert(alert.id)), conf.alertsTimeout);
 };
 
-export { createErrorAlert, createSuccessAlert };
+const loadTaskTypes = async () => {
+  const results = await fetchTaskTypes();
+  store.dispatch(setTaskTypes(results.taskTypes));
+};
+
+export { createErrorAlert, createSuccessAlert, loadTaskTypes };

@@ -2,16 +2,14 @@ import { Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskTypeItem from './TaskTypeItem';
-import { createTaskType, fetchTaskTypes, deleteTaskType } from '../../common/apiCalls';
+import { createTaskType, deleteTaskType } from '../../common/apiCalls';
 import CreateTaskTypeDialogue from './CreateTaskTypeDialogue';
-import { useSelector, useDispatch } from "react-redux";
-import { setTaskTypes } from "../../common/redux/tasks-slice";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { useSelector } from "react-redux";
+import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../common/redux/dispatchers';
 
 function TaskTypesPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
   const taskTypes = useSelector((state) => state.tasks.taskTypes);
-  const dispatch = useDispatch();
 
   const handleFormOpen = () => {
     setDialogueOpen(true);
@@ -27,8 +25,7 @@ function TaskTypesPane() {
       createErrorAlert(response.errors);
     } else {
       handleFormClose();
-      const newList = await fetchTaskTypes();
-      dispatch(setTaskTypes(newList.taskTypes));
+      await loadTaskTypes();
       createSuccessAlert("Successfully created task type");
     }
   }
@@ -39,8 +36,7 @@ function TaskTypesPane() {
     if (errors.length > 0) {
       createErrorAlert(errors);
     } else {
-      const newList = await fetchTaskTypes();
-      dispatch(setTaskTypes(newList.taskTypes));
+      await loadTaskTypes();
       createSuccessAlert("Successfully deleted task type");
     }
 
@@ -48,9 +44,7 @@ function TaskTypesPane() {
 
   useEffect(() => {
     async function callFetcher() {
-      console.log("Fetching task types");
-      const received = await fetchTaskTypes();
-      dispatch(setTaskTypes(received.taskTypes));
+      await loadTaskTypes();
     }
     callFetcher()
     // eslint-disable-next-line react-hooks/exhaustive-deps

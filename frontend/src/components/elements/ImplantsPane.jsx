@@ -11,6 +11,7 @@ import { createErrorAlert } from '../../common/redux/dispatchers';
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
   const implants = useSelector((state) => state.implants.implants);
+  const username = useSelector((state) => state.users.username);
   const dispatch = useDispatch();
 
   const handleToggle = () => {
@@ -28,6 +29,7 @@ const ImplantsPane = () => {
       }
     } else {
       createErrorAlert(result.errors);
+      dispatch(setImplants([]));
     }
   }
 
@@ -35,9 +37,12 @@ const ImplantsPane = () => {
     async function callRefresh() {
       await refresh();
     }
-    callRefresh();
+
+    if (username) {
+      callRefresh();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [username])
 
   const implantsItems = implants.map(implant => {
     return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))}/>
