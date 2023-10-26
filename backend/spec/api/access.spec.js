@@ -10,6 +10,7 @@ const ActiveDirectory = require("activedirectory");
 const Task = require("../../db/models/Task");
 const Admin = require("../../db/models/Admin");
 
+// TODO refactor to stub out-of-module calls
 describe("Access tests", () => {
   afterEach(() => {
     sinon.restore();
@@ -33,6 +34,14 @@ describe("Access tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
     expect(userSpy.calls.count()).to.equal(1);
+  });
+
+  it("should fail to create a user - exception thrown", async () => {
+    spyOn(accessManager, "register").and.throwError("TypeError");
+    const res = await agent
+      .post("/api/access/register")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    expect(res.statusCode).to.equal(500);
   });
 
   it("should fail to create a user - AD-backed", async () => {
@@ -156,6 +165,49 @@ describe("Access tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
     securityConfig.authMethod = originalSetting;
+  });
+
+  it("should log out", async () => {
+    spyOn(User, "findOne").and.returnValue({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    spyOn(accessManager, "logout");
+    spyOn(argon2, "verify").and.returnValue(true);
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    console.log(cookies);
+    const res = await agent
+      .delete("/api/access/logout")
+      .set("Cookie", cookies[0]);
+    expect(res.statusCode).to.equal(200);
+  });
+
+  it("should log out - no-op - if not logged in", async () => {
+    spyOn(accessManager, "logout");
+    const res = await agent.delete("/api/access/logout");
+    expect(res.statusCode).to.equal(200);
+  });
+
+  it("should fail to log out - exception thrown", async () => {
+    spyOn(User, "findOne").and.returnValue({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
+    });
+    spyOn(accessManager, "logout").and.throwError("TypeError");
+    spyOn(argon2, "verify").and.returnValue(true);
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .delete("/api/access/logout")
+      .set("Cookie", cookies[0]);
+    expect(res.statusCode).to.equal(500);
   });
 
   it("should successfully add an admin", async () => {

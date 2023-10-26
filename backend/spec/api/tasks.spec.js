@@ -6,6 +6,7 @@ const TaskType = require("../../db/models/TaskType");
 const accessManager = require("../../security/user-and-access-manager");
 const argon2 = require("argon2");
 
+// TODO Really should do exception-tests
 describe("Tasks API Tests", () => {
   afterEach(() => {
     sinon.restore();
@@ -212,6 +213,7 @@ describe("Tasks API Tests", () => {
         name: "Name",
       },
       implantId: "id-1",
+      sent: false,
       params: [],
       updateOne: async () => {
         called = true;
@@ -241,6 +243,47 @@ describe("Tasks API Tests", () => {
     });
     expect(res.statusCode).to.equal(200);
     expect(called).to.be.true;
+  });
+
+  it("should fail to edit a task - task already sent", async () => {
+    let called = false;
+    spyOn(Task, "findById").and.returnValue({
+      _id: "id",
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      sent: true,
+      implantId: "id-1",
+      params: [],
+      updateOne: async () => {
+        called = true;
+      },
+    });
+    spyOn(TaskType, "find").and.returnValue([
+      {
+        _id: "tasktypeid1",
+        name: "Name",
+        params: [],
+      },
+      {
+        _id: "tasktypeid2",
+        name: "Name 2",
+        params: ["param1", "param2"],
+      },
+    ]);
+    spyOn(Task, "updateOne");
+    const res = await agent.post("/api/tasks").send({
+      _id: "id",
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      implantId: "id-1",
+      params: [],
+    });
+    expect(res.statusCode).to.equal(400);
+    expect(called).to.be.false;
   });
 
   it("should create a task type", async () => {

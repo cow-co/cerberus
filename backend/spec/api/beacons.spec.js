@@ -4,7 +4,11 @@ const sinon = require("sinon");
 const Implant = require("../../db/models/Implant");
 const Task = require("../../db/models/Task");
 const accessManager = require("../../security/user-and-access-manager");
+const implantService = require("../../db/services/implant-service");
+const validation = require("../../validation/request-validation");
+const tasksService = require("../../db/services/tasks-service");
 
+// TODO refactor to stub out-of-module calls
 describe("Beacon API tests", () => {
   afterEach(() => {
     sinon.restore();
@@ -57,6 +61,43 @@ describe("Beacon API tests", () => {
     });
   });
 
+  it("should update an existing implant", async () => {
+    spyOn(validation, "validateBeacon").and.returnValue({
+      isValid: true,
+      errors: [],
+    });
+    spyOn(implantService, "findImplantById").and.returnValue({
+      id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+      ip: "192.168.0.2",
+      os: "Windows",
+      beaconIntervalSeconds: 500,
+    });
+    const updateSpy = spyOn(implantService, "updateImplant");
+    spyOn(tasksService, "getTasksForImplant").and.returnValue([
+      {
+        _id: "some-mongo-id",
+        order: 1,
+        implantId: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+        taskType: "Task2",
+        params: [],
+        sent: false,
+      },
+    ]);
+    spyOn(tasksService, "taskSent");
+
+    const res = await agent.post("/api/beacon").send({
+      id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+      ip: "192.168.0.1",
+      os: "Windows 6.1.7601.17592",
+      beaconIntervalSeconds: 300,
+    });
+
+    expect(res.statusCode).to.equal(200);
+    expect(updateSpy.calls.count()).to.equal(1);
+  });
+
+  // TODO As part of the refactor, these should be moved to a separate spec file for the validator
+
   it("should fail - no ID", async () => {
     const res = await agent.post("/api/beacon").send({
       ip: "192.168.0.1",
@@ -108,5 +149,28 @@ describe("Beacon API tests", () => {
     });
 
     expect(res.statusCode).to.equal(400);
+  });
+
+  it("should fail - exception thrown", async () => {
+    spyOn(validation, "validateBeacon").and.returnValue({
+      isValid: true,
+      errors: [],
+    });
+    spyOn(implantService, "findImplantById").and.returnValue({
+      id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+      ip: "192.168.0.2",
+      os: "Windows",
+      beaconIntervalSeconds: 500,
+    });
+    spyOn(implantService, "updateImplant").and.throwError("TypeError");
+
+    const res = await agent.post("/api/beacon").send({
+      id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+      ip: "192.168.0.1",
+      os: "Windows 6.1.7601.17592",
+      beaconIntervalSeconds: 300,
+    });
+
+    expect(res.statusCode).to.equal(500);
   });
 });

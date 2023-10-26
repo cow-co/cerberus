@@ -96,10 +96,12 @@ const verifySession = async (req, res, next) => {
 
 /**
  * Destroys the stored session token
- * @param {Session} session
+ * @param {Session} session (can be null/undefined, in which case function is no-op)
  */
 const logout = async (session) => {
-  session.destroy();
+  if (session) {
+    session.destroy();
+  }
 };
 
 /**
