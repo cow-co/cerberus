@@ -128,6 +128,7 @@ describe("Tasks API Tests", () => {
   });
 
   it("should create a task", async () => {
+    spyOn(Task, "findById").and.returnValue(null);
     spyOn(TaskType, "find").and.returnValue([
       {
         _id: "tasktypeid1",
@@ -153,6 +154,7 @@ describe("Tasks API Tests", () => {
   });
 
   it("should fail to create a task - missing task type name", async () => {
+    spyOn(Task, "findById").and.returnValue(null);
     spyOn(TaskType, "find").and.returnValue([
       {
         _id: "tasktypeid1",
@@ -177,6 +179,7 @@ describe("Tasks API Tests", () => {
   });
 
   it("should fail to create a task - missing implant ID", async () => {
+    spyOn(Task, "findById").and.returnValue(null);
     spyOn(TaskType, "find").and.returnValue([
       {
         _id: "tasktypeid1",
@@ -198,6 +201,46 @@ describe("Tasks API Tests", () => {
       params: [],
     });
     expect(res.statusCode).to.equal(400);
+  });
+
+  it("should edit a task", async () => {
+    let called = false;
+    spyOn(Task, "findById").and.returnValue({
+      _id: "id",
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      implantId: "id-1",
+      params: [],
+      updateOne: async () => {
+        called = true;
+      },
+    });
+    spyOn(TaskType, "find").and.returnValue([
+      {
+        _id: "tasktypeid1",
+        name: "Name",
+        params: [],
+      },
+      {
+        _id: "tasktypeid2",
+        name: "Name 2",
+        params: ["param1", "param2"],
+      },
+    ]);
+    spyOn(Task, "updateOne");
+    const res = await agent.post("/api/tasks").send({
+      _id: "id",
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      implantId: "id-1",
+      params: [],
+    });
+    expect(res.statusCode).to.equal(200);
+    expect(called).to.be.true;
   });
 
   it("should create a task type", async () => {
