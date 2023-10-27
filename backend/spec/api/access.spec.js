@@ -22,7 +22,9 @@ describe("Access tests", () => {
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
-    sinon.stub(accessManager, "verifySession").callsArg(2);
+    spyOn(accessManager, "verifySession").and.callFake((req, res, next) => {
+      next();
+    });
     server = require("../../index");
     agent = require("supertest").agent(server);
   });

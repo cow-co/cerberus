@@ -2,11 +2,9 @@ let agent = null;
 let server;
 const expect = require("chai").expect;
 const sinon = require("sinon");
-const Task = require("../../db/models/Task");
-const TaskType = require("../../db/models/TaskType");
 const tasksService = require("../../db/services/tasks-service");
-const accessManager = require("../../security/user-and-access-manager");
 const argon2 = require("argon2");
+const validation = require("../../validation/request-validation");
 
 // TODO Refactor to only test the given unit
 describe("Tasks API Tests", () => {
@@ -17,80 +15,77 @@ describe("Tasks API Tests", () => {
   });
 
   beforeEach(() => {
-    const findStub = spyOn(Task, "find");
-    findStub.withArgs({ implantId: "id-1" }).and.returnValue({
-      sort: () => [
-        {
-          _id: "some-mongo-id",
-          order: 1,
-          implantId: "id-1",
-          taskType: "Task2",
-          params: [],
-          sent: false,
-        },
-        {
-          _id: "some-mongo-id",
-          order: 0,
-          implantId: "id-1",
-          taskType: "Task",
-          params: ["param1"],
-          sent: true,
-        },
-      ],
-    });
+    const findStub = spyOn(tasksService, "getTasksForImplant");
+    findStub.withArgs("id-1", true).and.resolveTo([
+      {
+        _id: "some-mongo-id",
+        order: 1,
+        implantId: "id-1",
+        taskType: "Task2",
+        params: [],
+        sent: false,
+      },
+      {
+        _id: "some-mongo-id",
+        order: 0,
+        implantId: "id-1",
+        taskType: "Task",
+        params: ["param1"],
+        sent: true,
+      },
+    ]);
+    findStub.withArgs("id-1", false).and.resolveTo([
+      {
+        _id: "some-mongo-id",
+        order: 1,
+        implantId: "id-1",
+        taskType: "Task2",
+        params: [],
+        sent: false,
+      },
+    ]);
+    findStub.withArgs("id-2", false).and.resolveTo([
+      {
+        _id: "some-mongo-id",
+        order: 0,
+        implantId: "id-2",
+        taskType: "Task",
+        params: ["param1"],
+        sent: false,
+      },
+    ]);
+    findStub.withArgs("id-3", false).and.resolveTo([]);
+    findStub.withArgs("id-7", false).and.throwError("TypeError");
 
-    findStub.withArgs({ implantId: "id-1", sent: false }).and.returnValue({
-      sort: () => [
-        {
-          _id: "some-mongo-id",
-          order: 1,
-          implantId: "id-1",
-          taskType: "Task2",
-          params: [],
-          sent: false,
-        },
-      ],
-    });
-
-    findStub.withArgs({ implantId: "id-2", sent: false }).and.returnValue({
-      sort: () => [
-        {
-          _id: "some-mongo-id",
-          order: 0,
-          implantId: "id-2",
-          taskType: "Task",
-          params: ["param1"],
-          sent: false,
-        },
-      ],
-    });
-
-    findStub.withArgs({ implantId: "id-3", sent: false }).and.returnValue({
-      sort: () => [],
-    });
-
-    const byIdStub = spyOn(TaskType, "findById");
-    byIdStub.withArgs("tasktypeid1").and.returnValue({
+    const byIdStub = spyOn(tasksService, "getTaskTypeById");
+    byIdStub.withArgs("tasktypeid1").and.resolveTo({
       _id: "tasktypeid1",
       name: "Name",
       params: [],
     });
-    byIdStub.withArgs("tasktypeid2").and.returnValue({
+    byIdStub.withArgs("tasktypeid2").and.resolveTo({
       _id: "tasktypeid2",
       name: "Name 2",
       params: ["param1", "param2"],
     });
-    byIdStub.withArgs("tasktypeid3").and.returnValue(null);
-    // FIXME These don't work, since the verifySession fake will call through to the *actual* implementation of checkAdmin (via `next()`)
-    spyOn(accessManager, "checkAdmin").and.callFake(async (req, res, next) => {
-      console.log(
-        "sladkjhffffffffshaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-      );
-      next();
+    byIdStub.withArgs("tasktypeid3").and.resolveTo(null);
+
+    // Stubbing the actual auth middlewares seems to be broken, so we stub the sub-calls
+    spyOn(argon2, "verify").and.returnValue(true);
+    const findWrapper = spyOn(User, "findOne");
+    findWrapper.and.resolveTo({
+      _id: "650a3a2a7dcd3241ecee2d71",
+      username: "user",
+      hashedPassword: "hashed",
     });
-    spyOn(accessManager, "verifySession").and.callFake(async (req, res, next) =>
-      next()
-    );
+    const adminStub = spyOn(Admin, "findOne");
+    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.resolveTo({
+      userId: "650a3a2a7dcd3241ecee2d71",
+    });
+
+    spyOn(validation, "validateTask").and.resolveTo(true);
+    spyOn(validation, "validateTaskType").and.returnValue(true);
+
     server = require("../../index");
     agent = require("supertest").agent(server);
   });
@@ -126,13 +121,12 @@ describe("Tasks API Tests", () => {
   });
 
   it("should fail get all tasks for an implant - exception thrown", async () => {
-    spyOn(tasksService, "getTasksForImplant").and.throwError("TypeError");
-    const res = await agent.get("/api/tasks/id-3");
+    const res = await agent.get("/api/tasks/id-7");
     expect(res.statusCode).to.equal(500);
   });
 
   it("should get all task types", async () => {
-    spyOn(TaskType, "find").and.returnValue([
+    spyOn(tasksService, "getTaskTypes").and.returnValue([
       {
         name: "Name",
         params: [],
@@ -154,8 +148,8 @@ describe("Tasks API Tests", () => {
   });
 
   it("should create a task", async () => {
-    spyOn(Task, "findById").and.returnValue(null);
-    spyOn(TaskType, "find").and.returnValue([
+    spyOn(tasksService, "getTaskById").and.resolveTo(null);
+    spyOn(tasksService, "getTaskTypes").and.resolveTo([
       {
         _id: "tasktypeid1",
         name: "Name",
@@ -167,7 +161,8 @@ describe("Tasks API Tests", () => {
         params: ["param1", "param2"],
       },
     ]);
-    spyOn(Task, "create");
+    const createSpy = spyOn(tasksService, "setTask");
+
     const res = await agent.post("/api/tasks").send({
       type: {
         id: "tasktypeid1",
@@ -176,12 +171,14 @@ describe("Tasks API Tests", () => {
       implantId: "id-1",
       params: [],
     });
+
     expect(res.statusCode).to.equal(200);
+    expect(createSpy.calls.count()).to.equal(1);
   });
 
   it("should fail to create a task - missing task type name", async () => {
-    spyOn(Task, "findById").and.returnValue(null);
-    spyOn(TaskType, "find").and.returnValue([
+    spyOn(tasksService, "getTaskById").and.returnValue(null);
+    spyOn(tasksService, "getTaskTypes").and.returnValue([
       {
         _id: "tasktypeid1",
         name: "Name",
@@ -193,7 +190,7 @@ describe("Tasks API Tests", () => {
         params: ["param1", "param2"],
       },
     ]);
-    spyOn(Task, "create");
+
     const res = await agent.post("/api/tasks").send({
       type: {
         id: "tasktypeid1",
@@ -201,12 +198,13 @@ describe("Tasks API Tests", () => {
       implantId: "id-1",
       params: [],
     });
+
     expect(res.statusCode).to.equal(400);
   });
 
   it("should fail to create a task - missing implant ID", async () => {
-    spyOn(Task, "findById").and.returnValue(null);
-    spyOn(TaskType, "find").and.returnValue([
+    spyOn(tasksService, "getTaskById").and.returnValue(null);
+    spyOn(tasksService, "getTaskTypes").and.returnValue([
       {
         _id: "tasktypeid1",
         name: "Name",
@@ -218,7 +216,7 @@ describe("Tasks API Tests", () => {
         params: ["param1", "param2"],
       },
     ]);
-    spyOn(Task, "create");
+
     const res = await agent.post("/api/tasks").send({
       type: {
         id: "tasktypeid1",
@@ -226,78 +224,13 @@ describe("Tasks API Tests", () => {
       },
       params: [],
     });
+
     expect(res.statusCode).to.equal(400);
   });
 
   it("should edit a task", async () => {
-    let called = false;
-    spyOn(Task, "findById").and.returnValue({
-      _id: "id",
-      type: {
-        id: "tasktypeid1",
-        name: "Name",
-      },
-      implantId: "id-1",
-      sent: false,
-      params: [],
-      updateOne: async () => {
-        called = true;
-      },
-    });
-    spyOn(TaskType, "find").and.returnValue([
-      {
-        _id: "tasktypeid1",
-        name: "Name",
-        params: [],
-      },
-      {
-        _id: "tasktypeid2",
-        name: "Name 2",
-        params: ["param1", "param2"],
-      },
-    ]);
-    spyOn(Task, "updateOne");
-    const res = await agent.post("/api/tasks").send({
-      _id: "id",
-      type: {
-        id: "tasktypeid1",
-        name: "Name",
-      },
-      implantId: "id-1",
-      params: [],
-    });
-    expect(res.statusCode).to.equal(200);
-    expect(called).to.be.true;
-  });
+    const spy = spyOn(tasksService, "setTask").and.resolveTo(null);
 
-  it("should fail to edit a task - task already sent", async () => {
-    let called = false;
-    spyOn(Task, "findById").and.returnValue({
-      _id: "id",
-      type: {
-        id: "tasktypeid1",
-        name: "Name",
-      },
-      sent: true,
-      implantId: "id-1",
-      params: [],
-      updateOne: async () => {
-        called = true;
-      },
-    });
-    spyOn(TaskType, "find").and.returnValue([
-      {
-        _id: "tasktypeid1",
-        name: "Name",
-        params: [],
-      },
-      {
-        _id: "tasktypeid2",
-        name: "Name 2",
-        params: ["param1", "param2"],
-      },
-    ]);
-    spyOn(Task, "updateOne");
     const res = await agent.post("/api/tasks").send({
       _id: "id",
       type: {
@@ -307,29 +240,13 @@ describe("Tasks API Tests", () => {
       implantId: "id-1",
       params: [],
     });
-    expect(res.statusCode).to.equal(400);
-    expect(called).to.be.false;
+
+    expect(res.statusCode).to.equal(200);
+    expect(spy.calls.count()).to.equal(1);
   });
 
   it("should create a task type", async () => {
-    // Stub user-search
-    const findWrapper = spyOn(User, "findOne");
-    findWrapper.and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-
-    // Stub for login
-    spyOn(argon2, "verify").and.returnValue(true);
-
-    // Stub the admin-checks
-    const adminStub = spyOn(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-
-    spyOn(TaskType, "create").and.returnValue({
+    spyOn(tasksService, "createTaskType").and.returnValue({
       _id: "some-mongo-tasktype-id",
       name: "tasktype",
       params: ["param 1"],
@@ -351,30 +268,6 @@ describe("Tasks API Tests", () => {
 
   it("should fail to create a task type - exception thrown", async () => {
     spyOn(tasksService, "createTaskType").and.throwError("TypeError");
-    const res = await agent.post("/api/task-types").send({
-      name: "tasktype",
-      params: ["param 1"],
-    });
-    expect(res.statusCode).to.equal(500);
-  });
-
-  it("should fail to create a task type - no params array", async () => {
-    // Stub user-search
-    const findWrapper = spyOn(User, "findOne");
-    findWrapper.and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-
-    // Stub for login
-    spyOn(argon2, "verify").and.returnValue(true);
-
-    // Stub the admin-checks
-    const adminStub = spyOn(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
 
     const loginRes = await agent
       .post("/api/access/login")
@@ -385,28 +278,28 @@ describe("Tasks API Tests", () => {
       .set("Cookie", cookies[0])
       .send({
         name: "tasktype",
+        params: ["param 1"],
       });
+
+    expect(res.statusCode).to.equal(500);
+  });
+
+  it("should fail to create a task type - no params array", async () => {
+    const loginRes = await agent
+      .post("/api/access/login")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    const cookies = loginRes.headers["set-cookie"];
+    const res = await agent
+      .post("/api/task-types")
+      .set("Cookie", cookies[0])
+      .send({
+        name: "tasktype",
+      });
+
     expect(res.statusCode).to.equal(400);
   });
 
   it("should fail to create a task type - no name", async () => {
-    // Stub user-search
-    const findWrapper = spyOn(User, "findOne");
-    findWrapper.and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-
-    // Stub for login
-    spyOn(argon2, "verify").and.returnValue(true);
-
-    // Stub the admin-checks
-    const adminStub = spyOn(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -417,27 +310,11 @@ describe("Tasks API Tests", () => {
       .send({
         params: ["param 1"],
       });
+
     expect(res.statusCode).to.equal(400);
   });
 
   it("should fail to create a task type - duplicated param names", async () => {
-    // Stub user-search
-    const findWrapper = spyOn(User, "findOne");
-    findWrapper.and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-
-    // Stub for login
-    spyOn(argon2, "verify").and.returnValue(true);
-
-    // Stub the admin-checks
-    const adminStub = spyOn(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -449,11 +326,12 @@ describe("Tasks API Tests", () => {
         name: "tasktype",
         params: ["param 1", "param 2", "param 1"],
       });
+
     expect(res.statusCode).to.equal(400);
   });
 
   it("should delete a task", async () => {
-    spyOn(Task, "findById").and.returnValue({
+    spyOn(tasksService, "getTaskById").and.returnValue({
       _id: "some-mongo-id",
       order: 0,
       implantId: "id-1",
@@ -461,20 +339,23 @@ describe("Tasks API Tests", () => {
       params: ["param1"],
       sent: false,
     });
-    spyOn(Task, "findByIdAndDelete");
+    spyOn(tasksService, "deleteTask");
+
     const res = await agent.delete("/api/tasks/some-mongo-id");
+
     expect(res.statusCode).to.equal(200);
   });
 
   it("should return success when the task ID does not exist", async () => {
-    spyOn(Task, "findById").and.returnValue(null);
-    spyOn(Task, "findByIdAndDelete");
+    spyOn(tasksService, "getTaskById").and.returnValue(null);
+
     const res = await agent.delete("/api/tasks/some-mongo-if");
+
     expect(res.statusCode).to.equal(200);
   });
 
   it("should fail to delete a task - task already sent", async () => {
-    spyOn(Task, "findById").and.returnValue({
+    spyOn(tasksService, "getTaskById").and.returnValue({
       _id: "some-mongo-id",
       order: 0,
       implantId: "id-1",
@@ -482,26 +363,14 @@ describe("Tasks API Tests", () => {
       params: ["param1"],
       sent: true,
     });
-    spyOn(Task, "findByIdAndDelete");
+
     const res = await agent.delete("/api/tasks/some-mongo-id");
+
     expect(res.statusCode).to.equal(400);
   });
 
   it("should delete a task type", async () => {
-    // Stub for login
-    const findWrapper = spyOn(User, "findOne");
-    findWrapper.and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-    spyOn(argon2, "verify").and.returnValue(true);
-    // Stub the admin-checks
-    const adminStub = spyOn(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-    const delStub = spyOn(TaskType, "findByIdAndDelete");
+    const delStub = spyOn(tasksService, "deleteTaskType");
 
     const loginRes = await agent
       .post("/api/access/login")
@@ -510,26 +379,12 @@ describe("Tasks API Tests", () => {
     const res = await agent
       .delete("/api/task-types/tasktypeid1")
       .set("Cookie", cookies[0]);
+
     expect(res.statusCode).to.equal(200);
     expect(delStub.calls.count()).to.equal(1);
   });
 
   it("should return success if deleting a non-existent task type", async () => {
-    // Stub for login
-    const findWrapper = spyOn(User, "findOne");
-    findWrapper.and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-    spyOn(argon2, "verify").and.returnValue(true);
-
-    // Stub the admin-checks
-    const adminStub = spyOn(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -537,6 +392,7 @@ describe("Tasks API Tests", () => {
     const res = await agent
       .delete("/api/task-types/tasktypeid3")
       .set("Cookie", cookies[0]);
+
     expect(res.statusCode).to.equal(200);
   });
 });

@@ -13,10 +13,11 @@ describe("Implant API Tests", () => {
   });
 
   beforeEach(() => {
+    spyOn(accessManager, "verifySession").and.callFake((req, res, next) => {
+      next();
+    });
     server = require("../../index");
-    // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
-    // since node caches the app
-    sinon.stub(accessManager, "verifySession").callsArg(2);
+    agent = require("supertest").agent(server);
   });
 
   it("should get all implants (empty array)", async () => {
