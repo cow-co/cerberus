@@ -1,4 +1,5 @@
 let agent;
+let server;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Implant = require("../../db/models/Implant");
@@ -12,13 +13,16 @@ const tasksService = require("../../db/services/tasks-service");
 describe("Beacon API tests", () => {
   afterEach(() => {
     sinon.restore();
+    server.stop();
+    delete require.cache[require.resolve("../../index")];
   });
 
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
     sinon.stub(accessManager, "verifySession").callsArg(2);
-    agent = require("supertest").agent(require("../../index"));
+    server = require("../../index");
+    agent = require("supertest").agent(server);
   });
 
   it("should succeed", async () => {

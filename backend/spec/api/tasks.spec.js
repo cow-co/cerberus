@@ -1,15 +1,19 @@
 let agent = null;
+let server;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const Task = require("../../db/models/Task");
 const TaskType = require("../../db/models/TaskType");
+const tasksService = require("../../db/services/tasks-service");
 const accessManager = require("../../security/user-and-access-manager");
 const argon2 = require("argon2");
 
-// TODO Really should do exception-tests
+// TODO Refactor to only test the given unit
 describe("Tasks API Tests", () => {
   afterEach(() => {
     sinon.restore();
+    server.stop();
+    delete require.cache[require.resolve("../../index")];
   });
 
   beforeEach(() => {
@@ -77,9 +81,18 @@ describe("Tasks API Tests", () => {
       params: ["param1", "param2"],
     });
     byIdStub.withArgs("tasktypeid3").and.returnValue(null);
-
-    sinon.stub(accessManager, "verifySession").callsArg(2);
-    agent = require("supertest").agent(require("../../index"));
+    // FIXME These don't work, since the verifySession fake will call through to the *actual* implementation of checkAdmin (via `next()`)
+    spyOn(accessManager, "checkAdmin").and.callFake(async (req, res, next) => {
+      console.log(
+        "sladkjhffffffffshaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      );
+      next();
+    });
+    spyOn(accessManager, "verifySession").and.callFake(async (req, res, next) =>
+      next()
+    );
+    server = require("../../index");
+    agent = require("supertest").agent(server);
   });
 
   it("should get all tasks for an implant (empty array)", async () => {
@@ -112,6 +125,12 @@ describe("Tasks API Tests", () => {
     expect(res.body.tasks.length).to.equal(1);
   });
 
+  it("should fail get all tasks for an implant - exception thrown", async () => {
+    spyOn(tasksService, "getTasksForImplant").and.throwError("TypeError");
+    const res = await agent.get("/api/tasks/id-3");
+    expect(res.statusCode).to.equal(500);
+  });
+
   it("should get all task types", async () => {
     spyOn(TaskType, "find").and.returnValue([
       {
@@ -126,6 +145,12 @@ describe("Tasks API Tests", () => {
     const res = await agent.get("/api/task-types");
     expect(res.statusCode).to.equal(200);
     expect(res.body.taskTypes.length).to.equal(2);
+  });
+
+  it("should fail to get all task types - exception thrown", async () => {
+    spyOn(tasksService, "getTaskTypes").and.throwError("TypeError");
+    const res = await agent.get("/api/task-types");
+    expect(res.statusCode).to.equal(500);
   });
 
   it("should create a task", async () => {
@@ -322,6 +347,15 @@ describe("Tasks API Tests", () => {
         params: ["param 1"],
       });
     expect(res.statusCode).to.equal(200);
+  });
+
+  it("should fail to create a task type - exception thrown", async () => {
+    spyOn(tasksService, "createTaskType").and.throwError("TypeError");
+    const res = await agent.post("/api/task-types").send({
+      name: "tasktype",
+      params: ["param 1"],
+    });
+    expect(res.statusCode).to.equal(500);
   });
 
   it("should fail to create a task type - no params array", async () => {

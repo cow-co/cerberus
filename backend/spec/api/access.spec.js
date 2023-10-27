@@ -1,4 +1,5 @@
 let agent;
+let server;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const User = require("../../db/models/User");
@@ -14,13 +15,16 @@ const Admin = require("../../db/models/Admin");
 describe("Access tests", () => {
   afterEach(() => {
     sinon.restore();
+    server.stop();
+    delete require.cache[require.resolve("../../index")];
   });
 
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
     sinon.stub(accessManager, "verifySession").callsArg(2);
-    agent = require("supertest").agent(require("../../index"));
+    server = require("../../index");
+    agent = require("supertest").agent(server);
   });
 
   it("should create a user", async () => {

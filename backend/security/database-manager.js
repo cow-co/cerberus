@@ -34,7 +34,7 @@ const register = async (username, password) => {
       response.errors = response.errors.concat(validationErrors);
     }
   } catch (err) {
-    log("database-manager#register", "OH NO", levels.ERROR);
+    log("database-manager#register", err, levels.ERROR);
     response.errors.push("Internal Server Error");
   }
   return response;
