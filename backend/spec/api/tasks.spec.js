@@ -3,6 +3,7 @@ let server;
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const tasksService = require("../../db/services/tasks-service");
+const accessManager = require("../../security/user-and-access-manager");
 const argon2 = require("argon2");
 const validation = require("../../validation/request-validation");
 

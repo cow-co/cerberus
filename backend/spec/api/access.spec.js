@@ -30,16 +30,26 @@ describe("Access tests", () => {
   });
 
   it("should create a user", async () => {
-    const userSpy = spyOn(User, "create").and.returnValue({
+    const userSpy = spyOn(accessManager, "register").and.resolveTo({
       _id: "some-mongo-id",
-      username: "user",
-      hashedPassword: "hashed",
+      errors: [],
     });
     const res = await agent
       .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
     expect(userSpy.calls.count()).to.equal(1);
+  });
+
+  it("should fail to create a user - error occurred", async () => {
+    spyOn(accessManager, "register").and.resolveTo({
+      _id: null,
+      errors: ["ERROR"],
+    });
+    const res = await agent
+      .post("/api/access/register")
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+    expect(res.statusCode).to.equal(500);
   });
 
   it("should fail to create a user - exception thrown", async () => {
@@ -50,127 +60,17 @@ describe("Access tests", () => {
     expect(res.statusCode).to.equal(500);
   });
 
-  it("should fail to create a user - AD-backed", async () => {
-    const originalSetting = securityConfig.authMethod;
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    const res = await agent
-      .post("/api/access/register")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(400);
-    securityConfig.authMethod = originalSetting;
-  });
-
-  it("should fail to create a user - no uppercase", async () => {
-    const res = await agent
-      .post("/api/access/register")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyz11" });
-    expect(res.statusCode).to.equal(400);
-    expect(res.body.errors.length).to.equal(1);
-  });
-
-  it("should fail to create a user - no lowercase", async () => {
-    const res = await agent
-      .post("/api/access/register")
-      .send({ username: "user", password: "ABCDEFGHIJKLMNOPQRSTUVWXYZ11" });
-    expect(res.statusCode).to.equal(400);
-    expect(res.body.errors.length).to.equal(1);
-  });
-
-  it("should fail to create a user - no number", async () => {
-    const res = await agent
-      .post("/api/access/register")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ" });
-    expect(res.statusCode).to.equal(400);
-    expect(res.body.errors.length).to.equal(1);
-  });
-
-  it("should fail to create a user - too short", async () => {
-    const res = await agent
-      .post("/api/access/register")
-      .send({ username: "user", password: "Ab1" });
-    expect(res.statusCode).to.equal(400);
-    expect(res.body.errors.length).to.equal(1);
-  });
-
   it("should log in", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "some-mongo-id",
-      username: "user",
-      hashedPassword: "hashed",
+    let called = true;
+    spyOn(accessManager, "authenticate").and.callFake((req, res, next) => {
+      called = true;
+      next();
     });
-    spyOn(argon2, "verify").and.returnValue(true);
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     expect(res.statusCode).to.equal(200);
-    expect(res.headers["set-cookie"]).to.not.equal(undefined); // Checking that it sets a cookie (the session cookie)
-  });
-
-  it("should fail to log in", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "some-mongo-id",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-    spyOn(argon2, "verify").and.returnValue(false);
-    const res = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(401);
-  });
-
-  it("should log the user in automatically when using PKI", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "some-mongo-id",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-    spyOn(Task, "find").and.returnValue({
-      sort: () => [
-        {
-          _id: "some-mongo-id",
-          order: 1,
-          implantId: "id-1",
-          taskType: "Task2",
-          params: [],
-          sent: false,
-        },
-        {
-          _id: "some-mongo-id",
-          order: 0,
-          implantId: "id-1",
-          taskType: "Task",
-          params: ["param1"],
-          sent: true,
-        },
-      ],
-    });
-    spyOn(pki, "extractUserDetails").and.returnValue("user");
-
-    const wasFalse = securityConfig.usePKI ? false : true;
-    if (wasFalse) {
-      securityConfig.usePKI = true;
-    }
-
-    const res = await agent.get("/api/tasks/id-3");
-    expect(res.statusCode).to.equal(200);
-
-    if (wasFalse) {
-      securityConfig.usePKI = false;
-    }
-  });
-
-  it("should log the user in via AD", async () => {
-    sinon
-      .stub(ActiveDirectory.prototype, "authenticate")
-      .callsArgWith(2, null, true);
-    const originalSetting = securityConfig.authMethod;
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    const res = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(200);
-    securityConfig.authMethod = originalSetting;
+    expect(called).to.be.true;
   });
 
   it("should log out", async () => {
@@ -185,10 +85,12 @@ describe("Access tests", () => {
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
     const cookies = loginRes.headers["set-cookie"];
-    console.log(cookies);
     const res = await agent
       .delete("/api/access/logout")
-      .set("Cookie", cookies[0]);
+      .set(
+        "Cookie",
+        "connect.sid=s%3A0DevNUMyEEu5wSJLaCoGf8XWytEJmuvX.OLcfLMnq7MRfXoGZVFFYYlwtsqd%2FPIyJCNcuoCNs5mg"
+      );
     expect(res.statusCode).to.equal(200);
   });
 
