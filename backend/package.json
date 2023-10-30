@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest -i --coverage --passWithNoTests",
+    "test": "jest -i --coverage",
     "coverage": "codecov",
     "start": "node index.js"
   },
