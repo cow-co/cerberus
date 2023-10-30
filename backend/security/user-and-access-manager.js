@@ -34,10 +34,18 @@ const authenticate = async (req, res, next) => {
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
-        authenticated = await dbUserManager.authenticate(username, password);
+        authenticated = await dbUserManager.authenticate(
+          username,
+          password,
+          securityConfig.usePKI
+        );
         break;
       case securityConfig.availableAuthMethods.AD:
-        authenticated = await adUserManager.authenticate(username, password);
+        authenticated = await adUserManager.authenticate(
+          username,
+          password,
+          securityConfig.usePKI
+        );
         break;
 
       default:
@@ -123,7 +131,11 @@ const register = async (username, password) => {
       "Registering is not supported for AD-backed auth; please ask your Active Directory administrator to add you."
     );
   } else {
-    const createdUser = await dbUserManager.register(username, password);
+    const createdUser = await dbUserManager.register(
+      username,
+      password,
+      securityConfig.passwordRequirements
+    );
     response._id = createdUser.userId;
     response.errors = createdUser.errors;
   }

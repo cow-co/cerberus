@@ -1,5 +1,5 @@
 {
-  "testRegex": "validation.spec.js",
+  "testRegex": "access.spec.js",
   "clearMocks": true,
   "restoreMocks": true
 }

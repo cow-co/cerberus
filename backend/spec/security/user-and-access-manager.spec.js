@@ -5,6 +5,10 @@ const accessManager = require("../../security/user-and-access-manager");
 const dbManager = require("../../security/database-manager");
 const adManager = require("../../security/active-directory-manager");
 
+jest.mock("../../security/pki");
+jest.mock("../../security/database-manager");
+jest.mock("../../security/active-directory-manager");
+
 describe("Access Manager tests", () => {
   afterAll(() => {
     purgeCache();
@@ -12,8 +16,9 @@ describe("Access Manager tests", () => {
 
   test("should handle PKI authentication properly", async () => {
     securityConfig.usePKI = true;
-    const pkiCall = spyOn(pki, "extractUserDetails").and.returnValue("user");
-    spyOn(dbManager, "authenticate").and.returnValue(true);
+    pki.extractUserDetails.mockReturnValue("user");
+    dbManager.authenticate.mockResolvedValue(true);
+
     let called = false;
     await accessManager.authenticate(
       {
@@ -24,13 +29,16 @@ describe("Access Manager tests", () => {
         called = true;
       }
     );
+
     expect(called).toBe(true);
-    expect(pkiCall.calls.count()).toBe(1);
+    expect(pki.extractUserDetails).toBeCalledTimes(1);
+
     securityConfig.usePKI = false;
   });
 
   test("should handle authentication exception properly", async () => {
-    spyOn(dbManager, "authenticate").and.throwError("TypeError");
+    dbManager.authenticate.mockRejectedValue(new Error("TypeError"));
+
     let called = false;
     let resStatus = 200;
     let res = {};
@@ -55,9 +63,10 @@ describe("Access Manager tests", () => {
         called = true;
       }
     );
+
     expect(called).toBe(false);
     expect(resStatus).toBe(500);
-    expect(res.errors.length).toBe(1);
+    expect(res.errors).toHaveLength(1);
   });
 
   test("should handle check-admin user missing properly", async () => {
@@ -73,90 +82,79 @@ describe("Access Manager tests", () => {
       },
       () => {}
     );
+
     expect(resStatus).toBe(403);
-    expect(res.errors.length).toBe(1);
+    expect(res.errors).toHaveLength(1);
   });
 
   test("should return an error when removing a user backed by AD", async () => {
-    const prev = securityConfig.authMethod;
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-
     const errors = await accessManager.removeUser("userId");
-    expect(errors.length).toBe(1);
 
-    securityConfig.authMethod = prev;
+    expect(errors).toHaveLength(1);
   });
 
   test("should return an error when removing a user with unsupported auth method", async () => {
-    const prev = securityConfig.authMethod;
-    securityConfig.authMethod = "FAKE";
-
     const errors = await accessManager.removeUser("userId");
-    expect(errors.length).toBe(1);
 
-    securityConfig.authMethod = prev;
+    expect(errors).toHaveLength(1);
   });
 
   test("should return an error when exception in remove-user", async () => {
-    spyOn(dbManager, "deleteUser").and.throwError("TypeError");
+    dbManager.deleteUser.mockRejectedValue(new Error("TypeError"));
+
     const errors = await accessManager.removeUser("userId");
-    expect(errors.length).toBe(1);
+
+    expect(errors).toHaveLength(1);
   });
 
   test("should find user by name from AD", async () => {
-    const prev = securityConfig.authMethod;
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    spyOn(adManager, "findUserByName").and.returnValue({
+    adManager.findUserByName.mockResolvedValue({
       id: "id",
       name: "user",
     });
 
     const res = await accessManager.findUserByName("user");
 
-    expect(res.errors.length).toBe(0);
+    expect(res.errors).toHaveLength(0);
     expect(res.user.name).toBe("user");
 
-    securityConfig.authMethod = prev;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("should return an error when finding a user by name with unsupported auth method", async () => {
-    const prev = securityConfig.authMethod;
     securityConfig.authMethod = "FAKE";
-
     const res = await accessManager.findUserByName("user");
 
-    expect(res.errors.length).toBe(1);
+    expect(res.errors).toHaveLength(1);
     expect(res.user).toBe(null);
 
-    securityConfig.authMethod = prev;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("should find user by ID from AD", async () => {
-    const prev = securityConfig.authMethod;
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    spyOn(adManager, "findUserById").and.returnValue({
+    adManager.findUserById.mockResolvedValue({
       id: "id",
       name: "user",
     });
 
     const res = await accessManager.findUserById("userId");
 
-    expect(res.errors.length).toBe(0);
+    expect(res.errors).toHaveLength(0);
     expect(res.user.name).toBe("user");
 
-    securityConfig.authMethod = prev;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("should return an error when finding a user by ID with unsupported auth method", async () => {
-    const prev = securityConfig.authMethod;
     securityConfig.authMethod = "FAKE";
-
     const res = await accessManager.findUserById("userId");
 
-    expect(res.errors.length).toBe(1);
+    expect(res.errors).toHaveLength(1);
     expect(res.user).toBe(null);
 
-    securityConfig.authMethod = prev;
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("should successfully verify session", async () => {
@@ -172,6 +170,7 @@ describe("Access Manager tests", () => {
         called = true;
       }
     );
+
     expect(called).toBe(true);
   });
 
@@ -197,8 +196,9 @@ describe("Access Manager tests", () => {
         called = true;
       }
     );
+
     expect(called).toBe(false);
-    expect(res.errors.length).toBe(1);
+    expect(res.errors).toHaveLength(1);
     expect(resStatus).toBe(403);
   });
 });
