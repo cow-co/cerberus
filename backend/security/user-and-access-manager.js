@@ -126,11 +126,7 @@ const register = async (username, password) => {
     errors: [],
   };
 
-  if (securityConfig.authMethod === securityConfig.availableAuthMethods.AD) {
-    response.errors.push(
-      "Registering is not supported for AD-backed auth; please ask your Active Directory administrator to add you."
-    );
-  } else {
+  if (securityConfig.authMethod === securityConfig.availableAuthMethods.DB) {
     const createdUser = await dbUserManager.register(
       username,
       password,
@@ -138,6 +134,10 @@ const register = async (username, password) => {
     );
     response._id = createdUser.userId;
     response.errors = createdUser.errors;
+  } else {
+    response.errors.push(
+      "Registering is not supported for the configured auth method; please ask your administrator to add you."
+    );
   }
 
   return response;

@@ -51,9 +51,9 @@ const authenticate = async (username, password, usePKI) => {
   let user = null;
   let authenticated = false;
 
-  if (username !== null) {
+  if (username) {
     user = await userService.findUser(username);
-    if (user !== null) {
+    if (user) {
       log("database-manager#authenticate", JSON.stringify(user), levels.DEBUG);
       if (!usePKI) {
         authenticated = await argon2.verify(user.hashedPassword, password);

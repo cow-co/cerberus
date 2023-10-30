@@ -1,5 +1,5 @@
 const Task = require("../../../db/models/Task");
-const taskService = require("../../../db/services/task-service");
+const tasksService = require("../../../db/services/tasks-service");
 const { purgeCache } = require("../../utils");
 
 jest.mock("../../../db/models/Task");
@@ -9,6 +9,7 @@ describe("Task service tests", () => {
     purgeCache();
   });
 
+  // TODO Implement
   test("get tasks for implant - success - with sent", () => {});
 
   test("get tasks for implant - success - without sent", () => {});

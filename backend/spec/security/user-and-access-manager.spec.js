@@ -14,7 +14,10 @@ describe("Access Manager tests", () => {
     purgeCache();
   });
 
-  test("should handle PKI authentication properly", async () => {
+  // TODO Implement
+  test("authenticate - success - AD", () => {});
+
+  test("authenticate - success - PKI", async () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
     dbManager.authenticate.mockResolvedValue(true);
@@ -36,7 +39,7 @@ describe("Access Manager tests", () => {
     securityConfig.usePKI = false;
   });
 
-  test("should handle authentication exception properly", async () => {
+  test("authenticate - failure - exception", async () => {
     dbManager.authenticate.mockRejectedValue(new Error("TypeError"));
 
     let called = false;
@@ -69,7 +72,17 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  test("should handle check-admin user missing properly", async () => {
+  test("authenticate - failure - unsupported auth method", () => {});
+
+  test("authenticate - failure - incorrect credentials", () => {});
+
+  test("check admin - success", () => {});
+
+  test("check admin - failure - logged in user does not exist", () => {});
+
+  test("check admin - failure - user is not admin", () => {});
+
+  test("check admin - failure - user not logged in", async () => {
     let resStatus = 200;
     let res = {};
     await accessManager.checkAdmin(
@@ -87,19 +100,21 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  test("should return an error when removing a user backed by AD", async () => {
+  test("remove user - failure - AD", async () => {
+    // TODO Make this actually use the AD auth method
     const errors = await accessManager.removeUser("userId");
 
     expect(errors).toHaveLength(1);
   });
 
-  test("should return an error when removing a user with unsupported auth method", async () => {
+  test("remove user - failure - unsupported auth method", async () => {
+    // TODO Make this actually use the fake auth method
     const errors = await accessManager.removeUser("userId");
 
     expect(errors).toHaveLength(1);
   });
 
-  test("should return an error when exception in remove-user", async () => {
+  test("remove user - failure - exception", async () => {
     dbManager.deleteUser.mockRejectedValue(new Error("TypeError"));
 
     const errors = await accessManager.removeUser("userId");
@@ -107,7 +122,11 @@ describe("Access Manager tests", () => {
     expect(errors).toHaveLength(1);
   });
 
-  test("should find user by name from AD", async () => {
+  test("remove user - failure - AD", () => {});
+
+  test("find user by name - success - DB", () => {});
+
+  test("find user by name - success - AD", async () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
     adManager.findUserByName.mockResolvedValue({
       id: "id",
@@ -122,7 +141,7 @@ describe("Access Manager tests", () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
-  test("should return an error when finding a user by name with unsupported auth method", async () => {
+  test("find user by name - failure - unsupported auth method", async () => {
     securityConfig.authMethod = "FAKE";
     const res = await accessManager.findUserByName("user");
 
@@ -132,7 +151,11 @@ describe("Access Manager tests", () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
-  test("should find user by ID from AD", async () => {
+  test("find user by name - failure - exception", () => {});
+
+  test("find user by ID - success - DB", () => {});
+
+  test("find user by ID - success - AD", async () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
     adManager.findUserById.mockResolvedValue({
       id: "id",
@@ -147,7 +170,7 @@ describe("Access Manager tests", () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
-  test("should return an error when finding a user by ID with unsupported auth method", async () => {
+  test("find user by ID - failure - unsupported auth method", async () => {
     securityConfig.authMethod = "FAKE";
     const res = await accessManager.findUserById("userId");
 
@@ -157,7 +180,9 @@ describe("Access Manager tests", () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
-  test("should successfully verify session", async () => {
+  test("find user by ID - failure - exception", () => {});
+
+  test("verify session - success - no PKI", async () => {
     let called = false;
     await accessManager.verifySession(
       {
@@ -174,7 +199,7 @@ describe("Access Manager tests", () => {
     expect(called).toBe(true);
   });
 
-  test("should fail to verify session", async () => {
+  test("verify session - failure", async () => {
     let called = false;
     let resStatus = 200;
     let res = {};
@@ -201,4 +226,12 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
     expect(resStatus).toBe(403);
   });
+
+  test("verify session - success - PKI", () => {});
+
+  test("logout - success", () => {});
+
+  test("register - success", () => {});
+
+  test("register - failure - AD", () => {});
 });
