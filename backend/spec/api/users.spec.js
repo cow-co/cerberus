@@ -1,10 +1,10 @@
 let agent;
 let server;
 const { purgeCache } = require("../utils");
-const expect = require("chai").expect;
+
 const User = require("../../db/models/User");
 const accessManager = require("../../security/user-and-access-manager");
-const sinon = require("sinon");
+
 const Admin = require("../../db/models/Admin");
 const argon2 = require("argon2");
 
@@ -30,29 +30,29 @@ describe("User tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  it("should find a user", async () => {
+  test("should find a user", async () => {
     spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
     const res = await agent.get("/api/users/user/username");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.user.name).to.equal("username");
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user.name).toBe("username");
   });
 
-  it("should remove hashed password from user in response", async () => {
+  test("should remove hashed password from user in response", async () => {
     spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
     const res = await agent.get("/api/users/user/username");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.user.hashedPassword).to.equal(undefined);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user.hashedPassword).toBe(undefined);
   });
 
-  it("should delete a user", async () => {
+  test("should delete a user", async () => {
     // Stub user-search
     const findWrapper = spyOn(User, "findOne");
     findWrapper.and.returnValue({
@@ -90,12 +90,12 @@ describe("User tests", () => {
     const res = await agent
       .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
-    expect(res.statusCode).to.equal(200);
-    expect(delStub.calls.count()).to.equal(1);
-    expect(adminStub.calls.count()).to.equal(2);
+    expect(res.statusCode).toBe(200);
+    expect(delStub.calls.count()).toBe(1);
+    expect(adminStub.calls.count()).toBe(2);
   });
 
-  it("should fail to delete a user - not admin", async () => {
+  test("should fail to delete a user - not admin", async () => {
     // Stubbing user search
     const findWrapper = spyOn(User, "findOne");
     findWrapper.and.returnValue({
@@ -128,10 +128,10 @@ describe("User tests", () => {
     const res = await agent
       .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
-    expect(res.statusCode).to.equal(403);
+    expect(res.statusCode).toBe(403);
   });
 
-  it("should return success when deleting a user that does not exist", async () => {
+  test("should return success when deleting a user that does not exist", async () => {
     // Stubbing the user-search
     const findWrapper = spyOn(User, "findOne");
     findWrapper.and.returnValue({
@@ -158,21 +158,21 @@ describe("User tests", () => {
     const res = await agent
       .delete("/api/users/user/some-mongo-id3")
       .set("Cookie", cookies[0]);
-    expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).toBe(200);
   });
 
-  it("should remove hashed password from user in response", async () => {
+  test("should remove hashed password from user in response", async () => {
     spyOn(User, "findOne").and.returnValue({
       _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
     const res = await agent.get("/api/users/user/username");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.user.hashedPassword).to.equal(undefined);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.user.hashedPassword).toBe(undefined);
   });
 
-  it("should check session and return username", async () => {
+  test("should check session and return username", async () => {
     // Stub for login
     const findWrapper = spyOn(User, "findOne");
     findWrapper.and.returnValue({
@@ -189,7 +189,7 @@ describe("User tests", () => {
     const res = await agent
       .get("/api/users/check-session")
       .set("Cookie", cookies[0]);
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.username).to.equal("user");
+    expect(res.statusCode).toBe(200);
+    expect(res.body.username).toBe("user");
   });
 });

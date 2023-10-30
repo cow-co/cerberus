@@ -1,8 +1,7 @@
 let agent;
 let server;
 const { purgeCache } = require("../utils");
-const expect = require("chai").expect;
-const sinon = require("sinon");
+
 const Implant = require("../../db/models/Implant");
 const Task = require("../../db/models/Task");
 const accessManager = require("../../security/user-and-access-manager");
@@ -32,7 +31,7 @@ describe("Beacon API tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  it("should succeed", async () => {
+  test("should succeed", async () => {
     spyOn(Implant, "findOne").and.returnValue(null);
     spyOn(Implant, "create").and.returnValue(null);
     spyOn(Task, "find").and.returnValue({
@@ -56,8 +55,8 @@ describe("Beacon API tests", () => {
       beaconIntervalSeconds: 300,
     });
 
-    expect(res.statusCode).to.equal(200);
-    expect(res.body).to.deep.equal({
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
       tasks: [
         {
           _id: "some-mongo-id",
@@ -72,7 +71,7 @@ describe("Beacon API tests", () => {
     });
   });
 
-  it("should update an existing implant", async () => {
+  test("should update an existing implant", async () => {
     spyOn(validation, "validateBeacon").and.returnValue({
       isValid: true,
       errors: [],
@@ -103,23 +102,23 @@ describe("Beacon API tests", () => {
       beaconIntervalSeconds: 300,
     });
 
-    expect(res.statusCode).to.equal(200);
-    expect(updateSpy.calls.count()).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(updateSpy.calls.count()).toBe(1);
   });
 
   // TODO As part of the refactor, these should be moved to a separate spec file for the validator
 
-  it("should fail - no ID", async () => {
+  test("should fail - no ID", async () => {
     const res = await agent.post("/api/beacon").send({
       ip: "192.168.0.1",
       os: "Windows 6.1.7601.17592",
       beaconIntervalSeconds: 300,
     });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail - empty ID", async () => {
+  test("should fail - empty ID", async () => {
     const res = await agent.post("/api/beacon").send({
       id: "",
       ip: "192.168.0.1",
@@ -127,10 +126,10 @@ describe("Beacon API tests", () => {
       beaconIntervalSeconds: 300,
     });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail - invalid IP", async () => {
+  test("should fail - invalid IP", async () => {
     const res = await agent.post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.",
@@ -138,10 +137,10 @@ describe("Beacon API tests", () => {
       beaconIntervalSeconds: 300,
     });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail - negative interval", async () => {
+  test("should fail - negative interval", async () => {
     const res = await agent.post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",
@@ -149,9 +148,9 @@ describe("Beacon API tests", () => {
       beaconIntervalSeconds: -300,
     });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
-  it("should fail - zero interval", async () => {
+  test("should fail - zero interval", async () => {
     const res = await agent.post("/api/beacon/").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.1",
@@ -159,10 +158,10 @@ describe("Beacon API tests", () => {
       beaconIntervalSeconds: 0,
     });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail - exception thrown", async () => {
+  test("should fail - exception thrown", async () => {
     spyOn(validation, "validateBeacon").and.returnValue({
       isValid: true,
       errors: [],
@@ -182,6 +181,6 @@ describe("Beacon API tests", () => {
       beaconIntervalSeconds: 300,
     });
 
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 });

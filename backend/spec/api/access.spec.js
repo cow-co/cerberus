@@ -1,8 +1,7 @@
 let agent;
 let server;
 const { purgeCache } = require("../utils");
-const expect = require("chai").expect;
-const sinon = require("sinon");
+
 const User = require("../../db/models/User");
 const accessManager = require("../../security/user-and-access-manager");
 const argon2 = require("argon2");
@@ -34,7 +33,7 @@ describe("Access tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  it("should create a user", async () => {
+  test("should create a user", async () => {
     const userSpy = spyOn(accessManager, "register").and.resolveTo({
       _id: "some-mongo-id",
       errors: [],
@@ -42,11 +41,11 @@ describe("Access tests", () => {
     const res = await agent
       .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(200);
-    expect(userSpy.calls.count()).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(userSpy.calls.count()).toBe(1);
   });
 
-  it("should fail to create a user - error occurred", async () => {
+  test("should fail to create a user - error occurred", async () => {
     spyOn(accessManager, "register").and.resolveTo({
       _id: null,
       errors: ["ERROR"],
@@ -54,18 +53,18 @@ describe("Access tests", () => {
     const res = await agent
       .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should fail to create a user - exception thrown", async () => {
+  test("should fail to create a user - exception thrown", async () => {
     spyOn(accessManager, "register").and.throwError("TypeError");
     const res = await agent
       .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should log in", async () => {
+  test("should log in", async () => {
     let called = true;
     spyOn(accessManager, "authenticate").and.callFake((req, res, next) => {
       called = true;
@@ -74,11 +73,11 @@ describe("Access tests", () => {
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(200);
-    expect(called).to.be.true;
+    expect(res.statusCode).toBe(200);
+    expect(called).toBe(true);
   });
 
-  it("should log out", async () => {
+  test("should log out", async () => {
     spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
@@ -96,16 +95,16 @@ describe("Access tests", () => {
         "Cookie",
         "connect.sid=s%3A0DevNUMyEEu5wSJLaCoGf8XWytEJmuvX.OLcfLMnq7MRfXoGZVFFYYlwtsqd%2FPIyJCNcuoCNs5mg"
       );
-    expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).toBe(200);
   });
 
-  it("should log out - no-op - if not logged in", async () => {
+  test("should log out - no-op - if not logged in", async () => {
     spyOn(accessManager, "logout");
     const res = await agent.delete("/api/access/logout");
-    expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).toBe(200);
   });
 
-  it("should fail to log out - exception thrown", async () => {
+  test("should fail to log out - exception thrown", async () => {
     spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
@@ -120,10 +119,10 @@ describe("Access tests", () => {
     const res = await agent
       .delete("/api/access/logout")
       .set("Cookie", cookies[0]);
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should successfully add an admin", async () => {
+  test("should successfully add an admin", async () => {
     spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
@@ -162,11 +161,11 @@ describe("Access tests", () => {
       .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
 
-    expect(res.statusCode).to.equal(200);
-    expect(createAdminSpy.calls.count()).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(createAdminSpy.calls.count()).toBe(1);
   });
 
-  it("should successfully remove an admin", async () => {
+  test("should successfully remove an admin", async () => {
     spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
@@ -205,10 +204,10 @@ describe("Access tests", () => {
       .put("/api/access/admin")
       .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: false });
-    expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).toBe(200);
   });
 
-  it("should fail to add an admin - user does not exist", async () => {
+  test("should fail to add an admin - user does not exist", async () => {
     spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
       username: "user",
@@ -232,10 +231,10 @@ describe("Access tests", () => {
       .put("/api/access/admin")
       .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail to add an admin - exception thrown", async () => {
+  test("should fail to add an admin - exception thrown", async () => {
     // Login/Auth stubs
     spyOn(User, "findOne").and.returnValue({
       _id: "650a3a2a7dcd3241ecee2d71",
@@ -270,16 +269,16 @@ describe("Access tests", () => {
       .put("/api/access/admin")
       .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should fail to log in with invalid auth type", async () => {
+  test("should fail to log in with invalid auth type", async () => {
     const originalSetting = securityConfig.authMethod;
     securityConfig.authMethod = "fake";
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
     securityConfig.authMethod = originalSetting;
   });
 });

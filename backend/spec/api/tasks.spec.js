@@ -1,8 +1,7 @@
 let agent = null;
 let server;
 const { purgeCache } = require("../utils");
-const expect = require("chai").expect;
-const sinon = require("sinon");
+
 const tasksService = require("../../db/services/tasks-service");
 const accessManager = require("../../security/user-and-access-manager");
 const argon2 = require("argon2");
@@ -96,42 +95,42 @@ describe("Tasks API Tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  it("should get all tasks for an implant (empty array)", async () => {
+  test("should get all tasks for an implant (empty array)", async () => {
     const res = await agent.get("/api/tasks/id-3");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.tasks.length).to.equal(0);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.tasks.length).toBe(0);
   });
 
-  it("should get all tasks for an implant (non-empty array)", async () => {
+  test("should get all tasks for an implant (non-empty array)", async () => {
     const res = await agent.get("/api/tasks/id-1");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.tasks.length).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.tasks.length).toBe(1);
   });
 
-  it("should get all tasks for an implant (including sent)", async () => {
+  test("should get all tasks for an implant (including sent)", async () => {
     const res = await agent.get("/api/tasks/id-1?includeSent=true");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.tasks.length).to.equal(2);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.tasks.length).toBe(2);
   });
 
-  it("should get all tasks for an implant (explicitly excluding sent)", async () => {
+  test("should get all tasks for an implant (explicitly excluding sent)", async () => {
     const res = await agent.get("/api/tasks/id-1?includeSent=false");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.tasks.length).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.tasks.length).toBe(1);
   });
 
-  it("should get all tasks for a different implant", async () => {
+  test("should get all tasks for a different implant", async () => {
     const res = await agent.get("/api/tasks/id-2");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.tasks.length).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.tasks.length).toBe(1);
   });
 
-  it("should fail get all tasks for an implant - exception thrown", async () => {
+  test("should fail get all tasks for an implant - exception thrown", async () => {
     const res = await agent.get("/api/tasks/id-7");
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should get all task types", async () => {
+  test("should get all task types", async () => {
     spyOn(tasksService, "getTaskTypes").and.returnValue([
       {
         name: "Name",
@@ -143,17 +142,17 @@ describe("Tasks API Tests", () => {
       },
     ]);
     const res = await agent.get("/api/task-types");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.taskTypes.length).to.equal(2);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.taskTypes.length).toBe(2);
   });
 
-  it("should fail to get all task types - exception thrown", async () => {
+  test("should fail to get all task types - exception thrown", async () => {
     spyOn(tasksService, "getTaskTypes").and.throwError("TypeError");
     const res = await agent.get("/api/task-types");
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should create a task", async () => {
+  test("should create a task", async () => {
     spyOn(tasksService, "getTaskById").and.resolveTo(null);
     spyOn(tasksService, "getTaskTypes").and.resolveTo([
       {
@@ -178,11 +177,11 @@ describe("Tasks API Tests", () => {
       params: [],
     });
 
-    expect(res.statusCode).to.equal(200);
-    expect(createSpy.calls.count()).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(createSpy.calls.count()).toBe(1);
   });
 
-  it("should fail to create a task - missing task type name", async () => {
+  test("should fail to create a task - missing task type name", async () => {
     spyOn(tasksService, "getTaskById").and.returnValue(null);
     spyOn(tasksService, "getTaskTypes").and.returnValue([
       {
@@ -205,10 +204,10 @@ describe("Tasks API Tests", () => {
       params: [],
     });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail to create a task - missing implant ID", async () => {
+  test("should fail to create a task - missing implant ID", async () => {
     spyOn(tasksService, "getTaskById").and.returnValue(null);
     spyOn(tasksService, "getTaskTypes").and.returnValue([
       {
@@ -231,10 +230,10 @@ describe("Tasks API Tests", () => {
       params: [],
     });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should edit a task", async () => {
+  test("should edit a task", async () => {
     const spy = spyOn(tasksService, "setTask").and.resolveTo(null);
 
     const res = await agent.post("/api/tasks").send({
@@ -247,11 +246,11 @@ describe("Tasks API Tests", () => {
       params: [],
     });
 
-    expect(res.statusCode).to.equal(200);
-    expect(spy.calls.count()).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(spy.calls.count()).toBe(1);
   });
 
-  it("should create a task type", async () => {
+  test("should create a task type", async () => {
     spyOn(tasksService, "createTaskType").and.returnValue({
       _id: "some-mongo-tasktype-id",
       name: "tasktype",
@@ -269,10 +268,10 @@ describe("Tasks API Tests", () => {
         name: "tasktype",
         params: ["param 1"],
       });
-    expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).toBe(200);
   });
 
-  it("should fail to create a task type - exception thrown", async () => {
+  test("should fail to create a task type - exception thrown", async () => {
     spyOn(tasksService, "createTaskType").and.throwError("TypeError");
 
     const loginRes = await agent
@@ -287,10 +286,10 @@ describe("Tasks API Tests", () => {
         params: ["param 1"],
       });
 
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should fail to create a task type - no params array", async () => {
+  test("should fail to create a task type - no params array", async () => {
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -302,10 +301,10 @@ describe("Tasks API Tests", () => {
         name: "tasktype",
       });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail to create a task type - no name", async () => {
+  test("should fail to create a task type - no name", async () => {
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -317,10 +316,10 @@ describe("Tasks API Tests", () => {
         params: ["param 1"],
       });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail to create a task type - duplicated param names", async () => {
+  test("should fail to create a task type - duplicated param names", async () => {
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -333,10 +332,10 @@ describe("Tasks API Tests", () => {
         params: ["param 1", "param 2", "param 1"],
       });
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should delete a task", async () => {
+  test("should delete a task", async () => {
     spyOn(tasksService, "getTaskById").and.returnValue({
       _id: "some-mongo-id",
       order: 0,
@@ -349,18 +348,18 @@ describe("Tasks API Tests", () => {
 
     const res = await agent.delete("/api/tasks/some-mongo-id");
 
-    expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).toBe(200);
   });
 
-  it("should return success when the task ID does not exist", async () => {
+  test("should return success when the task ID does not exist", async () => {
     spyOn(tasksService, "getTaskById").and.returnValue(null);
 
     const res = await agent.delete("/api/tasks/some-mongo-if");
 
-    expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).toBe(200);
   });
 
-  it("should fail to delete a task - task already sent", async () => {
+  test("should fail to delete a task - task already sent", async () => {
     spyOn(tasksService, "getTaskById").and.returnValue({
       _id: "some-mongo-id",
       order: 0,
@@ -372,10 +371,10 @@ describe("Tasks API Tests", () => {
 
     const res = await agent.delete("/api/tasks/some-mongo-id");
 
-    expect(res.statusCode).to.equal(400);
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should delete a task type", async () => {
+  test("should delete a task type", async () => {
     const delStub = spyOn(tasksService, "deleteTaskType");
 
     const loginRes = await agent
@@ -386,11 +385,11 @@ describe("Tasks API Tests", () => {
       .delete("/api/task-types/tasktypeid1")
       .set("Cookie", cookies[0]);
 
-    expect(res.statusCode).to.equal(200);
-    expect(delStub.calls.count()).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(delStub.calls.count()).toBe(1);
   });
 
-  it("should return success if deleting a non-existent task type", async () => {
+  test("should return success if deleting a non-existent task type", async () => {
     const loginRes = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
@@ -399,6 +398,6 @@ describe("Tasks API Tests", () => {
       .delete("/api/task-types/tasktypeid3")
       .set("Cookie", cookies[0]);
 
-    expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).toBe(200);
   });
 });

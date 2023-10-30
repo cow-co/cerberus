@@ -1,4 +1,3 @@
-const expect = require("chai").expect;
 const { purgeCache } = require("../utils");
 const argon2 = require("argon2");
 const userService = require("../../db/services/user-service");
@@ -43,17 +42,17 @@ describe("Database user manager tests - Register", () => {
     delete require.cache[require.resolve("../../security/database-manager")];
   });
 
-  it("should register", async () => {
+  test("should register", async () => {
     const result = await manager.register("user1", "pass1");
     expect(result.errors).to.be.empty;
   });
 
-  it("should fail to register - exception", async () => {
+  test("should fail to register - exception", async () => {
     const result = await manager.register("user2", "pass1");
     expect(result.errors).to.not.be.empty;
   });
 
-  it("should fail to register - validation error", async () => {
+  test("should fail to register - validation error", async () => {
     const result = await manager.register("user1", "pass2");
     console.log(result.errors);
     expect(result.errors).to.not.be.empty;

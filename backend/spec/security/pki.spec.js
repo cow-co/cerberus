@@ -1,13 +1,12 @@
 const pki = require("../../security/pki");
 const { purgeCache } = require("../utils");
-const expect = require("chai").expect;
 
 describe("PKI Tests", () => {
   afterAll(() => {
     purgeCache();
   });
 
-  it("should get user details", () => {
+  test("should get user details", () => {
     const res = pki.extractUserDetails({
       client: {
         authorized: true,
@@ -22,10 +21,10 @@ describe("PKI Tests", () => {
         },
       },
     });
-    expect(res).to.equal("user");
+    expect(res).toBe("user");
   });
 
-  it("should fail with untrusted cert", () => {
+  test("should fail with untrusted cert", () => {
     const res = pki.extractUserDetails({
       client: {
         authorized: false,
@@ -40,6 +39,6 @@ describe("PKI Tests", () => {
         },
       },
     });
-    expect(res).to.equal(null);
+    expect(res).toBe(null);
   });
 });

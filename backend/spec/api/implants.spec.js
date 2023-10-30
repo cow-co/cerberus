@@ -1,8 +1,7 @@
 let agent;
 let server;
 const { purgeCache } = require("../utils");
-const expect = require("chai").expect;
-const sinon = require("sinon");
+
 const implantService = require("../../db/services/implant-service");
 const accessManager = require("../../security/user-and-access-manager");
 
@@ -25,14 +24,14 @@ describe("Implant API Tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  it("should get all implants (empty array)", async () => {
+  test("should get all implants (empty array)", async () => {
     spyOn(implantService, "getAllImplants").and.resolveTo([]);
     const res = await agent.get("/api/implants");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.implants.length).to.equal(0);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.implants.length).toBe(0);
   });
 
-  it("should get all implants (non-empty array)", async () => {
+  test("should get all implants (non-empty array)", async () => {
     spyOn(implantService, "getAllImplants").and.resolveTo([
       {
         _id: "some-mongo-id",
@@ -54,13 +53,13 @@ describe("Implant API Tests", () => {
       },
     ]);
     const res = await agent.get("/api/implants");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.implants.length).to.equal(2);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.implants.length).toBe(2);
   });
 
-  it("should fail to get all implants - exception thrown", async () => {
+  test("should fail to get all implants - exception thrown", async () => {
     spyOn(implantService, "getAllImplants").and.throwError("TypeError");
     const res = await agent.get("/api/implants");
-    expect(res.statusCode).to.equal(500);
+    expect(res.statusCode).toBe(500);
   });
 });

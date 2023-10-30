@@ -1,11 +1,14 @@
-let config;
 let validation;
 const { purgeCache } = require("../utils");
-const expect = require("chai").expect;
 
 describe("Password validation tests", () => {
+  beforeAll(() => {
+    delete require.cache[
+      require.resolve("../../validation/security-validation")
+    ];
+  });
+
   afterEach(() => {
-    delete require.cache[require.resolve("../../config/security-config")];
     delete require.cache[
       require.resolve("../../validation/security-validation")
     ];
@@ -15,67 +18,104 @@ describe("Password validation tests", () => {
     purgeCache();
   });
 
-  beforeEach(() => {
-    config = require("../../config/security-config");
-    config.passwordRequirements = {
-      requireLowercase: true,
-      requireUppercase: true,
-      requireNumber: true,
-      minLength: 15,
-    };
-  });
-
-  it("should be valid - default config", () => {
+  test("should be valid - default config", () => {
+    jest.mock("../../config/security-config", () => {
+      return {
+        passwordRequirements: {
+          requireUppercase: true,
+          requireLowercase: true,
+          requireNumber: true,
+          minLength: 15,
+        },
+      };
+    });
     validation = require("../../validation/security-validation");
     const pw = "abcABC123123ABCabc";
-    expect(validation.validatePassword(pw)).to.be.empty;
+    expect(validation.validatePassword(pw)).toHaveLength(0);
   });
 
-  it("should be valid - no-lowercase config", () => {
+  test("should be valid - no-lowercase config", () => {
+    jest.mock("../../config/security-config", () => {
+      console.log("BLJKHASDGGGGGGGGGGGGGGGGGGGGGGG");
+      return {
+        passwordRequirements: {
+          requireUppercase: true,
+          requireLowercase: false,
+          requireNumber: true,
+          minLength: 15,
+        },
+      };
+    });
     const pw = "ABC123123ABCABC";
-    config.passwordRequirements.requireLowercase = false;
     validation = require("../../validation/security-validation");
-    expect(validation.validatePassword(pw)).to.be.empty;
+    expect(validation.validatePassword(pw)).toHaveLength(0);
   });
 
-  it("should be valid - no-uppercase config", () => {
+  test("should be valid - no-uppercase config", () => {
     const pw = "abc123123abcabc";
-    config.passwordRequirements.requireUppercase = false;
+    jest.mock("../../config/security-config", () => {
+      return {
+        passwordRequirements: {
+          requireUppercase: false,
+          requireLowercase: true,
+          requireNumber: true,
+          minLength: 15,
+        },
+      };
+    });
     validation = require("../../validation/security-validation");
-    expect(validation.validatePassword(pw)).to.be.empty;
+    expect(validation.validatePassword(pw)).toHaveLength(0);
   });
 
-  it("should be valid - no-numbers config", () => {
+  test("should be valid - no-numbers config", () => {
     const pw = "abcABCabcabcabc";
-    config.passwordRequirements.requireNumber = false;
+    jest.mock("../../config/security-config", () => {
+      return {
+        passwordRequirements: {
+          requireUppercase: true,
+          requireLowercase: true,
+          requireNumber: false,
+          minLength: 15,
+        },
+      };
+    });
     validation = require("../../validation/security-validation");
-    expect(validation.validatePassword(pw)).to.be.empty;
+    expect(validation.validatePassword(pw)).toHaveLength(0);
   });
 
-  it("should be valid - shorter length config", () => {
+  test("should be valid - shorter length config", () => {
     const pw = "aB1";
-    config.passwordRequirements.minLength = 2;
+    jest.mock("../../config/security-config", () => {
+      return {
+        passwordRequirements: {
+          requireUppercase: true,
+          requireLowercase: true,
+          requireNumber: true,
+          minLength: 2,
+        },
+      };
+    });
     validation = require("../../validation/security-validation");
-    expect(validation.validatePassword(pw)).to.be.empty;
+    expect(validation.validatePassword(pw)).toHaveLength(0);
   });
 
-  it("should be invalid - no lower", () => {
+  test("should be invalid - no lower", () => {
     const pw = "ABCABC123123ABCABC";
-    expect(validation.validatePassword(pw)).to.not.be.empty;
+    expect(validation.validatePassword(pw)).toHaveLength(1);
   });
 
-  it("should be invalid - no upper", () => {
+  test("should be invalid - no upper", () => {
     const pw = "abc123123abcabc";
-    expect(validation.validatePassword(pw)).to.not.be.empty;
+    expect(validation.validatePassword(pw)).toHaveLength(1);
   });
 
-  it("should be invalid - no numbers", () => {
+  test("should be invalid - no numbers", () => {
     const pw = "abcABCABCabcabc";
-    expect(validation.validatePassword(pw)).to.not.be.empty;
+    expect(validation.validatePassword(pw)).toHaveLength(1);
   });
 
-  it("should be invalid - too short", () => {
-    const pw = "abcABCabc";
-    expect(validation.validatePassword(pw)).to.not.be.empty;
+  test("should be invalid - too short", () => {
+    const pw = "abcABC111abc";
+    expect(validation.validatePassword(pw)).toHaveLength(1);
   });
 });
