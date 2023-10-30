@@ -5,9 +5,11 @@ const { purgeCache } = require("../utils");
 const implantService = require("../../db/services/implant-service");
 const accessManager = require("../../security/user-and-access-manager");
 
+jest.mock("../../db/services/implant-service");
+jest.mock("../../security/user-and-access-manager");
+
 describe("Implant API Tests", () => {
   afterEach(() => {
-    sinon.restore();
     server.stop();
     delete require.cache[require.resolve("../../index")];
   });
@@ -17,7 +19,7 @@ describe("Implant API Tests", () => {
   });
 
   beforeEach(() => {
-    spyOn(accessManager, "verifySession").and.callFake((req, res, next) => {
+    accessManager.verifySession.mockImplementation((req, res, next) => {
       next();
     });
     server = require("../../index");
@@ -25,14 +27,16 @@ describe("Implant API Tests", () => {
   });
 
   test("should get all implants (empty array)", async () => {
-    spyOn(implantService, "getAllImplants").and.resolveTo([]);
+    implantService.getAllImplants.mockResolvedValue([]);
+
     const res = await agent.get("/api/implants");
+
     expect(res.statusCode).toBe(200);
-    expect(res.body.implants.length).toBe(0);
+    expect(res.body.implants).toHaveLength(0);
   });
 
   test("should get all implants (non-empty array)", async () => {
-    spyOn(implantService, "getAllImplants").and.resolveTo([
+    implantService.getAllImplants.mockResolvedValue([
       {
         _id: "some-mongo-id",
         id: "some-uuid",
@@ -52,14 +56,18 @@ describe("Implant API Tests", () => {
         isActive: false,
       },
     ]);
+
     const res = await agent.get("/api/implants");
+
     expect(res.statusCode).toBe(200);
-    expect(res.body.implants.length).toBe(2);
+    expect(res.body.implants).toHaveLength(2);
   });
 
   test("should fail to get all implants - exception thrown", async () => {
-    spyOn(implantService, "getAllImplants").and.throwError("TypeError");
+    implantService.getAllImplants.mockRejectedValue(new Error("TypeError"));
+
     const res = await agent.get("/api/implants");
+
     expect(res.statusCode).toBe(500);
   });
 });

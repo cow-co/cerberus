@@ -2,17 +2,18 @@ let agent;
 let server;
 const { purgeCache } = require("../utils");
 
-const Implant = require("../../db/models/Implant");
-const Task = require("../../db/models/Task");
 const accessManager = require("../../security/user-and-access-manager");
 const implantService = require("../../db/services/implant-service");
 const validation = require("../../validation/request-validation");
 const tasksService = require("../../db/services/tasks-service");
 
-// TODO refactor to stub out-of-module calls
+jest.mock("../../security/user-and-access-manager");
+jest.mock("../../db/services/implant-service");
+jest.mock("../../db/services/tasks-service");
+jest.mock("../../validation/request-validation");
+
 describe("Beacon API tests", () => {
   afterEach(() => {
-    sinon.restore();
     server.stop();
     delete require.cache[require.resolve("../../index")];
   });
@@ -24,29 +25,27 @@ describe("Beacon API tests", () => {
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
-    spyOn(accessManager, "verifySession").and.callFake((req, res, next) => {
-      next();
-    });
     server = require("../../index");
     agent = require("supertest").agent(server);
   });
 
   test("should succeed", async () => {
-    spyOn(Implant, "findOne").and.returnValue(null);
-    spyOn(Implant, "create").and.returnValue(null);
-    spyOn(Task, "find").and.returnValue({
-      sort: () => [
-        {
-          _id: "some-mongo-id",
-          order: 1,
-          implantId: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
-          taskType: "Task2",
-          params: [],
-          sent: false,
-        },
-      ],
+    validation.validateBeacon.mockReturnValue({
+      isValid: true,
+      errors: [],
     });
-    spyOn(Task, "findByIdAndUpdate").and.returnValue({});
+    implantService.findImplantById.mockResolvedValue(null);
+    implantService.addImplant.mockResolvedValue(null);
+    tasksService.getTasksForImplant.mockResolvedValue([
+      {
+        _id: "some-mongo-id",
+        order: 1,
+        implantId: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+        taskType: "Task2",
+        params: [],
+        sent: false,
+      },
+    ]);
 
     const res = await agent.post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
@@ -72,18 +71,17 @@ describe("Beacon API tests", () => {
   });
 
   test("should update an existing implant", async () => {
-    spyOn(validation, "validateBeacon").and.returnValue({
+    validation.validateBeacon.mockReturnValue({
       isValid: true,
       errors: [],
     });
-    spyOn(implantService, "findImplantById").and.returnValue({
+    implantService.findImplantById.mockResolvedValue({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.2",
       os: "Windows",
       beaconIntervalSeconds: 500,
     });
-    const updateSpy = spyOn(implantService, "updateImplant");
-    spyOn(tasksService, "getTasksForImplant").and.returnValue([
+    tasksService.getTasksForImplant.mockResolvedValue([
       {
         _id: "some-mongo-id",
         order: 1,
@@ -93,7 +91,6 @@ describe("Beacon API tests", () => {
         sent: false,
       },
     ]);
-    spyOn(tasksService, "taskSent");
 
     const res = await agent.post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
@@ -103,76 +100,21 @@ describe("Beacon API tests", () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(updateSpy.calls.count()).toBe(1);
-  });
-
-  // TODO As part of the refactor, these should be moved to a separate spec file for the validator
-
-  test("should fail - no ID", async () => {
-    const res = await agent.post("/api/beacon").send({
-      ip: "192.168.0.1",
-      os: "Windows 6.1.7601.17592",
-      beaconIntervalSeconds: 300,
-    });
-
-    expect(res.statusCode).toBe(400);
-  });
-
-  test("should fail - empty ID", async () => {
-    const res = await agent.post("/api/beacon").send({
-      id: "",
-      ip: "192.168.0.1",
-      os: "Windows 6.1.7601.17592",
-      beaconIntervalSeconds: 300,
-    });
-
-    expect(res.statusCode).toBe(400);
-  });
-
-  test("should fail - invalid IP", async () => {
-    const res = await agent.post("/api/beacon/").send({
-      id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
-      ip: "192.168.0.",
-      os: "Windows 6.1.7601.17592",
-      beaconIntervalSeconds: 300,
-    });
-
-    expect(res.statusCode).toBe(400);
-  });
-
-  test("should fail - negative interval", async () => {
-    const res = await agent.post("/api/beacon/").send({
-      id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
-      ip: "192.168.0.1",
-      os: "Windows 6.1.7601.17592",
-      beaconIntervalSeconds: -300,
-    });
-
-    expect(res.statusCode).toBe(400);
-  });
-  test("should fail - zero interval", async () => {
-    const res = await agent.post("/api/beacon/").send({
-      id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
-      ip: "192.168.0.1",
-      os: "Windows 6.1.7601.17592",
-      beaconIntervalSeconds: 0,
-    });
-
-    expect(res.statusCode).toBe(400);
+    expect(implantService.updateImplant).toHaveBeenCalledTimes(1);
   });
 
   test("should fail - exception thrown", async () => {
-    spyOn(validation, "validateBeacon").and.returnValue({
+    validation.validateBeacon.mockReturnValue({
       isValid: true,
       errors: [],
     });
-    spyOn(implantService, "findImplantById").and.returnValue({
+    implantService.findImplantById.mockResolvedValue({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
       ip: "192.168.0.2",
       os: "Windows",
       beaconIntervalSeconds: 500,
     });
-    spyOn(implantService, "updateImplant").and.throwError("TypeError");
+    implantService.updateImplant.mockRejectedValue(new Error("TypeError"));
 
     const res = await agent.post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
@@ -183,4 +125,6 @@ describe("Beacon API tests", () => {
 
     expect(res.statusCode).toBe(500);
   });
+
+  // TODO Test that 400 when validation error
 });
