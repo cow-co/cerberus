@@ -1,5 +1,6 @@
 let agent;
 let server;
+const { purgeCache } = require("../utils");
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const implantService = require("../../db/services/implant-service");
@@ -10,6 +11,10 @@ describe("Implant API Tests", () => {
     sinon.restore();
     server.stop();
     delete require.cache[require.resolve("../../index")];
+  });
+
+  afterAll(() => {
+    purgeCache();
   });
 
   beforeEach(() => {

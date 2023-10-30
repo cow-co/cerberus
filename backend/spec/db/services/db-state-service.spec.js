@@ -1,4 +1,5 @@
 const expect = require("chai").expect;
+const { purgeCache } = require("../../utils");
 const sinon = require("sinon");
 const dbStateService = require("../../../db/services/db-state-service");
 const DBState = require("../../../db/models/DBState");
@@ -6,6 +7,10 @@ const DBState = require("../../../db/models/DBState");
 describe("DB State tests", () => {
   afterEach(() => {
     sinon.restore();
+  });
+
+  afterAll(() => {
+    purgeCache();
   });
 
   it("should get the correct number of DB versions", async () => {

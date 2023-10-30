@@ -1,8 +1,13 @@
 const expect = require("chai").expect;
+const { purgeCache } = require("../utils");
 const validation = require("../../validation/request-validation");
 const tasksService = require("../../db/services/tasks-service");
 
 describe("Beacon validation tests", () => {
+  afterAll(() => {
+    purgeCache();
+  });
+
   it("should be valid (IPv4)", () => {
     const beacon = {
       id: "someid",

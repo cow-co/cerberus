@@ -1,10 +1,15 @@
 const seeding = require("../../db/seed");
+const { purgeCache } = require("../utils");
 const adminService = require("../../db/services/admin-service");
 const accessManager = require("../../security/user-and-access-manager");
 const dbStateService = require("../../db/services/db-state-service");
 const taskTypeService = require("../../db/services/tasks-service");
 
 describe("Seeding tests", () => {
+  afterAll(() => {
+    purgeCache();
+  });
+
   it("should seed admin - no admins, no users", async () => {
     spyOn(adminService, "numAdmins").and.returnValue(0);
     const addSpy = spyOn(adminService, "addAdmin");

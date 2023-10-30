@@ -1,9 +1,14 @@
 const securityConfig = require("../../config/security-config");
+const { purgeCache } = require("../utils");
 const adUserManager = require("../../security/active-directory-manager");
 const expect = require("chai").expect;
 const ActiveDirectory = require("activedirectory");
 
 describe("AD User Manager Tests", () => {
+  afterAll(() => {
+    purgeCache();
+  });
+
   it("should authenticate successfully", async () => {
     spyOn(ActiveDirectory.prototype, "authenticate").and.callFake(
       (username, password, callback) => callback(null, true)

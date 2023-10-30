@@ -1,5 +1,6 @@
 let config;
 let validation;
+const { purgeCache } = require("../utils");
 const expect = require("chai").expect;
 
 describe("Password validation tests", () => {
@@ -9,6 +10,11 @@ describe("Password validation tests", () => {
       require.resolve("../../validation/security-validation")
     ];
   });
+
+  afterAll(() => {
+    purgeCache();
+  });
+
   beforeEach(() => {
     config = require("../../config/security-config");
     config.passwordRequirements = {

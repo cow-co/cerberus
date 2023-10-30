@@ -1,5 +1,6 @@
 let agent = null;
 let server;
+const { purgeCache } = require("../utils");
 const expect = require("chai").expect;
 const sinon = require("sinon");
 const tasksService = require("../../db/services/tasks-service");
@@ -13,6 +14,10 @@ describe("Tasks API Tests", () => {
     sinon.restore();
     server.stop();
     delete require.cache[require.resolve("../../index")];
+  });
+
+  afterAll(() => {
+    purgeCache();
   });
 
   beforeEach(() => {

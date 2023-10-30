@@ -1,4 +1,5 @@
 const securityConfig = require("../../config/security-config");
+const { purgeCache } = require("../utils");
 const pki = require("../../security/pki");
 const accessManager = require("../../security/user-and-access-manager");
 const dbManager = require("../../security/database-manager");
@@ -6,6 +7,10 @@ const adManager = require("../../security/active-directory-manager");
 const expect = require("chai").expect;
 
 describe("Access Manager tests", () => {
+  afterAll(() => {
+    purgeCache();
+  });
+
   it("should handle PKI authentication properly", async () => {
     securityConfig.usePKI = true;
     const pkiCall = spyOn(pki, "extractUserDetails").and.returnValue("user");

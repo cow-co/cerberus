@@ -1,5 +1,6 @@
 let agent;
 let server;
+const { purgeCache } = require("../utils");
 const expect = require("chai").expect;
 const User = require("../../db/models/User");
 const accessManager = require("../../security/user-and-access-manager");
@@ -13,6 +14,10 @@ describe("User tests", () => {
     sinon.restore();
     server.stop();
     delete require.cache[require.resolve("../../index")];
+  });
+
+  afterAll(() => {
+    purgeCache();
   });
 
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,

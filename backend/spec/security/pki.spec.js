@@ -1,7 +1,12 @@
 const pki = require("../../security/pki");
+const { purgeCache } = require("../utils");
 const expect = require("chai").expect;
 
 describe("PKI Tests", () => {
+  afterAll(() => {
+    purgeCache();
+  });
+
   it("should get user details", () => {
     const res = pki.extractUserDetails({
       client: {
