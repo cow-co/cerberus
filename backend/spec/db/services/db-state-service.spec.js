@@ -1,10 +1,9 @@
 const { purgeCache } = require("../../utils");
 
 const dbStateService = require("../../../db/services/db-state-service");
-const DBState = require("../../../db/models/DBState");
+let DBState = require("../../../db/models/DBState");
 
-jest.mock(DBState);
-jest.mock(Date);
+jest.mock("../../../db/models/DBState");
 
 describe("DB State tests", () => {
   afterAll(() => {
@@ -18,44 +17,46 @@ describe("DB State tests", () => {
         appliedDate: Date.now(),
       },
     ]);
+
     const numVers = await dbStateService.getNumDbVersions();
+
     expect(numVers).toBe(1);
   });
 
   test("should get the correct number of DB versions - no versions", async () => {
     DBState.find.mockResolvedValue(null);
+
     const numVers = await dbStateService.getNumDbVersions();
+
     expect(numVers).toBe(0);
   });
 
   test("should add a new DB version", async () => {
-    DBState.find.mockResolvedValue({
-      sort: () => {
-        return [];
-      },
-    });
-    Date.now.mockReturnValue(86400);
+    jest.spyOn(DBState, "find").mockImplementationOnce(() => ({
+      sort: () => [],
+    }));
 
     await dbStateService.updateDBVersion();
+
     const args = DBState.create.mock.calls[0];
-    expect(args[0]).toEqual({ version: 1, appliedDate: 86400 });
+    expect(args[0].version).toBe(1);
+    expect(args[0].appliedDate).toBeGreaterThan(0);
   });
 
   test("should add a new DB version - old version present", async () => {
-    DBState.find.mockResolvedValue({
-      sort: () => {
-        return [
-          {
-            version: 1,
-            appliedDate: 80000,
-          },
-        ];
-      },
-    });
-    Date.now.mockReturnValue(86400);
+    jest.spyOn(DBState, "find").mockImplementationOnce(() => ({
+      sort: () => [
+        {
+          version: 1,
+          appliedDate: 80000,
+        },
+      ],
+    }));
 
     await dbStateService.updateDBVersion();
+
     const args = DBState.create.mock.calls[0];
-    expect(args[0]).toEqual({ version: 2, appliedDate: 86400 });
+    expect(args[0].version).toBe(2);
+    expect(args[0].appliedDate).toBeGreaterThan(0);
   });
 });

@@ -1,5 +1,4 @@
 {
-  "testRegex": "users.spec.js",
   "clearMocks": true,
   "restoreMocks": true
 }
