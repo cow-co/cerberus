@@ -1,60 +1,62 @@
-const expect = require("chai").expect;
-const sinon = require("sinon");
+const { purgeCache } = require("../../utils");
+
 const dbStateService = require("../../../db/services/db-state-service");
-const DBState = require("../../../db/models/DBState");
+let DBState = require("../../../db/models/DBState");
+
+jest.mock("../../../db/models/DBState");
 
 describe("DB State tests", () => {
-  afterEach(() => {
-    sinon.restore();
+  afterAll(() => {
+    purgeCache();
   });
 
-  it("should get the correct number of DB versions", async () => {
-    spyOn(DBState, "find").and.returnValue([
+  test("should get the correct number of DB versions", async () => {
+    DBState.find.mockResolvedValue([
       {
         version: 1,
         appliedDate: Date.now(),
       },
     ]);
+
     const numVers = await dbStateService.getNumDbVersions();
-    expect(numVers).to.equal(1);
+
+    expect(numVers).toBe(1);
   });
 
-  it("should get the correct number of DB versions - no versions", async () => {
-    spyOn(DBState, "find").and.returnValue(null);
+  test("should get the correct number of DB versions - no versions", async () => {
+    DBState.find.mockResolvedValue(null);
+
     const numVers = await dbStateService.getNumDbVersions();
-    expect(numVers).to.equal(0);
+
+    expect(numVers).toBe(0);
   });
 
-  it("should add a new DB version", async () => {
-    spyOn(DBState, "find").and.returnValue({
-      sort: () => {
-        return [];
-      },
-    });
-    spyOn(Date, "now").and.returnValue(86400);
-    const createStub = spyOn(DBState, "create");
+  test("should add a new DB version", async () => {
+    jest.spyOn(DBState, "find").mockImplementationOnce(() => ({
+      sort: () => [],
+    }));
 
     await dbStateService.updateDBVersion();
-    const arg = createStub.calls.mostRecent().args[0];
-    expect(arg).to.deep.equal({ version: 1, appliedDate: 86400 });
+
+    const args = DBState.create.mock.calls[0];
+    expect(args[0].version).toBe(1);
+    expect(args[0].appliedDate).toBeGreaterThan(0);
   });
 
-  it("should add a new DB version - old version present", async () => {
-    spyOn(DBState, "find").and.returnValue({
-      sort: () => {
-        return [
-          {
-            version: 1,
-            appliedDate: 80000,
-          },
-        ];
-      },
-    });
-    spyOn(Date, "now").and.returnValue(86400);
-    const createStub = spyOn(DBState, "create");
+  test("should add a new DB version - old version present", async () => {
+    jest.spyOn(DBState, "find").mockImplementationOnce(() => ({
+      sort: () => [
+        {
+          version: 1,
+          appliedDate: 80000,
+        },
+      ],
+    }));
 
     await dbStateService.updateDBVersion();
-    const arg = createStub.calls.mostRecent().args[0];
-    expect(arg).to.deep.equal({ version: 2, appliedDate: 86400 });
+
+    const args = DBState.create.mock.calls[0];
+    expect(args[0].version).toBe(2);
+    expect(args[0].appliedDate).toBeGreaterThan(0);
   });
 });

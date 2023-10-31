@@ -46,9 +46,9 @@ router.post("/login", accessManager.authenticate, async (req, res) => {
     .json({ username: req.session.username, errors: [] });
 });
 
-router.delete("/logout", accessManager.verifySession, async (req, res) => {
+router.delete("/logout", async (req, res) => {
   try {
-    accessManager.logout(req.session);
+    await accessManager.logout(req.session);
     res.status(statusCodes.OK).json({ errors: [] });
   } catch (err) {
     log("/logout", err, levels.ERROR);

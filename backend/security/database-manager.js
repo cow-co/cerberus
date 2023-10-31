@@ -7,16 +7,17 @@ const { validatePassword } = require("../validation/security-validation");
 /**
  * @param {string} username
  * @param {string} password
+ * @param {object} pwReqs password requirements
  * @returns User ID and any errors
  */
-const register = async (username, password) => {
+const register = async (username, password, pwReqs) => {
   let response = {
     userId: "",
     errors: [],
   };
 
   try {
-    const validationErrors = validatePassword(password);
+    const validationErrors = validatePassword(password, pwReqs);
 
     if (validationErrors.length === 0) {
       const hashed = await argon2.hash(password);
@@ -28,13 +29,13 @@ const register = async (username, password) => {
     } else {
       log(
         "database-manager#register",
-        "Validation of password failed",
+        "Validation of password failed: " + validationErrors,
         levels.WARN
       );
       response.errors = response.errors.concat(validationErrors);
     }
   } catch (err) {
-    log("database-manager#register", "OH NO", levels.ERROR);
+    log("database-manager#register", err, levels.ERROR);
     response.errors.push("Internal Server Error");
   }
   return response;
@@ -45,16 +46,16 @@ const register = async (username, password) => {
  * @param {string} password Should be null if using PKI (since PKI login doesn't use a password)
  * @returns
  */
-const authenticate = async (username, password) => {
+const authenticate = async (username, password, usePKI) => {
   log("database-manager#authenticate", "DB Authentication...", levels.DEBUG);
   let user = null;
   let authenticated = false;
 
-  if (username !== null) {
+  if (username) {
     user = await userService.findUser(username);
-    if (user !== null) {
+    if (user) {
       log("database-manager#authenticate", JSON.stringify(user), levels.DEBUG);
-      if (!securityConfig.usePKI) {
+      if (!usePKI) {
         authenticated = await argon2.verify(user.hashedPassword, password);
       } else {
         authenticated = true;
@@ -74,7 +75,7 @@ const authenticate = async (username, password) => {
  * @returns
  */
 const deleteUser = async (userId) => {
-  return userService.deleteUser(userId);
+  userService.deleteUser(userId);
 };
 
 /**

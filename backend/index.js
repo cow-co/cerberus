@@ -96,9 +96,7 @@ const stop = () => {
     mongoose.disconnect();
   }
 
-  server.shutdown(() => {
-    log("index.js", "Server closed...", levels.INFO);
-  });
+  server.close();
 };
 
 const serveProdClient = () => {
