@@ -126,5 +126,18 @@ describe("Beacon API tests", () => {
     expect(res.statusCode).toBe(500);
   });
 
-  // TODO Test that 400 when validation error
+  test("beacon - failure - validation error", async () => {
+    validation.validateBeacon.mockReturnValue({
+      isValid: false,
+      errors: ["Missing implant ID"],
+    });
+
+    const res = await agent.post("/api/beacon").send({
+      ip: "192.168.0.1",
+      os: "Windows 6.1.7601.17592",
+      beaconIntervalSeconds: 300,
+    });
+
+    expect(res.statusCode).toBe(400);
+  });
 });

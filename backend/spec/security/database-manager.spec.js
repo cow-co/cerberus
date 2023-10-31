@@ -62,24 +62,85 @@ describe("Database user manager tests", () => {
     expect(result.errors).toHaveLength(1);
   });
 
-  // TODO Implement
-  test("authenticate - success - no PKI", async () => {});
+  test("authenticate - success - no PKI", async () => {
+    argon2.verify.mockResolvedValue(true);
+    userService.findUser.mockResolvedValue({
+      _id: "id",
+    });
 
-  test("authenticate - success - PKI", async () => {});
+    const auth = await manager.authenticate("user", "pass", false);
 
-  test("authenticate - failure - no username", async () => {});
+    expect(auth).toBe(true);
+  });
 
-  test("authenticate - failure - user not found", async () => {});
+  test("authenticate - success - PKI", async () => {
+    userService.findUser.mockResolvedValue({
+      _id: "id",
+    });
 
-  test("authenticate - failure - password wrong", async () => {});
+    const auth = await manager.authenticate("user", null, true);
 
-  test("delete user - success", async () => {});
+    expect(auth).toBe(true);
+  });
 
-  test("find user by ID - success - user found", async () => {});
+  test("authenticate - failure - no username", async () => {
+    const auth = await manager.authenticate(null, "pass", false);
 
-  test("find user by ID - success - no user found", async () => {});
+    expect(auth).toBe(false);
+  });
 
-  test("find user by name - success - user found", async () => {});
+  test("authenticate - failure - user not found", async () => {
+    userService.findUser.mockResolvedValue(null);
 
-  test("find user by name - success - no user found", async () => {});
+    const auth = await manager.authenticate("user", "pass", false);
+
+    expect(auth).toBe(false);
+  });
+
+  test("authenticate - failure - password wrong", async () => {
+    argon2.verify.mockResolvedValue(false);
+    userService.findUser.mockResolvedValue({
+      _id: "id",
+    });
+
+    const auth = await manager.authenticate("user", "pass", false);
+
+    expect(auth).toBe(false);
+  });
+
+  test("find user by ID - success - user found", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+    });
+
+    const user = await manager.findUserById("id");
+
+    expect(user.id).toBe("id");
+  });
+
+  test("find user by ID - success - no user found", async () => {
+    userService.findUserById.mockResolvedValue(null);
+
+    const user = await manager.findUserById("id");
+
+    expect(user).toBeNull();
+  });
+
+  test("find user by name - success - user found", async () => {
+    userService.findUser.mockResolvedValue({
+      _id: "id",
+    });
+
+    const user = await manager.findUserByName("user");
+
+    expect(user.id).toBe("id");
+  });
+
+  test("find user by name - success - no user found", async () => {
+    userService.findUser.mockResolvedValue(null);
+
+    const user = await manager.findUserByName("user");
+
+    expect(user).toBeNull();
+  });
 });

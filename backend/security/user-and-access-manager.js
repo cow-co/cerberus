@@ -155,8 +155,8 @@ const checkAdmin = async (req, res, next) => {
   // This ensures we call this method after logging in
   if (username) {
     const result = await findUserByName(username);
-    if (result.errors.length > 0) {
-      res.status(statusCodes.FORBIDDEN).json({ errors });
+    if (result.user === null) {
+      res.status(statusCodes.FORBIDDEN).json({ errors: ["User not found"] });
     } else {
       isAdmin = await adminService.isUserAdmin(result.user.id);
       if (isAdmin) {

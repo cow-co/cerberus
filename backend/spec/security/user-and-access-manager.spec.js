@@ -1,21 +1,49 @@
 const securityConfig = require("../../config/security-config");
 const { purgeCache } = require("../utils");
 const pki = require("../../security/pki");
-const accessManager = require("../../security/user-and-access-manager");
 const dbManager = require("../../security/database-manager");
 const adManager = require("../../security/active-directory-manager");
+const adminService = require("../../db/services/admin-service");
+let accessManager;
 
 jest.mock("../../security/pki");
 jest.mock("../../security/database-manager");
 jest.mock("../../security/active-directory-manager");
+jest.mock("../../db/services/admin-service");
 
 describe("Access Manager tests", () => {
   afterAll(() => {
     purgeCache();
   });
 
-  // TODO Implement
-  test("authenticate - success - AD", () => {});
+  beforeAll(() => {
+    accessManager = require("../../security/user-and-access-manager");
+  });
+
+  test("authenticate - success - AD", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    adManager.authenticate.mockResolvedValue(true);
+
+    let called = false;
+    await accessManager.authenticate(
+      {
+        body: {
+          username: "user",
+          password: "pass",
+        },
+        session: {},
+      },
+      null,
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBe(true);
+    expect(adManager.authenticate).toHaveBeenCalledTimes(1);
+
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
+  });
 
   test("authenticate - success - PKI", async () => {
     securityConfig.usePKI = true;
@@ -34,7 +62,7 @@ describe("Access Manager tests", () => {
     );
 
     expect(called).toBe(true);
-    expect(pki.extractUserDetails).toBeCalledTimes(1);
+    expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
 
     securityConfig.usePKI = false;
   });
@@ -72,15 +100,152 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  test("authenticate - failure - unsupported auth method", () => {});
+  test("authenticate - failure - unsupported auth method", async () => {
+    securityConfig.authMethod = "FAKE";
+    let called = false;
+    let statusCode = 200;
+    let errors = [];
 
-  test("authenticate - failure - incorrect credentials", () => {});
+    await accessManager.authenticate(
+      {
+        body: {
+          username: "user",
+          password: "pass",
+        },
+        session: {},
+      },
+      {
+        status: (status) => {
+          statusCode = status;
+          return {
+            json: (data) => {
+              errors = data.errors;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
 
-  test("check admin - success", () => {});
+    expect(called).toBe(false);
+    expect(statusCode).toBe(500);
+    expect(errors).toHaveLength(1);
 
-  test("check admin - failure - logged in user does not exist", () => {});
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
+  });
 
-  test("check admin - failure - user is not admin", () => {});
+  test("authenticate - failure - incorrect credentials", async () => {
+    dbManager.authenticate.mockResolvedValue(false);
+    let called = false;
+    let resStatus = 200;
+    let res = {};
+
+    await accessManager.authenticate(
+      {
+        body: {
+          username: "ksdah",
+          password: "kjsdahf",
+        },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBe(false);
+    expect(resStatus).toBe(401);
+    expect(res.errors).toHaveLength(1);
+  });
+
+  test("check admin - success", async () => {
+    dbManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    adminService.isUserAdmin.mockResolvedValue(true);
+    let calledNext = false;
+
+    await accessManager.checkAdmin(
+      {
+        session: { username: "user" },
+      },
+      null,
+      () => {
+        calledNext = true;
+      }
+    );
+
+    expect(calledNext).toBe(true);
+  });
+
+  test("check admin - failure - logged in user does not exist", async () => {
+    dbManager.findUserByName.mockResolvedValue(null);
+    adminService.isUserAdmin.mockResolvedValue(true);
+    let resStatus = 500;
+    let calledNext = false;
+    let res = {};
+
+    await accessManager.checkAdmin(
+      {
+        session: { username: "user" },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return { json: (data) => (res = data) };
+        },
+      },
+      () => {
+        calledNext = true;
+      }
+    );
+
+    expect(resStatus).toBe(403);
+    expect(calledNext).toBe(false);
+    expect(res.errors).toHaveLength(1);
+  });
+
+  test("check admin - failure - user is not admin", async () => {
+    dbManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    let resStatus = 500;
+    let calledNext = false;
+    let res = {};
+
+    await accessManager.checkAdmin(
+      {
+        session: { username: "user" },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return { json: (data) => (res = data) };
+        },
+      },
+      () => {
+        calledNext = true;
+      }
+    );
+
+    expect(resStatus).toBe(403);
+    expect(calledNext).toBe(false);
+    expect(res.errors).toHaveLength(1);
+  });
 
   test("check admin - failure - user not logged in", async () => {
     let resStatus = 200;
@@ -100,18 +265,32 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
+  test("remove user - success", async () => {
+    const errors = await accessManager.removeUser("userId");
+
+    expect(errors).toHaveLength(0);
+    expect(dbManager.deleteUser).toHaveBeenCalledTimes(1);
+    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
+  });
+
   test("remove user - failure - AD", async () => {
-    // TODO Make this actually use the AD auth method
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+
     const errors = await accessManager.removeUser("userId");
 
     expect(errors).toHaveLength(1);
+
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("remove user - failure - unsupported auth method", async () => {
-    // TODO Make this actually use the fake auth method
+    securityConfig.authMethod = "FAKE";
+
     const errors = await accessManager.removeUser("userId");
 
     expect(errors).toHaveLength(1);
+
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("remove user - failure - exception", async () => {
@@ -122,9 +301,17 @@ describe("Access Manager tests", () => {
     expect(errors).toHaveLength(1);
   });
 
-  test("remove user - failure - AD", () => {});
+  test("find user by name - success - DB", async () => {
+    dbManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
 
-  test("find user by name - success - DB", () => {});
+    const res = await accessManager.findUserByName("user");
+
+    expect(res.errors).toHaveLength(0);
+    expect(res.user.name).toBe("user");
+  });
 
   test("find user by name - success - AD", async () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
@@ -151,9 +338,25 @@ describe("Access Manager tests", () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
-  test("find user by name - failure - exception", () => {});
+  test("find user by name - failure - exception", async () => {
+    dbManager.findUserByName.mockRejectedValue(new Error("TypeError"));
 
-  test("find user by ID - success - DB", () => {});
+    const res = await accessManager.findUserByName("user");
+
+    expect(res.errors).toHaveLength(1);
+  });
+
+  test("find user by ID - success - DB", async () => {
+    dbManager.findUserById.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+
+    const res = await accessManager.findUserById("userId");
+
+    expect(res.errors).toHaveLength(0);
+    expect(res.user.name).toBe("user");
+  });
 
   test("find user by ID - success - AD", async () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
@@ -180,7 +383,13 @@ describe("Access Manager tests", () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
-  test("find user by ID - failure - exception", () => {});
+  test("find user by ID - failure - exception", async () => {
+    dbManager.findUserById.mockRejectedValue(new Error("TypeError"));
+
+    const res = await accessManager.findUserById("userId");
+
+    expect(res.errors).toHaveLength(1);
+  });
 
   test("verify session - success - no PKI", async () => {
     let called = false;
@@ -227,11 +436,60 @@ describe("Access Manager tests", () => {
     expect(resStatus).toBe(403);
   });
 
-  test("verify session - success - PKI", () => {});
+  test("verify session - success - PKI", async () => {
+    pki.extractUserDetails.mockReturnValue("user");
+    dbManager.authenticate.mockResolvedValue(true);
+    securityConfig.usePKI = true;
+    let called = false;
 
-  test("logout - success", () => {});
+    await accessManager.verifySession(
+      {
+        session: {},
+      },
+      null,
+      () => {
+        called = true;
+      }
+    );
 
-  test("register - success", () => {});
+    expect(called).toBe(true);
 
-  test("register - failure - AD", () => {});
+    securityConfig.usePKI = false;
+  });
+
+  test("logout - success", async () => {
+    let called = false;
+
+    await accessManager.logout({
+      username: "user",
+      destroy: () => {
+        called = true;
+      },
+    });
+
+    expect(called).toBe(true);
+  });
+
+  test("register - success", async () => {
+    dbManager.register.mockResolvedValue({
+      userId: "id",
+      errors: [],
+    });
+
+    const response = await accessManager.register("user", "pass");
+
+    expect(response._id).toBe("id");
+    expect(response.errors).toHaveLength(0);
+  });
+
+  test("register - failure - AD", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+
+    const response = await accessManager.register("user", "pass");
+
+    expect(response._id).toBe(null);
+    expect(response.errors).toHaveLength(1);
+
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
+  });
 });

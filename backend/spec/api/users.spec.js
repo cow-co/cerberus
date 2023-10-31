@@ -32,7 +32,7 @@ describe("User tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  test("should find a user", async () => {
+  test("find user - success", async () => {
     accessManager.findUserByName.mockResolvedValue({
       user: {
         _id: "some-mongo-id3",
@@ -46,6 +46,15 @@ describe("User tests", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.user.name).toBe("username");
+  });
+
+  test("find user - failure - exception", async () => {
+    accessManager.findUserByName.mockRejectedValue(new Error("TypeError"));
+
+    const res = await agent.get("/api/users/user/username");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
   });
 
   test("should remove hashed password from user in response", async () => {
@@ -81,7 +90,41 @@ describe("User tests", () => {
     expect(accessManager.removeUser).toHaveBeenCalledTimes(1);
   });
 
-  test("should return success when deleting a user that does not exist", async () => {
+  test("delete user - failure - error", async () => {
+    accessManager.findUserById.mockResolvedValue({
+      user: {
+        _id: "some-mongo-id3",
+        name: "username",
+        hashedPassword: "hashed",
+      },
+      errors: [],
+    });
+    accessManager.removeUser.mockResolvedValue(["error"]);
+
+    const res = await agent.delete("/api/users/user/some-mongo-id3");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("delete user - failure - exception", async () => {
+    accessManager.findUserById.mockResolvedValue({
+      user: {
+        _id: "some-mongo-id3",
+        name: "username",
+        hashedPassword: "hashed",
+      },
+      errors: [],
+    });
+    accessManager.removeUser.mockRejectedValue(new Error("TypeError"));
+
+    const res = await agent.delete("/api/users/user/some-mongo-id3");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("delete user - success - user does not exist", async () => {
     accessManager.findUserById.mockResolvedValue({
       user: null,
       errors: [],

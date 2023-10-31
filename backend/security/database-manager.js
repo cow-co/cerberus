@@ -75,7 +75,7 @@ const authenticate = async (username, password, usePKI) => {
  * @returns
  */
 const deleteUser = async (userId) => {
-  return userService.deleteUser(userId);
+  userService.deleteUser(userId);
 };
 
 /**

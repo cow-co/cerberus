@@ -56,6 +56,22 @@ describe("Seeding tests", () => {
     expect(adminService.addAdmin).toHaveBeenCalledTimes(0);
   });
 
+  test("should not seed admin - error", async () => {
+    adminService.numAdmins.mockResolvedValue(0);
+    accessManager.findUserByName.mockResolvedValue({
+      user: null,
+      errors: [],
+    });
+    accessManager.register.mockResolvedValue({
+      _id: null,
+      errors: ["error"],
+    });
+
+    await seeding.seedInitialAdmin();
+
+    expect(adminService.addAdmin).toHaveBeenCalledTimes(0);
+  });
+
   test("should seed tasktypes", async () => {
     dbStateService.getNumDbVersions.mockResolvedValue(0);
 

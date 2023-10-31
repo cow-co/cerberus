@@ -192,6 +192,7 @@ describe("Tasks API Tests", () => {
         params: ["param1", "param2"],
       },
     ]);
+    tasksService.setTask.mockResolvedValue(null);
 
     const res = await agent.post("/api/tasks").send({
       type: {
@@ -221,6 +222,66 @@ describe("Tasks API Tests", () => {
     });
 
     expect(res.statusCode).toBe(400);
+  });
+
+  test("create task - failure - error", async () => {
+    tasksService.getTaskById.mockResolvedValue(null);
+    tasksService.getTaskTypes.mockResolvedValue([
+      {
+        _id: "tasktypeid1",
+        name: "Name",
+        params: [],
+      },
+      {
+        _id: "tasktypeid2",
+        name: "Name 2",
+        params: ["param1", "param2"],
+      },
+    ]);
+    tasksService.setTask.mockResolvedValue("error");
+
+    const res = await agent.post("/api/tasks").send({
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      implantId: "id-1",
+      params: [],
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.errors).toHaveLength(1);
+    expect(tasksService.setTask).toHaveBeenCalledTimes(1);
+  });
+
+  test("create task - failure - exception", async () => {
+    tasksService.getTaskById.mockResolvedValue(null);
+    tasksService.getTaskTypes.mockResolvedValue([
+      {
+        _id: "tasktypeid1",
+        name: "Name",
+        params: [],
+      },
+      {
+        _id: "tasktypeid2",
+        name: "Name 2",
+        params: ["param1", "param2"],
+      },
+    ]);
+    tasksService.setTask.mockRejectedValue(new Error("TypeError"));
+
+    const res = await agent.post("/api/tasks").send({
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      implantId: "id-1",
+      params: [],
+    });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+    expect(tasksService.setTask).toHaveBeenCalledTimes(1);
   });
 
   test("should edit a task", async () => {
@@ -280,7 +341,7 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  test("should delete a task", async () => {
+  test("delete task - success", async () => {
     tasksService.getTaskById.mockResolvedValue({
       _id: "some-mongo-id",
       order: 0,
@@ -295,7 +356,7 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).toBe(200);
   });
 
-  test("delete should return success when the task ID does not exist", async () => {
+  test("delete task - success - ID does not exist", async () => {
     tasksService.getTaskById.mockResolvedValue(null);
 
     const res = await agent.delete("/api/tasks/some-mongo-if");
@@ -303,7 +364,7 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).toBe(200);
   });
 
-  test("should fail to delete a task - task already sent", async () => {
+  test("delete task - failure - task already sent", async () => {
     tasksService.getTaskById.mockResolvedValue({
       _id: "some-mongo-id",
       order: 0,
@@ -318,16 +379,33 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  test("should delete a task type", async () => {
+  test("delete task - failure - exception", async () => {
+    tasksService.getTaskById.mockRejectedValue(new Error("TypeError"));
+
+    const res = await agent.delete("/api/tasks/some-mongo-id");
+
+    expect(res.statusCode).toBe(500);
+  });
+
+  test("delete task type - success", async () => {
     const res = await agent.delete("/api/task-types/tasktypeid1");
 
     expect(res.statusCode).toBe(200);
     expect(tasksService.deleteTaskType).toHaveBeenCalledTimes(1);
   });
 
-  test("should return success if deleting a non-existent task type", async () => {
+  test("delete task type - success - non-existent", async () => {
     const res = await agent.delete("/api/task-types/tasktypeid3");
 
     expect(res.statusCode).toBe(200);
+    expect(tasksService.deleteTaskType).toHaveBeenCalledTimes(0);
+  });
+
+  test("delete task type - failure - exception", async () => {
+    tasksService.deleteTaskType.mockRejectedValue(new Error("TypeError"));
+
+    const res = await agent.delete("/api/task-types/tasktypeid1");
+
+    expect(res.statusCode).toBe(500);
   });
 });
