@@ -5,13 +5,13 @@ import { useSelector, useDispatch } from "react-redux";
 import { setTaskTypes } from "../../common/redux/tasks-slice";
 import { createErrorAlert } from '../../common/redux/dispatchers';
 
-const CreateTaskDialogue = (props) => {
-  const {onClose, open, onSubmit} = props;
+const TaskDialogue = (props) => {
+  const {onClose, open, onSubmit, providedTask} = props;
   const taskTypes = useSelector((state) => {
     return state.tasks.taskTypes
   });
   const dispatch = useDispatch();
-  const [task, setTask] = useState({type: {id: "", name: ""}, params: []});
+  const [task, setTask] = useState(providedTask);
 
   useEffect(() => {
     const getData = async () => {
@@ -81,9 +81,10 @@ const CreateTaskDialogue = (props) => {
     <TextField className='text-input' label={param.name} variant="outlined" key={param.name} id={param.name} value={param.value} onChange={handleParamUpdate} />
   ));
 
+  // TODO Populate the fields if an existing task is passed in
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
-      <DialogTitle>Create New Task</DialogTitle>
+      <DialogTitle>Create/Edit Task</DialogTitle>
       <FormControl fullWidth>
         <InputLabel id="task-type-label">Task Type</InputLabel>
         <Select className="select-list" labelId="task-type-label" value={task.type.name} label="Task Type" onChange={handleChange}>
@@ -96,4 +97,4 @@ const CreateTaskDialogue = (props) => {
   );
 }
 
-export default CreateTaskDialogue;
+export default TaskDialogue;

@@ -3,7 +3,7 @@ import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
 import { createTask, fetchTasks, deleteTask } from '../../common/apiCalls';
-import CreateTaskDialogue from './CreateTaskDialogue';
+import TaskDialogue from './TaskDialogue';
 import { useSelector, useDispatch } from "react-redux";
 import { setTasks } from "../../common/redux/tasks-slice";
 import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
@@ -11,6 +11,7 @@ import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatc
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState({type: {id: "", name: ""}, params: []})
   const tasks = useSelector((state) => state.tasks.tasks);
   const selectedImplant = useSelector((state) => state.implants.selected);
   const dispatch = useDispatch();
@@ -53,6 +54,15 @@ function TasksPane() {
 
   }
 
+  const handleEdit = (task) => {
+    const editTask = {
+      type: task.type,
+      params: task.params
+    }
+    setSelectedTask(editTask);
+    setDialogueOpen(true);
+  }
+
   useEffect(() => {
     async function callFetcher() {
       if (selectedImplant.id) {
@@ -69,12 +79,12 @@ function TasksPane() {
   if (tasks !== undefined && tasks !== null) {
     if (showSent) {
       tasksItems = tasks.map(task => {
-        return <TaskItem task={task} key={task.order} deleteTask={() => handleDelete(task)} />
+        return <TaskItem task={task} key={task.order} deleteTask={() => handleDelete(task)} editTask={() => handleEdit(task)} />
       });
     } else {
       const filtered = tasks.filter(task => task.sent === false);
       tasksItems = filtered.map(task => {
-        return <TaskItem task={task} key={task.order} deleteTask={() => handleDelete(task)} />
+        return <TaskItem task={task} key={task._id} deleteTask={() => handleDelete(task)} editTask={() => {handleEdit(task)} />
       });
     }
   }
@@ -89,7 +99,7 @@ function TasksPane() {
       <List>
         {tasksItems}
       </List>
-      <CreateTaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
+      <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} providedTask={selectedTask} />
     </Container>
       
   )
