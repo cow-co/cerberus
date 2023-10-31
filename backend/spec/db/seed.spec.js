@@ -1,52 +1,82 @@
 const seeding = require("../../db/seed");
+const { purgeCache } = require("../utils");
 const adminService = require("../../db/services/admin-service");
 const accessManager = require("../../security/user-and-access-manager");
 const dbStateService = require("../../db/services/db-state-service");
 const taskTypeService = require("../../db/services/tasks-service");
 
+jest.mock("../../db/services/db-state-service");
+jest.mock("../../db/services/tasks-service");
+jest.mock("../../db/services/admin-service");
+jest.mock("../../security/user-and-access-manager");
+
 describe("Seeding tests", () => {
-  it("should seed admin - no admins, no users", async () => {
-    spyOn(adminService, "numAdmins").and.returnValue(0);
-    const addSpy = spyOn(adminService, "addAdmin");
-    spyOn(accessManager, "findUserByName").and.returnValue({
+  afterAll(() => {
+    purgeCache();
+  });
+
+  test("should seed admin - no admins, no users", async () => {
+    adminService.numAdmins.mockResolvedValue(0);
+    accessManager.findUserByName.mockResolvedValue({
       user: null,
       errors: [],
     });
-    const regSpy = spyOn(accessManager, "register").and.returnValue({
+    accessManager.register.mockResolvedValue({
       _id: "id",
       errors: [],
     });
+
     await seeding.seedInitialAdmin();
-    expect(addSpy).toHaveBeenCalledTimes(1);
-    expect(regSpy).toHaveBeenCalledTimes(1);
+
+    expect(adminService.addAdmin).toHaveBeenCalledTimes(1);
+    expect(accessManager.register).toHaveBeenCalledTimes(1);
   });
 
-  it("should seed admin - no admins, user exists", async () => {
-    spyOn(adminService, "numAdmins").and.returnValue(0);
-    const addSpy = spyOn(adminService, "addAdmin");
-    spyOn(accessManager, "findUserByName").and.returnValue({
+  test("should seed admin - no admins, user exists", async () => {
+    adminService.numAdmins.mockResolvedValue(0);
+    accessManager.findUserByName.mockResolvedValue({
       user: {
         id: "id",
         name: "user",
       },
       errors: [],
     });
+
     await seeding.seedInitialAdmin();
-    expect(addSpy).toHaveBeenCalledTimes(1);
+
+    expect(adminService.addAdmin).toHaveBeenCalledTimes(1);
+    expect(accessManager.register).toHaveBeenCalledTimes(0);
   });
 
-  it("should not seed admin - admin exists", async () => {
-    spyOn(adminService, "numAdmins").and.returnValue(1);
-    const addSpy = spyOn(adminService, "addAdmin");
+  test("should not seed admin - admin exists", async () => {
+    adminService.numAdmins.mockResolvedValue(1);
+
     await seeding.seedInitialAdmin();
-    expect(addSpy).toHaveBeenCalledTimes(0);
+
+    expect(adminService.addAdmin).toHaveBeenCalledTimes(0);
   });
 
-  it("should seed tasktypes", async () => {
-    spyOn(dbStateService, "getNumDbVersions").and.returnValue(0);
-    const taskTypeSpy = spyOn(taskTypeService, "createTaskType");
-    spyOn(dbStateService, "updateDBVersion");
+  test("should not seed admin - error", async () => {
+    adminService.numAdmins.mockResolvedValue(0);
+    accessManager.findUserByName.mockResolvedValue({
+      user: null,
+      errors: [],
+    });
+    accessManager.register.mockResolvedValue({
+      _id: null,
+      errors: ["error"],
+    });
+
+    await seeding.seedInitialAdmin();
+
+    expect(adminService.addAdmin).toHaveBeenCalledTimes(0);
+  });
+
+  test("should seed tasktypes", async () => {
+    dbStateService.getNumDbVersions.mockResolvedValue(0);
+
     await seeding.seedTaskTypes();
-    expect(taskTypeSpy).toHaveBeenCalledTimes(3);
+
+    expect(taskTypeService.createTaskType).toHaveBeenCalledTimes(3);
   });
 });

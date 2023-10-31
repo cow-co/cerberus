@@ -16,7 +16,7 @@ const addImplant = async (details) => {
     ip: details.ip,
     os: details.os,
     beaconIntervalSeconds: details.beaconIntervalSeconds,
-    lastCheckinTimeSeconds: details.lastCheckinTimeSeconds,
+    lastCheckinTime: details.lastCheckinTimeSeconds,
     isActive: true,
   });
 };
@@ -32,7 +32,7 @@ const updateImplant = async (details) => {
       ip: details.ip,
       os: details.os,
       beaconIntervalSeconds: details.beaconIntervalSeconds,
-      lastCheckinTimeSeconds: details.lastCheckinTimeSeconds,
+      lastCheckinTime: details.lastCheckinTimeSeconds,
       isActive: true,
     }
   );

@@ -22,6 +22,7 @@ const findUser = async (username) => {
 };
 
 /**
+ * If userId is null or undefined, mongoose should handle ensuring that no records are returned.
  * @param {string} userId
  * @returns
  */
@@ -39,11 +40,12 @@ const createUser = async (user) => {
 };
 
 /**
+ * If userId is null or undefined, mongoose should handle ensuring that no records are returned.
  * @param {string} userId
  * @returns
  */
 const deleteUser = async (userId) => {
-  return await User.findByIdAndDelete(userId);
+  await User.findByIdAndDelete(userId);
 };
 
 module.exports = {

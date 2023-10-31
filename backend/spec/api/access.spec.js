@@ -1,320 +1,165 @@
 let agent;
-const expect = require("chai").expect;
-const sinon = require("sinon");
+let server;
+const { purgeCache } = require("../utils");
+
 const User = require("../../db/models/User");
 const accessManager = require("../../security/user-and-access-manager");
+const adminService = require("../../db/services/admin-service");
+const userService = require("../../db/services/user-service");
 const argon2 = require("argon2");
 const securityConfig = require("../../config/security-config");
-const pki = require("../../security/pki");
-const ActiveDirectory = require("activedirectory");
-const Task = require("../../db/models/Task");
-const Admin = require("../../db/models/Admin");
+
+jest.mock("../../security/user-and-access-manager");
+jest.mock("../../db/services/admin-service");
+jest.mock("../../db/services/user-service");
 
 describe("Access tests", () => {
   afterEach(() => {
-    sinon.restore();
+    server.stop();
+    delete require.cache[require.resolve("../../index")];
+  });
+
+  afterAll(() => {
+    purgeCache();
   });
 
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
-    sinon.stub(accessManager, "verifySession").callsArg(2);
-    agent = require("supertest").agent(require("../../index"));
+    accessManager.verifySession.mockImplementation((req, res, next) => {
+      next();
+    });
+    server = require("../../index");
+    agent = require("supertest").agent(server);
   });
 
-  it("should create a user", async () => {
-    const userSpy = spyOn(User, "create").and.returnValue({
+  test("should create a user", async () => {
+    accessManager.register.mockResolvedValue({
       _id: "some-mongo-id",
-      username: "user",
-      hashedPassword: "hashed",
+      errors: [],
     });
+
     const res = await agent
       .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(200);
-    expect(userSpy.calls.count()).to.equal(1);
+
+    expect(res.statusCode).toBe(200);
+    expect(accessManager.register).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail to create a user - AD-backed", async () => {
-    const originalSetting = securityConfig.authMethod;
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+  test("should fail to create a user - error occurred", async () => {
+    accessManager.register.mockResolvedValue({
+      _id: null,
+      errors: ["ERROR"],
+    });
+
     const res = await agent
       .post("/api/access/register")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(400);
-    securityConfig.authMethod = originalSetting;
+
+    expect(res.statusCode).toBe(400);
   });
 
-  it("should fail to create a user - no uppercase", async () => {
+  test("should fail to create a user - exception thrown", async () => {
+    accessManager.register.mockRejectedValue(new Error("TypeError"));
+
     const res = await agent
       .post("/api/access/register")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyz11" });
-    expect(res.statusCode).to.equal(400);
-    expect(res.body.errors.length).to.equal(1);
+      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
+
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should fail to create a user - no lowercase", async () => {
-    const res = await agent
-      .post("/api/access/register")
-      .send({ username: "user", password: "ABCDEFGHIJKLMNOPQRSTUVWXYZ11" });
-    expect(res.statusCode).to.equal(400);
-    expect(res.body.errors.length).to.equal(1);
-  });
-
-  it("should fail to create a user - no number", async () => {
-    const res = await agent
-      .post("/api/access/register")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ" });
-    expect(res.statusCode).to.equal(400);
-    expect(res.body.errors.length).to.equal(1);
-  });
-
-  it("should fail to create a user - too short", async () => {
-    const res = await agent
-      .post("/api/access/register")
-      .send({ username: "user", password: "Ab1" });
-    expect(res.statusCode).to.equal(400);
-    expect(res.body.errors.length).to.equal(1);
-  });
-
-  it("should log in", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "some-mongo-id",
-      username: "user",
-      hashedPassword: "hashed",
+  test("should log in", async () => {
+    accessManager.authenticate.mockImplementation((req, res, next) => {
+      next();
     });
-    spyOn(argon2, "verify").and.returnValue(true);
+
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(200);
-    expect(res.headers["set-cookie"]).to.not.equal(undefined); // Checking that it sets a cookie (the session cookie)
+
+    expect(res.statusCode).toBe(200);
+    expect(accessManager.authenticate).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail to log in", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "some-mongo-id",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-    spyOn(argon2, "verify").and.returnValue(false);
-    const res = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(401);
+  test("should log out", async () => {
+    const res = await agent.delete("/api/access/logout");
+
+    expect(res.statusCode).toBe(200);
+    expect(accessManager.logout).toHaveBeenCalledTimes(1);
   });
 
-  it("should log the user in automatically when using PKI", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "some-mongo-id",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-    spyOn(Task, "find").and.returnValue({
-      sort: () => [
-        {
-          _id: "some-mongo-id",
-          order: 1,
-          implantId: "id-1",
-          taskType: "Task2",
-          params: [],
-          sent: false,
-        },
-        {
-          _id: "some-mongo-id",
-          order: 0,
-          implantId: "id-1",
-          taskType: "Task",
-          params: ["param1"],
-          sent: true,
-        },
-      ],
-    });
-    spyOn(pki, "extractUserDetails").and.returnValue("user");
+  test("should fail to log out - exception thrown", async () => {
+    accessManager.logout.mockRejectedValue(new Error("TypeError"));
 
-    const wasFalse = securityConfig.usePKI ? false : true;
-    if (wasFalse) {
-      securityConfig.usePKI = true;
-    }
+    const res = await agent.delete("/api/access/logout");
 
-    const res = await agent.get("/api/tasks/id-3");
-    expect(res.statusCode).to.equal(200);
-
-    if (wasFalse) {
-      securityConfig.usePKI = false;
-    }
+    expect(res.statusCode).toBe(500);
   });
 
-  it("should log the user in via AD", async () => {
-    sinon
-      .stub(ActiveDirectory.prototype, "authenticate")
-      .callsArgWith(2, null, true);
-    const originalSetting = securityConfig.authMethod;
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    const res = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(200);
-    securityConfig.authMethod = originalSetting;
-  });
-
-  it("should successfully add an admin", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
+  test("should successfully add an admin", async () => {
+    accessManager.checkAdmin.mockImplementation((req, res, next) => {
+      next();
     });
-    const findAdminSpy = spyOn(Admin, "findOne");
-    findAdminSpy
-      .withArgs({ userId: "650a3a2a7dcd3241ecee2d71" })
-      .and.returnValue({
-        userId: "650a3a2a7dcd3241ecee2d71",
-      });
-    spyOn(argon2, "verify").and.returnValue(true);
-
-    spyOn(User, "findById")
-      .withArgs("650a3a2a7dcd3241ecee2d70")
-      .and.returnValue({
-        _id: "650a3a2a7dcd3241ecee2d70",
-        username: "user2",
-        hashedPassword: "hashed",
-        save: () => {},
-      });
-    findAdminSpy
-      .withArgs({ userId: "650a3a2a7dcd3241ecee2d70" })
-      .and.returnValue(null);
-    const createAdminSpy = spyOn(Admin, "create").and.returnValue({
+    accessManager.findUserById.mockResolvedValue({
+      user: {
+        id: "650a3a2a7dcd3241ecee2d70",
+      },
+    });
+    adminService.addAdmin.mockResolvedValue({
       userId: "650a3a2a7dcd3241ecee2d70",
     });
 
-    const loginRes = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    const cookies = loginRes.headers["set-cookie"];
-
     const res = await agent
       .put("/api/access/admin")
-      .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
 
-    expect(res.statusCode).to.equal(200);
-    expect(createAdminSpy.calls.count()).to.equal(1);
+    expect(res.statusCode).toBe(200);
+    expect(adminService.addAdmin).toHaveBeenCalledTimes(1);
   });
 
-  it("should successfully remove an admin", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
-    });
-    spyOn(argon2, "verify").and.returnValue(true);
-
-    const adminStub = spyOn(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-      deleteOne: () => {
-        return { userId: "650a3a2a7dcd3241ecee2d71" };
+  test("should successfully remove an admin", async () => {
+    accessManager.findUserById.mockResolvedValue({
+      user: {
+        id: "650a3a2a7dcd3241ecee2d70",
       },
     });
 
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d70" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d70",
-      deleteOne: () => {
-        return { userId: "650a3a2a7dcd3241ecee2d70" };
-      },
-    });
-    spyOn(User, "findById")
-      .withArgs("650a3a2a7dcd3241ecee2d70")
-      .and.returnValue({
-        _id: "650a3a2a7dcd3241ecee2d70",
-        username: "user2",
-        hashedPassword: "hashed",
-        save: () => {},
-      });
-
-    const loginRes = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    const cookies = loginRes.headers["set-cookie"];
     const res = await agent
       .put("/api/access/admin")
-      .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: false });
-    expect(res.statusCode).to.equal(200);
+
+    expect(res.statusCode).toBe(200);
+    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail to add an admin - user does not exist", async () => {
-    spyOn(User, "findOne").and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
+  test("should fail to add an admin - user does not exist", async () => {
+    accessManager.findUserById.mockResolvedValue({
+      user: null,
+      errors: [],
     });
 
-    spyOn(User, "findById").and.returnValue(null);
-
-    spyOn(Admin, "findOne").and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-    spyOn(Admin, "create").and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d70",
-    });
-    spyOn(argon2, "verify").and.returnValue(true);
-    const loginRes = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    const cookies = loginRes.headers["set-cookie"];
     const res = await agent
       .put("/api/access/admin")
-      .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
-    expect(res.statusCode).to.equal(400);
+
+    expect(res.statusCode).toBe(400);
+    expect(accessManager.findUserById).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail to add an admin - exception thrown", async () => {
-    // Login/Auth stubs
-    spyOn(User, "findOne").and.returnValue({
-      _id: "650a3a2a7dcd3241ecee2d71",
-      username: "user",
-      hashedPassword: "hashed",
+  test("should fail to add an admin - exception thrown", async () => {
+    accessManager.findUserById.mockResolvedValue({
+      user: {
+        id: "650a3a2a7dcd3241ecee2d70",
+      },
     });
-    const adminStub = spyOn(Admin, "findOne");
-    adminStub.withArgs({ userId: "650a3a2a7dcd3241ecee2d71" }).and.returnValue({
-      userId: "650a3a2a7dcd3241ecee2d71",
-    });
-    spyOn(argon2, "verify").and.returnValue(true);
+    adminService.addAdmin.mockRejectedValue(new Error("TypeError"));
 
-    // Test-relevant stubs
-    adminStub
-      .withArgs({ userId: "650a3a2a7dcd3241ecee2d70" })
-      .and.returnValue(null);
-    spyOn(Admin, "create").and.throwError("TypeError");
-    spyOn(User, "findById")
-      .withArgs("650a3a2a7dcd3241ecee2d70")
-      .and.returnValue({
-        _id: "650a3a2a7dcd3241ecee2d70",
-        username: "user2",
-        hashedPassword: "hashed",
-        save: () => {},
-      });
-
-    const loginRes = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    const cookies = loginRes.headers["set-cookie"];
     const res = await agent
       .put("/api/access/admin")
-      .set("Cookie", cookies[0])
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
-    expect(res.statusCode).to.equal(500);
-  });
 
-  it("should fail to log in with invalid auth type", async () => {
-    const originalSetting = securityConfig.authMethod;
-    securityConfig.authMethod = "fake";
-    const res = await agent
-      .post("/api/access/login")
-      .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
-    expect(res.statusCode).to.equal(500);
-    securityConfig.authMethod = originalSetting;
+    expect(res.statusCode).toBe(500);
   });
 });

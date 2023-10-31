@@ -1,31 +1,42 @@
 let agent;
-const expect = require("chai").expect;
-const sinon = require("sinon");
-const Implant = require("../../db/models/Implant");
+let server;
+const { purgeCache } = require("../utils");
+
+const implantService = require("../../db/services/implant-service");
 const accessManager = require("../../security/user-and-access-manager");
+
+jest.mock("../../db/services/implant-service");
+jest.mock("../../security/user-and-access-manager");
 
 describe("Implant API Tests", () => {
   afterEach(() => {
-    sinon.restore();
+    server.stop();
+    delete require.cache[require.resolve("../../index")];
+  });
+
+  afterAll(() => {
+    purgeCache();
   });
 
   beforeEach(() => {
-    // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
-    // since node caches the app
-    sinon.stub(accessManager, "verifySession").callsArg(2);
-    agent = require("supertest").agent(require("../../index"));
+    accessManager.verifySession.mockImplementation((req, res, next) => {
+      next();
+    });
+    server = require("../../index");
+    agent = require("supertest").agent(server);
   });
 
-  it("should get all implants (empty array)", async () => {
-    sinon.restore();
-    spyOn(Implant, "find").and.resolveTo([]);
+  test("should get all implants (empty array)", async () => {
+    implantService.getAllImplants.mockResolvedValue([]);
+
     const res = await agent.get("/api/implants");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.implants.length).to.equal(0);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.implants).toHaveLength(0);
   });
 
-  it("should get all implants (non-empty array)", async () => {
-    spyOn(Implant, "find").and.resolveTo([
+  test("should get all implants (non-empty array)", async () => {
+    implantService.getAllImplants.mockResolvedValue([
       {
         _id: "some-mongo-id",
         id: "some-uuid",
@@ -45,9 +56,18 @@ describe("Implant API Tests", () => {
         isActive: false,
       },
     ]);
-    server = require("../../index");
+
     const res = await agent.get("/api/implants");
-    expect(res.statusCode).to.equal(200);
-    expect(res.body.implants.length).to.equal(2);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.implants).toHaveLength(2);
+  });
+
+  test("should fail to get all implants - exception thrown", async () => {
+    implantService.getAllImplants.mockRejectedValue(new Error("TypeError"));
+
+    const res = await agent.get("/api/implants");
+
+    expect(res.statusCode).toBe(500);
   });
 });

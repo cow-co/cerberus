@@ -1,6 +1,6 @@
 const { levels, log } = require("../utils/logger");
 const net = require("net");
-const { getTaskTypeById } = require("../db/services/tasks-service");
+const tasksService = require("../db/services/tasks-service");
 
 /**
  * @param {beacon} beacon
@@ -60,7 +60,7 @@ const validateTask = async (task) => {
     validity.isValid = false;
     validity.errors.push("Task type must have an ID and name");
   } else {
-    const taskType = await getTaskTypeById(task.type.id);
+    const taskType = await tasksService.getTaskTypeById(task.type.id);
     if (taskType === undefined || taskType === null) {
       validity.isValid = false;
       validity.errors.push("Invalid task type");

@@ -8,9 +8,9 @@ const ad = new ActiveDirectory(securityConfig.adConfig);
  * @param {string} password Will be null if using PKI for authentication
  * @returns true if authenticated, false otherwise
  */
-const authenticate = async (username, password) => {
+const authenticate = async (username, password, usePKI) => {
   let success = false;
-  if (securityConfig.usePKI) {
+  if (usePKI) {
     ad.userExists(username, (err, exists) => {
       success = exists;
     });
