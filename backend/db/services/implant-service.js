@@ -44,7 +44,9 @@ const updateImplant = async (details) => {
  */
 const findImplantById = async (id) => {
   let implant = null;
-  implant = await Implant.findOne({ id: id });
+  if (id) {
+    implant = await Implant.findOne({ id: id });
+  }
   return implant;
 };
 

@@ -47,7 +47,7 @@ const getTasksForImplant = async (implantId, history) => {
 const getTaskById = async (taskId) => {
   let task = null;
   if (taskId) {
-    await Task.findById(taskId);
+    task = await Task.findById(taskId);
   }
   return task;
 };
