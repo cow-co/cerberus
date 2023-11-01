@@ -48,7 +48,7 @@ const fetchImplants = async () => {
   return json;
 };
 
-const createTask = async (task) => {
+const setTask = async (task) => {
   let json = null;
   try {
     const response = await fetch(`${conf.apiURL}tasks`, {
@@ -243,7 +243,7 @@ export {
   fetchImplants,
   fetchTasks,
   fetchTaskTypes,
-  createTask,
+  setTask,
   createTaskType,
   deleteTask,
   deleteTaskType,

@@ -5,13 +5,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { setTaskTypes } from "../../common/redux/tasks-slice";
 import { createErrorAlert } from '../../common/redux/dispatchers';
 
-const CreateTaskDialogue = (props) => {
-  const {onClose, open, onSubmit} = props;
+const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
   const taskTypes = useSelector((state) => {
     return state.tasks.taskTypes
   });
   const dispatch = useDispatch();
-  const [task, setTask] = useState({type: {id: "", name: ""}, params: []});
+  const [task, setTask] = useState({_id: "", taskType: {id: "", name: ""}, params: []});
 
   useEffect(() => {
     const getData = async () => {
@@ -23,6 +22,7 @@ const CreateTaskDialogue = (props) => {
       }
     }
     getData();
+    setTask(providedTask);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -30,7 +30,8 @@ const CreateTaskDialogue = (props) => {
     const selectedTaskTypes = taskTypes.filter(val => val.name === event.target.value);
     // Needs to be a new object, else React does not realise a change has been made, it seems
     let updated = {
-      type: task.type,
+      _id: task._id,
+      taskType: task.taskType,
       params: task.params
     };
 
@@ -39,8 +40,8 @@ const CreateTaskDialogue = (props) => {
     if (selectedTaskTypes.length > 0) {
       const id = selectedTaskTypes[0]._id;
       const name = selectedTaskTypes[0].name;
-      updated.type.id = id;
-      updated.type.name = name;
+      updated.taskType.id = id;
+      updated.taskType.name = name;
       updated.params = selectedTaskTypes[0].params;
       updated.params = selectedTaskTypes[0].params.map(param => {
         return {
@@ -62,15 +63,26 @@ const CreateTaskDialogue = (props) => {
 
   const handleParamUpdate = (event) => {
     const {id, value} = event.target;
-    let updated = {
-      type: task.type,
-      params: task.params
-    };
-    updated.params.forEach(param => {
+    
+    const newParams = task.params.map(param => {
       if (param.name === id) {
-        param.value = value;
+        return {
+          name: param.name,
+          value: value,
+        };
+      } else {
+        return param;
       }
     });
+
+    const updated = {
+      _id: task._id,
+      taskType: {
+        id: task.taskType.id,
+        name: task.taskType.name
+      },
+      params: newParams
+    };
     setTask(updated);
   }
   
@@ -83,17 +95,17 @@ const CreateTaskDialogue = (props) => {
 
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
-      <DialogTitle>Create New Task</DialogTitle>
+      <DialogTitle>Create/Edit Task</DialogTitle>
       <FormControl fullWidth>
         <InputLabel id="task-type-label">Task Type</InputLabel>
-        <Select className="select-list" labelId="task-type-label" value={task.type.name} label="Task Type" onChange={handleChange}>
+        <Select className="select-list" labelId="task-type-label" value={task.taskType.name} label="Task Type" onChange={handleChange}>
           {taskTypeSelects}
         </Select>
         {paramsSettings}
-        <Button onClick={handleSubmit}>Create</Button>
+        <Button onClick={handleSubmit}>Set Task</Button>
       </FormControl>
     </Dialog>
   );
 }
 
-export default CreateTaskDialogue;
+export default TaskDialogue;

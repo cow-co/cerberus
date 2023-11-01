@@ -53,14 +53,14 @@ const validateTask = async (task) => {
     errors: [],
   };
 
-  if (!task.type) {
+  if (!task.taskType) {
     validity.isValid = false;
     validity.errors.push("Task must have a type");
-  } else if (!task.type.id || !task.type.name) {
+  } else if (!task.taskType.id || !task.taskType.name) {
     validity.isValid = false;
     validity.errors.push("Task type must have an ID and name");
   } else {
-    const taskType = await tasksService.getTaskTypeById(task.type.id);
+    const taskType = await tasksService.getTaskTypeById(task.taskType.id);
     if (taskType === undefined || taskType === null) {
       validity.isValid = false;
       validity.errors.push("Invalid task type");
