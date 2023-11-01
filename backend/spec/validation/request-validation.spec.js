@@ -105,7 +105,7 @@ describe("Task validation tests", () => {
       params: [],
     });
     const task = {
-      type: {
+      taskType: {
         id: "id",
         name: "task type",
       },
@@ -125,7 +125,7 @@ describe("Task validation tests", () => {
     });
 
     const task = {
-      type: {
+      taskType: {
         id: "id",
         name: "task type",
       },
@@ -166,7 +166,7 @@ describe("Task validation tests", () => {
 
   test("should be invalid - no type id", async () => {
     const task = {
-      type: {
+      taskType: {
         name: "task type",
       },
       params: [
@@ -188,7 +188,7 @@ describe("Task validation tests", () => {
 
   test("should be invalid - no type name", async () => {
     const task = {
-      type: {
+      taskType: {
         id: "id",
       },
       params: [
@@ -212,7 +212,7 @@ describe("Task validation tests", () => {
     tasksService.getTaskTypeById.mockResolvedValue(null);
 
     const task = {
-      type: {
+      taskType: {
         id: "id",
         name: "task type",
       },
@@ -241,7 +241,7 @@ describe("Task validation tests", () => {
     });
 
     const task = {
-      type: {
+      taskType: {
         id: "id",
         name: "task type",
       },
@@ -266,7 +266,7 @@ describe("Task validation tests", () => {
     });
 
     const task = {
-      type: {
+      taskType: {
         id: "id",
         name: "task type",
       },
