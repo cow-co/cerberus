@@ -42,7 +42,7 @@ const ImplantsPane = () => {
       callRefresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username])
+  }, [username, showInactive])
 
   const implantsItems = implants.map(implant => {
     return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))}/>

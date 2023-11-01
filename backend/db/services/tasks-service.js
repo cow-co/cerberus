@@ -45,7 +45,11 @@ const getTasksForImplant = async (implantId, history) => {
  * @returns
  */
 const getTaskById = async (taskId) => {
-  return await Task.findById(taskId);
+  let task = null;
+  if (taskId) {
+    task = await Task.findById(taskId);
+  }
+  return task;
 };
 
 const getTaskTypes = async () => {
@@ -58,7 +62,10 @@ const getTaskTypes = async () => {
  * @returns
  */
 const getTaskTypeById = async (id) => {
-  const taskType = await TaskType.findById(id);
+  let taskType = null;
+  if (id) {
+    taskType = await TaskType.findById(id);
+  }
   return taskType;
 };
 
@@ -67,9 +74,11 @@ const getTaskTypeById = async (id) => {
  * @param {string} mongoId
  */
 const taskSent = async (mongoId) => {
-  await Task.findByIdAndUpdate(mongoId, {
-    sent: true,
-  });
+  if (mongoId) {
+    await Task.findByIdAndUpdate(mongoId, {
+      sent: true,
+    });
+  }
 };
 
 const setTask = async (task) => {

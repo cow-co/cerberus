@@ -1,6 +1,7 @@
 const express = require("express");
 const beacons = require("./api/beaconing");
 const implants = require("./api/implants");
+const implantService = require("./db/services/implant-service");
 const tasks = require("./api/tasks");
 const access = require("./api/access");
 const users = require("./api/users");
@@ -18,6 +19,7 @@ const { SwaggerTheme } = require("swagger-themes");
 const https = require("https");
 const fs = require("fs");
 const http = require("http");
+const nodeCron = require("node-cron");
 
 const app = express();
 app.use(express.json());
@@ -52,9 +54,13 @@ if (process.env.NODE_ENV === "production") {
     })
   );
 
+  // Seed DB and set up scheduled tasks
   (async () => {
     await seeding.seedTaskTypes();
     await seeding.seedInitialAdmin();
+    nodeCron.schedule("*/5 * * * *", async () => {
+      await implantService.checkActivity();
+    });
   })();
 } else {
   app.use(
@@ -86,9 +92,7 @@ app.use(
 );
 
 const port = process.env.PORT || 5000;
-
 let server = null;
-
 const stop = () => {
   log("index.js", "Closing server...", levels.INFO);
 

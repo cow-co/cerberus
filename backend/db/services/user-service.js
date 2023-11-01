@@ -17,7 +17,12 @@ const User = require("../models/User");
  * @returns
  */
 const findUser = async (username) => {
-  const user = await User.findOne({ name: username });
+  let user = null;
+
+  if (username) {
+    user = await User.findOne({ name: username });
+  }
+
   return user;
 };
 
@@ -27,7 +32,12 @@ const findUser = async (username) => {
  * @returns
  */
 const findUserById = async (userId) => {
-  const user = await User.findById(userId);
+  let user = null;
+
+  if (userId) {
+    user = await User.findById(userId);
+  }
+
   return user;
 };
 
