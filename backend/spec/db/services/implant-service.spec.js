@@ -72,4 +72,57 @@ describe("Implant service tests", () => {
     expect(Implant.find).toHaveBeenCalledTimes(1);
     expect(imps).toHaveLength(1);
   });
+
+  test("activity checker - should deactivate an implant", async () => {
+    let updates = {
+      id1: true,
+      id2: true,
+      id3: true,
+    };
+
+    Implant.find.mockResolvedValue([
+      {
+        id: "id1",
+        ip: "details.ip",
+        os: "details.os",
+        beaconIntervalSeconds: 500,
+        lastCheckinTime: Number.MAX_SAFE_INTEGER,
+        isActive: true,
+        save: async function () {
+          console.log(JSON.stringify(this));
+          updates.id1 = this.isActive;
+        },
+      },
+      {
+        id: "id2",
+        ip: "details.ip",
+        os: "details.os",
+        beaconIntervalSeconds: 500,
+        lastCheckinTime: 1698862658,
+        isActive: true,
+        save: async function () {
+          console.log(JSON.stringify(this));
+          updates.id2 = this.isActive;
+        },
+      },
+      {
+        id: "id3",
+        ip: "details.ip",
+        os: "details.os",
+        beaconIntervalSeconds: 500,
+        lastCheckinTime: 1698861658,
+        isActive: true,
+        save: async function () {
+          console.log(JSON.stringify(this));
+          updates.id3 = this.isActive;
+        },
+      },
+    ]);
+
+    await implantService.checkActivity();
+
+    expect(updates.id1).toBe(true);
+    expect(updates.id2).toBe(false);
+    expect(updates.id3).toBe(false);
+  });
 });
