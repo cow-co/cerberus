@@ -97,7 +97,7 @@ const setTask = async (task) => {
     await Task.create({
       order: order,
       implantId: task.implantId,
-      taskType: task.type.name,
+      taskType: task.taskType,
       params: task.params,
       sent: false,
     });

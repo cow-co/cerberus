@@ -2,7 +2,7 @@ import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
-import { createTask, fetchTasks, deleteTask } from '../../common/apiCalls';
+import { setTask, fetchTasks, deleteTask } from '../../common/apiCalls';
 import TaskDialogue from './TaskDialogue';
 import { useSelector, useDispatch } from "react-redux";
 import { setTasks } from "../../common/redux/tasks-slice";
@@ -11,7 +11,8 @@ import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatc
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState({type: {id: "", name: ""}, params: []})
+  const [selectedTask, setSelectedTask] = useState({_id: "", taskType: {id: "", name: ""}, params: []});
+
   const tasks = useSelector((state) => state.tasks.tasks);
   const selectedImplant = useSelector((state) => state.implants.selected);
   const dispatch = useDispatch();
@@ -21,6 +22,7 @@ function TasksPane() {
   }
 
   const handleFormOpen = () => {
+    setSelectedTask({_id: "", taskType: {id: "", name: ""}, params: []});
     setDialogueOpen(true);
   }
 
@@ -30,7 +32,8 @@ function TasksPane() {
 
   const handleFormSubmit = async (data) => {
     data.implantId = selectedImplant.id;
-    const response = await createTask(data);
+    const response = await setTask(data);
+
     if (response.errors.length > 0) {
       createErrorAlert(response.errors);
     } else {
@@ -56,9 +59,13 @@ function TasksPane() {
 
   const handleEdit = (task) => {
     const editTask = {
-      type: task.type,
-      params: task.params
-    }
+      _id: task._id,
+      taskType: {
+        id: task.taskType.id,
+        name: task.taskType.name,
+      },
+      params: task.params,
+    };
     setSelectedTask(editTask);
     setDialogueOpen(true);
   }
@@ -84,7 +91,7 @@ function TasksPane() {
     } else {
       const filtered = tasks.filter(task => task.sent === false);
       tasksItems = filtered.map(task => {
-        return <TaskItem task={task} key={task._id} deleteTask={() => handleDelete(task)} editTask={() => {handleEdit(task)} />
+        return <TaskItem task={task} key={task._id} deleteTask={() => handleDelete(task)} editTask={() => handleEdit(task)} />
       });
     }
   }
@@ -99,9 +106,8 @@ function TasksPane() {
       <List>
         {tasksItems}
       </List>
-      <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} providedTask={selectedTask} />
-    </Container>
-      
+      {dialogueOpen && <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} providedTask={selectedTask} />}      
+    </Container>      
   )
 }
 

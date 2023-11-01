@@ -21,7 +21,7 @@ const TaskItem = ({task, deleteTask, editTask}) => {
           <h4>Order: {task.order}</h4>
         </Grid>
         <Grid item xs={3}>
-          <h4>Type: {task.taskType}</h4>
+          <h4>Type: {task.taskType.name}</h4>
         </Grid>
         <Grid item xs={6}>
           <h4>Params:</h4>
