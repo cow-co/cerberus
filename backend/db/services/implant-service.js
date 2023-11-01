@@ -57,9 +57,23 @@ const getAllImplants = async () => {
   return implants;
 };
 
+const checkActivity = async () => {
+  const numMissedBeaconsForInactive = 3; // How many beacons must the implant have missed in order to be deemed "inactive"
+  const implants = await getAllImplants();
+  implants.forEach(async (implant) => {
+    const missedCheckins =
+      (Date.now() - implant.lastCheckinTime) / implant.beaconIntervalSeconds;
+    if (missedCheckins > numMissedBeaconsForInactive) {
+      implant.isActive = false;
+      await implant.save();
+    }
+  });
+};
+
 module.exports = {
   addImplant,
   updateImplant,
   findImplantById,
   getAllImplants,
+  checkActivity,
 };
