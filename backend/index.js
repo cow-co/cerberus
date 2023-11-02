@@ -91,7 +91,7 @@ app.use(
   swaggerUI.setup(swaggerDoc, { customCss: darkStyle })
 );
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 443;
 let server = null;
 const stop = () => {
   log("index.js", "Closing server...", levels.INFO);

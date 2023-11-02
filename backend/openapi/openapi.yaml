@@ -83,47 +83,198 @@ components:
           nullable: false
           type: "string"
 paths:
-  /implants/:
-    get:
-      summary: Retrieves all implants.
+
+# ACCESS
+  /access/register:
+    post: 
+      summary: Creates a user, when user management is backed by the database (rather than AD, for example).
+      tags:
+        - Users
+        - Access
+      responses:
+        "200":
+          description: User registered successfully 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: Validation error(s) 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown, or cannot create users in-app with the configured auth method (eg. Active Directory)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /access/login:
+    post: 
+      summary: Logs the user in.
+      tags:
+        - Users
+        - Access
+      requestBody:
+        description: Login credentials
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/logindetails"
+      responses:
+        "200":
+          description: User logged in successfully 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "401":
+          description: Incorrect credentials 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown, or configured auth method is not supported
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /access/logout:
+    delete: 
+      summary: Logs the user out.
+      tags:
+        - Users
+        - Access
+      responses:
+        "200":
+          description: User logged out successfully 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /access/admin:
+    put: 
+      security:
+        - cookieAuth: []
+      summary: Changes admin status of user. Calling user must themselves be an admin.
+      tags:
+        - Access
+      requestBody:
+        description: Details of the change to make 
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                userId: 
+                  type: string
+                makeAdmin:
+                  type: boolean
+      responses:
+        "200":
+          description: User admin status successfully changed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: Attempting to change admin status of a non-existent user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403":
+          description: User not logged in or not an admin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+# BEACONS
+  /beacon: 
+    post: 
+      summary: Checks in from an implant, and retrieves tasks. 
       tags:
         - Implants
-      responses:
-        "200": # status code
-          description: Implant details.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  implants:
-                    type: array
-                    description: This will be empty
-                    items:
-                      $ref: "#/components/schemas/implant"
-                  errors:
-                    type: array
-                    items:
-                      type: string
-        "500": # status code
-          description: An unexpected server-side error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  implants:
-                    type: array
-                    description: This will be empty
-                  errors:
-                    type: array
-                    items:
-                      type: string
-  /beacon/:
-    post:
-      summary: Reports in to the CERBERUS server, to receive C2 tasking.
-      tags:
-        - Beacon
       requestBody:
         description: Details of the implant host
         content:
@@ -141,60 +292,119 @@ paths:
                   type: string
                   description: The IP of the implant host
                 beaconIntervalSeconds:
-                  type: long
+                  type: number
                   description: The interval, in seconds, between checkins for the implant - configured in the implant code to start off, but may be updated by C2
         required: true
       responses:
-        "200": # status code
-          description: Tasking details.
+        "200":
+          description: Tasks for the implant
           content:
             application/json:
-              schema:
+              schema: 
                 type: object
                 properties:
                   tasks:
                     type: array
-                    items:
+                    items: 
                       $ref: "#/components/schemas/task"
                   errors:
                     type: array
                     items:
                       type: string
-        "400": # status code
-          description: Invalid request
+        "400":
+          description: Beacon is invalid
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items: 
+                      $ref: "#/components/schemas/task"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items: 
+                      $ref: "#/components/schemas/task"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+# IMPLANTS
+  /implants:
+    get:
+      security:
+        - cookieAuth: []
+      summary: Retrieves all implants.
+      tags:
+        - Implants
+      responses:
+        "200":
+          description: Implant details.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  tasks:
+                  implants:
                     type: array
                     description: This will be empty
+                    items:
+                      $ref: "#/components/schemas/implant"
                   errors:
                     type: array
                     items:
                       type: string
-        "500": # status code
+        "403":
+          description: User not logged in.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  implants:
+                    type: array
+                    description: This will be empty
+                    items:
+                      $ref: "#/components/schemas/implant"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
           description: An unexpected server-side error
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  tasks:
+                  implants:
                     type: array
                     description: This will be empty
                   errors:
                     type: array
                     items:
                       type: string
+# TASKS
   /tasks/{implantId}:
     get:
       security:
         - cookieAuth: []
-      summary: Retrieves tasks for the given implant. Requires login
+      summary: Retrieves tasks for the given implant. 
       tags:
         - Tasks
+        - Implants
       responses:
         "200": # status code
           description: Tasks.
@@ -208,6 +418,17 @@ paths:
                     description: Tasks for the implant
                     items:
                       $ref: "#/components/schemas/task"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: User not logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
                   errors:
                     type: array
                     items:
@@ -228,6 +449,8 @@ paths:
                       type: string
   /task-types:
     get:
+      security:
+        - cookieAuth: []
       summary: Retrieves the list of all task types
       tags:
         - Tasks
@@ -239,11 +462,22 @@ paths:
               schema:
                 type: object
                 properties:
-                  tasks:
+                  taskTypes:
                     type: array
                     description: Task types
                     items:
                       $ref: "#/components/schemas/tasktype"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: User not logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
                   errors:
                     type: array
                     items:
@@ -262,16 +496,61 @@ paths:
                     type: array
                     items:
                       type: string
-  /tasks: 
-    post: 
+    post:
       security:
         - cookieAuth: []
-      summary: Creates a task
+      summary: Creates a new task type
       tags:
         - Tasks
       responses:
         "200": # status code
-          description: Successfully created
+          description: Task types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskType:
+                    $ref: "#/components/schemas/tasktype"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: User not logged in or not an admin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskType:
+                    type: object
+                    description: This will be empty
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /tasks: 
+    post: 
+      security:
+        - cookieAuth: []
+      summary: Creates or edits a task
+      tags:
+        - Tasks
+      responses:
+        "200": # status code
+          description: Successfully created/updated
           content:
             application/json:
               schema:
@@ -283,6 +562,17 @@ paths:
                       type: string
         "400": # status code
           description: Improperly-formatted task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: User not logged in
           content:
             application/json:
               schema:
@@ -333,108 +623,6 @@ paths:
                     type: array
                     items:
                       type: string
-        "500": # status code
-          description: An unexpected server-side error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-  /access/register: 
-    post: 
-      summary: Creates a database-backed user
-      tags:
-        - Users
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/logindetails"
-      responses:
-        "200": # status code
-          description: Successfully registered
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-        "400": # status code
-          description: Registration error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-  /access/login: 
-    post: 
-      summary: Creates a login session
-      tags:
-        - Users
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/logindetails"
-      responses:
-        "200": # status code
-          description: Successfully authenticated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  username:
-                    type: string
-                  errors:
-                    type: array
-                    items:
-                      type: string
-        "401": # status code
-          description: Login error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  username:
-                    type: string
-                  errors:
-                    type: array
-                    items:
-                      type: string
-  /access/logout: 
-    delete: 
-      security:
-        - cookieAuth: []
-      summary: Logs the user out
-      tags:
-        - Users
-      responses:
-        "200": # status code
-          description: Successfully logged out (or was not logged in)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
         "403": # status code
           description: User not logged in
           content:
@@ -446,27 +634,8 @@ paths:
                     type: array
                     items:
                       type: string
-  /access/admin: 
-    put: 
-      security:
-        - cookieAuth: []
-      summary: Changes the admin status of a user. Requires the calling user to be an admin themselves.
-      tags:
-        - Users
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                userId: 
-                  type: string
-                makeAdmin: 
-                  type: boolean
-      responses:
-        "200": # status code
-          description: Successfully changed admin status
+        "500": # status code
+          description: An unexpected server-side error
           content:
             application/json:
               schema:
@@ -476,28 +645,7 @@ paths:
                     type: array
                     items:
                       type: string
-        "400": # status code
-          description: Provided userId does not correspond to a user
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-        "403": # status code
-          description: User not logged in, or user not an admin
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string      
+# USERS    
   /users/user/{username}: 
     get: 
       security:
