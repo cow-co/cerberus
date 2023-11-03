@@ -142,6 +142,10 @@ const deleteTaskType = async (taskTypeId) => {
   await TaskType.findByIdAndDelete(taskTypeId);
 };
 
+const getParamDataTypes = () => {
+  return TaskType.schema.path("params.type").enumValues;
+};
+
 module.exports = {
   getTasksForImplant,
   getTaskById,
@@ -152,4 +156,5 @@ module.exports = {
   createTaskType,
   deleteTask,
   deleteTaskType,
+  getParamDataTypes,
 };

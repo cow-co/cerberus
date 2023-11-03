@@ -220,4 +220,19 @@ router.delete(
   }
 );
 
+router.get("/task-types/param-data-types", (req, res) => {
+  let response = {};
+  let statusCode = statusCodes.OK;
+
+  try {
+    response.dataTypes = tasksService.getParamDataTypes();
+  } catch (err) {
+    log("/task-types/param-data-types", err, levels.ERROR);
+    response.errors = ["Internal Server Error"];
+    statusCode = statusCodes.INTERNAL_SERVER_ERROR;
+  }
+
+  return res.status(statusCode).json(response);
+});
+
 module.exports = router;
