@@ -1,11 +1,29 @@
-import { useState } from 'react';
-import { FormControl, Dialog, DialogTitle, Button, TextField, Typography, ListItem, Grid, IconButton, List } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { FormControl, Dialog, DialogTitle, Button, TextField, MenuItem, Select, Typography, ListItem, Grid, IconButton, List } from '@mui/material';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
+import { getParamTypes } from '../../common/apiCalls';
 
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
+  // Each param will have structure
+  // - name
+  // - data type
   const [taskType, setTaskType] = useState({name: "", params: []});
+  const [paramTypes, setParamTypes] = useState([])
+
+  useEffect(() => {
+    async function callFetcher() {
+      const res = await getParamTypes();
+      if (res.dataTypes) {
+        setParamTypes(res.dataTypes);
+      } else {
+        setParamTypes([]);
+      }
+    }
+
+    callFetcher();
+  }, [open])
 
   const handleClose = () => {
     onClose();
@@ -48,7 +66,7 @@ const CreateTaskDialogue = (props) => {
     setTaskType(updated);
   }
 
-  const handleParamUpdate = (event) => {
+  const handleParamNameUpdate = (event) => {
     const {id, value} = event.target;
     let updated = {
       name: taskType.name,
@@ -60,12 +78,28 @@ const CreateTaskDialogue = (props) => {
       }
     });
     setTaskType(updated);
-  }
+  };
+
+  const handleParamTypeChange = (event) => {
+    const {id, value} = event.target;
+    console.log("Value: " + value);
+    console.log("ID: " + id);
+  };
+
+  const dataTypeSelects = paramTypes.map(paramType => {
+    return <MenuItem value={paramType} key={paramType} id={paramType}>{paramType}</MenuItem>
+  });
   
+  // TODO Do the params even have IDs here?
   const paramsSettings = taskType.params.map((param) => (
     <ListItem className="listElement" key={param.id} >
-      <Grid item xs={11}>
-        <TextField fullWidth className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamUpdate} />
+      <Grid item xs={7}>
+        <TextField fullWidth className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamNameUpdate} />
+      </Grid>
+      <Grid item xs={4}>
+        <Select className="select-list" label="Data Type" value={param.type} onChange={handleParamTypeChange}>
+          {dataTypeSelects}
+        </Select>
       </Grid>
       <Grid item xs={1}>
         <IconButton onClick={() => deleteParam(param.id)}><DeleteForeverIcon /></IconButton>
