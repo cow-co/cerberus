@@ -121,7 +121,16 @@ describe("Task validation tests", () => {
     tasksService.getTaskTypeById.mockResolvedValue({
       id: "id",
       name: "task type",
-      params: ["param 1", "param 2"],
+      params: [
+        {
+          name: "param 1",
+          type: "NUMBER",
+        },
+        {
+          name: "param 2",
+          type: "STRING",
+        },
+      ],
     });
 
     const task = {
@@ -132,11 +141,131 @@ describe("Task validation tests", () => {
       params: [
         {
           name: "param 1",
-          value: "val",
+          value: "25",
         },
         {
           name: "param 2",
           value: "val2",
+        },
+      ],
+      implantId: "implant",
+    };
+
+    const res = await validation.validateTask(task);
+    expect(res.isValid).toBe(true);
+  });
+
+  test("validate task - failure - expects string, gets number", async () => {
+    tasksService.getTaskTypeById.mockResolvedValue({
+      id: "id",
+      name: "task type",
+      params: [
+        {
+          name: "param 2",
+          type: "STRING",
+        },
+      ],
+    });
+
+    const task = {
+      taskType: {
+        id: "id",
+        name: "task type",
+      },
+      params: [
+        {
+          name: "param 2",
+          value: 10,
+        },
+      ],
+      implantId: "implant",
+    };
+
+    const res = await validation.validateTask(task);
+    expect(res.isValid).toBe(false);
+  });
+
+  test("validate task - failure - expects number, gets string with no digits", async () => {
+    tasksService.getTaskTypeById.mockResolvedValue({
+      id: "id",
+      name: "task type",
+      params: [
+        {
+          name: "param 2",
+          type: "NUMBER",
+        },
+      ],
+    });
+
+    const task = {
+      taskType: {
+        id: "id",
+        name: "task type",
+      },
+      params: [
+        {
+          name: "param 2",
+          value: "hello",
+        },
+      ],
+      implantId: "implant",
+    };
+
+    const res = await validation.validateTask(task);
+    expect(res.isValid).toBe(false);
+  });
+
+  test("validate task - failure - expects number, gets string with digits and letters", async () => {
+    tasksService.getTaskTypeById.mockResolvedValue({
+      id: "id",
+      name: "task type",
+      params: [
+        {
+          name: "param 2",
+          type: "NUMBER",
+        },
+      ],
+    });
+
+    const task = {
+      taskType: {
+        id: "id",
+        name: "task type",
+      },
+      params: [
+        {
+          name: "param 2",
+          value: "11lo",
+        },
+      ],
+      implantId: "implant",
+    };
+
+    const res = await validation.validateTask(task);
+    expect(res.isValid).toBe(false);
+  });
+
+  test("validate task - success - float", async () => {
+    tasksService.getTaskTypeById.mockResolvedValue({
+      id: "id",
+      name: "task type",
+      params: [
+        {
+          name: "param 2",
+          type: "NUMBER",
+        },
+      ],
+    });
+
+    const task = {
+      taskType: {
+        id: "id",
+        name: "task type",
+      },
+      params: [
+        {
+          name: "param 2",
+          value: "10.5",
         },
       ],
       implantId: "implant",

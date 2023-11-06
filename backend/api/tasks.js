@@ -220,4 +220,12 @@ router.delete(
   }
 );
 
+router.get("/task-types/param-data-types", (req, res) => {
+  let response = {};
+  let statusCode = statusCodes.OK;
+  response.dataTypes = tasksService.getParamDataTypes();
+
+  return res.status(statusCode).json(response);
+});
+
 module.exports = router;

@@ -8,7 +8,16 @@ const taskTypeSchema = new Schema({
     dropDups: true,
     index: true,
   },
-  params: Array,
+  params: [
+    {
+      name: String,
+      type: {
+        type: String,
+        enum: ["NUMBER", "STRING"],
+        default: "STRING",
+      },
+    },
+  ],
 });
 
 module.exports = TaskType = mongoose.model("TaskType", taskTypeSchema);

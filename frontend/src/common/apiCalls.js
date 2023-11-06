@@ -239,6 +239,20 @@ const checkSessionCookie = async () => {
   return json;
 };
 
+const getParamTypes = async () => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}task-types/param-data-types`);
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
 export {
   fetchImplants,
   fetchTasks,
@@ -254,4 +268,5 @@ export {
   changeAdminStatus,
   deleteUser,
   checkSessionCookie,
+  getParamTypes,
 };

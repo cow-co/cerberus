@@ -408,4 +408,13 @@ describe("Tasks API Tests", () => {
 
     expect(res.statusCode).toBe(500);
   });
+
+  test("get param types - success", async () => {
+    tasksService.getParamDataTypes.mockReturnValue(["NUMBER", "STRING"]);
+
+    const res = await agent.get("/api/task-types/param-data-types");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.dataTypes).toHaveLength(2);
+  });
 });
