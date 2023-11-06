@@ -8,7 +8,7 @@ components:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: sid
+      name: connect.sid
   schemas:
     logindetails:
       properties:
@@ -61,7 +61,7 @@ components:
         sent:
           nullable: false
           type: "boolean"
-    tasktype:
+    tasktypedb:
       properties:
         _id:
           nullable: false
@@ -73,7 +73,31 @@ components:
           nullable: false
           type: "array"
           items:
-            type: "string"
+            type: object
+            properties:
+              name: 
+                nullable: false
+                type: "string"
+              type: 
+                nullable: false
+                type: "string"
+    tasktypecreate:
+      properties:
+        name:
+          nullable: false
+          type: "string"
+        params:
+          nullable: false
+          type: "array"
+          items:
+            type: object
+            properties:
+              name: 
+                nullable: false
+                type: "string"
+              type: 
+                nullable: false
+                type: "string"
     paramvalue:
       properties:
         name:
@@ -466,7 +490,7 @@ paths:
                     type: array
                     description: Task types
                     items:
-                      $ref: "#/components/schemas/tasktype"
+                      $ref: "#/components/schemas/tasktypedb"
                   errors:
                     type: array
                     items:
@@ -502,16 +526,22 @@ paths:
       summary: Creates a new task type
       tags:
         - Tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taskType:
+                  $ref: "#/components/schemas/tasktypecreate"            
       responses:
         "200": # status code
-          description: Task types
+          description: Successfully created
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  taskType:
-                    $ref: "#/components/schemas/tasktype"
                   errors:
                     type: array
                     items:
