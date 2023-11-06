@@ -32,9 +32,15 @@ const CreateTaskDialogue = (props) => {
   const handleSubmit = () => {
     const data = {
       name: taskType.name,
-      params: taskType.params.map(param => param.name)
+      params: taskType.params.map(param => {
+        return {
+          name: param.name,
+          type: param.type
+        }
+      })
     };
     onSubmit(data);
+    setTaskType({name: "", params: []});
   }
   
   const handleAddParam = () => {
@@ -81,23 +87,30 @@ const CreateTaskDialogue = (props) => {
   };
 
   const handleParamTypeChange = (event) => {
-    const {id, value} = event.target;
-    console.log("Value: " + value);
-    console.log("ID: " + id);
+    const {name, value} = event.target;
+    let updated = {
+      name: taskType.name,
+      params: taskType.params
+    };
+    updated.params.forEach((param) => {
+      if (param.id === name) {
+        param.type = value;
+      }
+    });
+    setTaskType(updated);
   };
 
   const dataTypeSelects = paramTypes.map(paramType => {
     return <MenuItem value={paramType} key={paramType} id={paramType}>{paramType}</MenuItem>
   });
   
-  // TODO Do the params even have IDs here?
   const paramsSettings = taskType.params.map((param) => (
     <ListItem className="listElement" key={param.id} >
       <Grid item xs={7}>
         <TextField fullWidth className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamNameUpdate} />
       </Grid>
       <Grid item xs={4}>
-        <Select className="select-list" label="Data Type" value={param.type} onChange={handleParamTypeChange}>
+        <Select className="select-list" label="Data Type" value={param.type} onChange={handleParamTypeChange} name={param.id} id={param.name}>
           {dataTypeSelects}
         </Select>
       </Grid>
