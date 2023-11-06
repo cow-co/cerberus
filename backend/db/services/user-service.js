@@ -17,16 +17,27 @@ const User = require("../models/User");
  * @returns
  */
 const findUser = async (username) => {
-  const user = await User.findOne({ name: username });
+  let user = null;
+
+  if (username) {
+    user = await User.findOne({ name: username });
+  }
+
   return user;
 };
 
 /**
+ * If userId is null or undefined, mongoose should handle ensuring that no records are returned.
  * @param {string} userId
  * @returns
  */
 const findUserById = async (userId) => {
-  const user = await User.findById(userId);
+  let user = null;
+
+  if (userId) {
+    user = await User.findById(userId);
+  }
+
   return user;
 };
 
@@ -39,11 +50,12 @@ const createUser = async (user) => {
 };
 
 /**
+ * If userId is null or undefined, mongoose should handle ensuring that no records are returned.
  * @param {string} userId
  * @returns
  */
 const deleteUser = async (userId) => {
-  return await User.findByIdAndDelete(userId);
+  await User.findByIdAndDelete(userId);
 };
 
 module.exports = {

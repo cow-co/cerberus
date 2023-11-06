@@ -1,11 +1,29 @@
-import { useState } from 'react';
-import { FormControl, Dialog, DialogTitle, Button, TextField, Typography, ListItem, Grid, IconButton, List } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { FormControl, Dialog, DialogTitle, Button, TextField, MenuItem, Select, Typography, ListItem, Grid, IconButton, List } from '@mui/material';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
+import { getParamTypes } from '../../common/apiCalls';
 
 const CreateTaskDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
+  // Each param will have structure
+  // - name
+  // - data type
   const [taskType, setTaskType] = useState({name: "", params: []});
+  const [paramTypes, setParamTypes] = useState([])
+
+  useEffect(() => {
+    async function callFetcher() {
+      const res = await getParamTypes();
+      if (res.dataTypes) {
+        setParamTypes(res.dataTypes);
+      } else {
+        setParamTypes([]);
+      }
+    }
+
+    callFetcher();
+  }, [open])
 
   const handleClose = () => {
     onClose();
@@ -14,9 +32,15 @@ const CreateTaskDialogue = (props) => {
   const handleSubmit = () => {
     const data = {
       name: taskType.name,
-      params: taskType.params.map(param => param.name)
+      params: taskType.params.map(param => {
+        return {
+          name: param.name,
+          type: param.type
+        }
+      })
     };
     onSubmit(data);
+    setTaskType({name: "", params: []});
   }
   
   const handleAddParam = () => {
@@ -48,7 +72,7 @@ const CreateTaskDialogue = (props) => {
     setTaskType(updated);
   }
 
-  const handleParamUpdate = (event) => {
+  const handleParamNameUpdate = (event) => {
     const {id, value} = event.target;
     let updated = {
       name: taskType.name,
@@ -60,12 +84,35 @@ const CreateTaskDialogue = (props) => {
       }
     });
     setTaskType(updated);
-  }
+  };
+
+  const handleParamTypeChange = (event) => {
+    const {name, value} = event.target;
+    let updated = {
+      name: taskType.name,
+      params: taskType.params
+    };
+    updated.params.forEach((param) => {
+      if (param.id === name) {
+        param.type = value;
+      }
+    });
+    setTaskType(updated);
+  };
+
+  const dataTypeSelects = paramTypes.map(paramType => {
+    return <MenuItem value={paramType} key={paramType} id={paramType}>{paramType}</MenuItem>
+  });
   
   const paramsSettings = taskType.params.map((param) => (
     <ListItem className="listElement" key={param.id} >
-      <Grid item xs={11}>
-        <TextField fullWidth className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamUpdate} />
+      <Grid item xs={7}>
+        <TextField fullWidth className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamNameUpdate} />
+      </Grid>
+      <Grid item xs={4}>
+        <Select className="select-list" label="Data Type" value={param.type} onChange={handleParamTypeChange} name={param.id} id={param.name}>
+          {dataTypeSelects}
+        </Select>
       </Grid>
       <Grid item xs={1}>
         <IconButton onClick={() => deleteParam(param.id)}><DeleteForeverIcon /></IconButton>

@@ -6,20 +6,8 @@ const securityConfig = require("../config/security-config");
 const { log, levels } = require("../utils/logger");
 
 const seedTaskTypes = async () => {
-  const defaultTaskTypes = [
-    {
-      name: "Set Beacon Interval",
-      params: ["New Interval"],
-    },
-    {
-      name: "Download",
-      params: ["Source", "Destination"],
-    },
-    {
-      name: "Run Command",
-      params: ["Command"],
-    },
-  ];
+  const defaultTaskTypes =
+    require("../config/default-task-types.json").taskTypes;
 
   const numDbVersions = await dbStateService.getNumDbVersions();
   if (numDbVersions === 0) {

@@ -1,0 +1,35 @@
+{
+  "taskTypes": [
+    {
+      "name": "Set Beacon Interval",
+      "params": [
+        {
+          "name": "New Interval",
+          "type": "NUMBER"
+        }
+      ]
+    },
+    {
+      "name": "Download",
+      "params": [
+        {
+          "name": "Source",
+          "type": "STRING"
+        },
+        {
+          "name": "Destination",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "Run Command",
+      "params": [
+        {
+          "name": "Command",
+          "type": "STRING"
+        }
+      ]
+    }
+  ]
+}

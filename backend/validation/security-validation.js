@@ -1,39 +1,26 @@
-const { passwordRequirements } = require("../config/security-config");
-
 const DIGITS_REGEX = /[0-9]+/g;
 
 /**
  * @param {string} password
  * @returns errors
  */
-const validatePassword = (password) => {
+const validatePassword = (password, pwReqs) => {
   let errors = [];
 
-  if (
-    passwordRequirements.requireUppercase &&
-    password.toLowerCase() === password
-  ) {
+  if (pwReqs.requireUppercase && password.toLowerCase() === password) {
     errors.push("At least one uppercase character is required");
   }
 
-  if (
-    passwordRequirements.requireLowercase &&
-    password.toUpperCase() === password
-  ) {
+  if (pwReqs.requireLowercase && password.toUpperCase() === password) {
     errors.push("At least one lowercase character is required");
   }
 
-  if (
-    passwordRequirements.requireNumber &&
-    password.match(DIGITS_REGEX) === null
-  ) {
+  if (pwReqs.requireNumber && password.match(DIGITS_REGEX) === null) {
     errors.push("At least one numeric digit is required");
   }
 
-  if (password.length < passwordRequirements.minLength) {
-    errors.push(
-      `The password must be at least ${passwordRequirements.minLength} characters`
-    );
+  if (password.length < pwReqs.minLength) {
+    errors.push(`The password must be at least ${pwReqs.minLength} characters`);
   }
 
   return errors;

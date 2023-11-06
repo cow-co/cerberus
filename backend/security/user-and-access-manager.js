@@ -34,10 +34,18 @@ const authenticate = async (req, res, next) => {
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
-        authenticated = await dbUserManager.authenticate(username, password);
+        authenticated = await dbUserManager.authenticate(
+          username,
+          password,
+          securityConfig.usePKI
+        );
         break;
       case securityConfig.availableAuthMethods.AD:
-        authenticated = await adUserManager.authenticate(username, password);
+        authenticated = await adUserManager.authenticate(
+          username,
+          password,
+          securityConfig.usePKI
+        );
         break;
 
       default:
@@ -96,10 +104,12 @@ const verifySession = async (req, res, next) => {
 
 /**
  * Destroys the stored session token
- * @param {Session} session
+ * @param {Session} session (can be null/undefined, in which case function is no-op)
  */
 const logout = async (session) => {
-  session.destroy();
+  if (session) {
+    session.destroy();
+  }
 };
 
 /**
@@ -116,14 +126,18 @@ const register = async (username, password) => {
     errors: [],
   };
 
-  if (securityConfig.authMethod === securityConfig.availableAuthMethods.AD) {
-    response.errors.push(
-      "Registering is not supported for AD-backed auth; please ask your Active Directory administrator to add you."
+  if (securityConfig.authMethod === securityConfig.availableAuthMethods.DB) {
+    const createdUser = await dbUserManager.register(
+      username,
+      password,
+      securityConfig.passwordRequirements
     );
-  } else {
-    const createdUser = await dbUserManager.register(username, password);
     response._id = createdUser.userId;
     response.errors = createdUser.errors;
+  } else {
+    response.errors.push(
+      "Registering is not supported for the configured auth method; please ask your administrator to add you."
+    );
   }
 
   return response;
@@ -141,8 +155,8 @@ const checkAdmin = async (req, res, next) => {
   // This ensures we call this method after logging in
   if (username) {
     const result = await findUserByName(username);
-    if (result.errors.length > 0) {
-      res.status(statusCodes.FORBIDDEN).json({ errors });
+    if (result.user === null) {
+      res.status(statusCodes.FORBIDDEN).json({ errors: ["User not found"] });
     } else {
       isAdmin = await adminService.isUserAdmin(result.user.id);
       if (isAdmin) {

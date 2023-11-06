@@ -30,7 +30,7 @@ const log = (location, message, level) => {
       break;
 
     default:
-      console.info(chalk.green(message));
+      console.log(message);
       break;
   }
 };

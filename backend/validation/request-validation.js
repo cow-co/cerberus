@@ -1,6 +1,6 @@
 const { levels, log } = require("../utils/logger");
 const net = require("net");
-const { getTaskTypeById } = require("../db/services/tasks-service");
+const tasksService = require("../db/services/tasks-service");
 
 /**
  * @param {beacon} beacon
@@ -53,20 +53,26 @@ const validateTask = async (task) => {
     errors: [],
   };
 
-  if (!task.type) {
+  if (!task.taskType) {
     validity.isValid = false;
     validity.errors.push("Task must have a type");
-  } else if (!task.type.id || !task.type.name) {
+  } else if (!task.taskType.id || !task.taskType.name) {
     validity.isValid = false;
     validity.errors.push("Task type must have an ID and name");
   } else {
-    const taskType = await getTaskTypeById(task.type.id);
+    const taskType = await tasksService.getTaskTypeById(task.taskType.id);
     if (taskType === undefined || taskType === null) {
       validity.isValid = false;
       validity.errors.push("Invalid task type");
     } else if (taskType.params.length !== task.params.length) {
       validity.isValid = false;
       validity.errors.push("Task must populate all available parameters");
+    } else {
+      const paramErrors = validateTaskParams(task, taskType);
+      if (paramErrors.length !== 0) {
+        validity.isValid = false;
+        validity.errors = validity.errors.concat(paramErrors);
+      }
     }
   }
 
@@ -90,16 +96,52 @@ const validateTaskType = (taskType) => {
   if (!taskType.name || taskType.params === undefined) {
     validity.isValid = false;
     validity.errors = [
-      "Task Type must have a name and an array (can be empty) of param names",
+      "Task Type must have a name and an array (can be empty) of params",
     ];
   } else {
     const distinctParams = new Set(taskType.params);
     if (distinctParams.size !== taskType.params.length) {
       validity.isValid = false;
-      validity.errors = ["Task Type params must have distinct names"];
+      validity.errors = ["Task Type params must be distinct"];
     }
   }
   return validity;
+};
+
+const isNum = (value) => {
+  let isNumber = typeof value === "number";
+  if (!isNumber) {
+    isNumber = !isNaN(value) && !isNaN(parseFloat(value));
+  }
+  return isNumber;
+};
+
+const validateTaskParams = (task, taskType) => {
+  let errors = [];
+
+  task.params.forEach((param) => {
+    const paramSpec = taskType.params.find(
+      (paramSpec) => paramSpec.name === param.name
+    );
+
+    let valid = false;
+    switch (paramSpec.type) {
+      case "NUMBER":
+        valid = isNum(param.value);
+        break;
+      case "STRING":
+        valid = typeof param.value === "string";
+        break;
+    }
+
+    if (!valid) {
+      errors.push(
+        `Parameter ${param.name} invalid - data type expected to be ${paramSpec.type}`
+      );
+    }
+  });
+
+  return errors;
 };
 
 module.exports = {

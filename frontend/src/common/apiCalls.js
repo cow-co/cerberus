@@ -48,7 +48,7 @@ const fetchImplants = async () => {
   return json;
 };
 
-const createTask = async (task) => {
+const setTask = async (task) => {
   let json = null;
   try {
     const response = await fetch(`${conf.apiURL}tasks`, {
@@ -239,11 +239,25 @@ const checkSessionCookie = async () => {
   return json;
 };
 
+const getParamTypes = async () => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}task-types/param-data-types`);
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
 export {
   fetchImplants,
   fetchTasks,
   fetchTaskTypes,
-  createTask,
+  setTask,
   createTaskType,
   deleteTask,
   deleteTaskType,
@@ -254,4 +268,5 @@ export {
   changeAdminStatus,
   deleteUser,
   checkSessionCookie,
+  getParamTypes,
 };

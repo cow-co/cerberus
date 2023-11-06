@@ -16,7 +16,7 @@ const addImplant = async (details) => {
     ip: details.ip,
     os: details.os,
     beaconIntervalSeconds: details.beaconIntervalSeconds,
-    lastCheckinTimeSeconds: details.lastCheckinTimeSeconds,
+    lastCheckinTime: details.lastCheckinTimeSeconds,
     isActive: true,
   });
 };
@@ -32,7 +32,7 @@ const updateImplant = async (details) => {
       ip: details.ip,
       os: details.os,
       beaconIntervalSeconds: details.beaconIntervalSeconds,
-      lastCheckinTimeSeconds: details.lastCheckinTimeSeconds,
+      lastCheckinTime: details.lastCheckinTimeSeconds,
       isActive: true,
     }
   );
@@ -44,7 +44,9 @@ const updateImplant = async (details) => {
  */
 const findImplantById = async (id) => {
   let implant = null;
-  implant = await Implant.findOne({ id: id });
+  if (id) {
+    implant = await Implant.findOne({ id: id });
+  }
   return implant;
 };
 
@@ -57,9 +59,23 @@ const getAllImplants = async () => {
   return implants;
 };
 
+const checkActivity = async () => {
+  const numMissedBeaconsForInactive = 3; // How many beacons must the implant have missed in order to be deemed "inactive"
+  const implants = await getAllImplants();
+  implants.forEach(async (implant) => {
+    const missedCheckins =
+      (Date.now() - implant.lastCheckinTime) / implant.beaconIntervalSeconds;
+    if (missedCheckins > numMissedBeaconsForInactive) {
+      implant.isActive = false;
+      await implant.save();
+    }
+  });
+};
+
 module.exports = {
   addImplant,
   updateImplant,
   findImplantById,
   getAllImplants,
+  checkActivity,
 };

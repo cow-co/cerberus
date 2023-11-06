@@ -4,7 +4,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const TaskTypeItem = ({taskType, deleteTaskType}) => {
   const paramsList = taskType.params.map(param => {
-    return <ListItem key={param}>{param}</ListItem>
+    return <ListItem key={param._id}>{param.name} ({param.type})</ListItem>
   });
 
   return (

@@ -45,7 +45,11 @@ const getTasksForImplant = async (implantId, history) => {
  * @returns
  */
 const getTaskById = async (taskId) => {
-  return await Task.findById(taskId);
+  let task = null;
+  if (taskId) {
+    task = await Task.findById(taskId);
+  }
+  return task;
 };
 
 const getTaskTypes = async () => {
@@ -58,7 +62,10 @@ const getTaskTypes = async () => {
  * @returns
  */
 const getTaskTypeById = async (id) => {
-  const taskType = await TaskType.findById(id);
+  let taskType = null;
+  if (id) {
+    taskType = await TaskType.findById(id);
+  }
   return taskType;
 };
 
@@ -67,31 +74,45 @@ const getTaskTypeById = async (id) => {
  * @param {string} mongoId
  */
 const taskSent = async (mongoId) => {
-  await Task.findByIdAndUpdate(mongoId, {
-    sent: true,
-  });
+  if (mongoId) {
+    await Task.findByIdAndUpdate(mongoId, {
+      sent: true,
+    });
+  }
 };
 
-/**
- * @param {Task} task
- * @returns
- */
-const createTask = async (task) => {
-  const existing = await getTasksForImplant(task.implantId, true);
-  let order = 0;
+const setTask = async (task) => {
+  let error = null;
 
-  // getTasksForImplant returns the list sorted by order value
-  if (existing.length > 0) {
-    order = existing[0].order + 1;
+  const existing = await getTaskById(task._id);
+  if (task._id && existing) {
+    if (existing.sent) {
+      error = "Cannot edit a task that has already been sent";
+    } else {
+      await existing.updateOne(task);
+    }
+  } else {
+    // We don't check that the implant actually exists, since there may be cases where we might
+    // want to line up tasks before an implant is deployed. We don't want to make that *easy* (via UI), necessarily,
+    // but we do want to make it possible
+    const tasksList = await getTasksForImplant(task.implantId, true);
+    let order = 0;
+
+    // getTasksForImplant returns the list sorted by order value
+    if (tasksList.length > 0) {
+      order = tasksList[0].order + 1;
+    }
+
+    await Task.create({
+      order: order,
+      implantId: task.implantId,
+      taskType: task.taskType,
+      params: task.params,
+      sent: false,
+    });
   }
 
-  await Task.create({
-    order: order,
-    implantId: task.implantId,
-    taskType: task.type.name,
-    params: task.params,
-    sent: false,
-  });
+  return error;
 };
 
 /**
@@ -121,14 +142,19 @@ const deleteTaskType = async (taskTypeId) => {
   await TaskType.findByIdAndDelete(taskTypeId);
 };
 
+const getParamDataTypes = () => {
+  return TaskType.schema.path("params.type").enumValues;
+};
+
 module.exports = {
   getTasksForImplant,
   getTaskById,
   taskSent,
-  createTask,
+  setTask,
   getTaskTypes,
   getTaskTypeById,
   createTaskType,
   deleteTask,
   deleteTaskType,
+  getParamDataTypes,
 };

@@ -13,9 +13,11 @@ const taskSchema = new Schema({
     type: String,
     required: true,
   },
-  // This is the name, not the ID
   taskType: {
-    type: String,
+    type: {
+      id: { type: mongoose.SchemaTypes.ObjectId },
+      name: { type: String },
+    },
     required: true,
   },
   params: {

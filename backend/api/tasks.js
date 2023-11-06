@@ -105,19 +105,21 @@ router.post(
 );
 
 router.post("/tasks", accessManager.verifySession, async (req, res) => {
-  log("/tasks", `Creating task ${JSON.stringify(req.body)}`, levels.DEBUG);
+  log("POST /tasks", `Setting task ${JSON.stringify(req.body)}`, levels.DEBUG);
   let returnStatus = statusCodes.OK;
-  let responseJSON = {};
+  let responseJSON = { errors: [] };
 
   const validationResult = await validateTask(req.body);
   if (validationResult.isValid) {
     try {
-      await tasksService.createTask(req.body);
-      responseJSON = {
-        errors: [],
-      };
+      error = await tasksService.setTask(req.body);
+      if (error) {
+        console.log(error);
+        returnStatus = statusCodes.BAD_REQUEST;
+        responseJSON.errors = [error];
+      }
     } catch (err) {
-      log("/tasks", err, levels.ERROR);
+      log("POST /tasks", err, levels.ERROR);
       returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
       responseJSON = {
         errors: ["Internal Server Error"],
@@ -125,9 +127,7 @@ router.post("/tasks", accessManager.verifySession, async (req, res) => {
     }
   } else {
     returnStatus = statusCodes.BAD_REQUEST;
-    responseJSON = {
-      errors: validationResult.errors,
-    };
+    responseJSON.errors = validationResult.errors;
   }
 
   return res.status(returnStatus).json(responseJSON);
@@ -219,5 +219,13 @@ router.delete(
     return res.status(returnStatus).json(responseJSON);
   }
 );
+
+router.get("/task-types/param-data-types", (req, res) => {
+  let response = {};
+  let statusCode = statusCodes.OK;
+  response.dataTypes = tasksService.getParamDataTypes();
+
+  return res.status(statusCode).json(response);
+});
 
 module.exports = router;

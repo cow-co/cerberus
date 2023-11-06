@@ -6,8 +6,14 @@ const Admin = require("../models/Admin");
  * @returns `true` if user is an admin, `false` if not
  */
 const isUserAdmin = async (userId) => {
-  const adminRecord = await Admin.findOne({ userId: userId });
-  return adminRecord !== null;
+  let res = false;
+
+  if (userId) {
+    const adminRecord = await Admin.findOne({ userId: userId });
+    res = adminRecord !== null;
+  }
+
+  return res;
 };
 
 /**
@@ -15,11 +21,14 @@ const isUserAdmin = async (userId) => {
  * @param {string} userId The ID of the user to make into an admin (if using AD authentication, this will be the DN of the user)
  */
 const addAdmin = async (userId) => {
-  const exists = await isUserAdmin(userId);
-  if (!exists) {
-    await Admin.create({
-      userId: userId,
-    });
+  if (userId) {
+    const exists = await isUserAdmin(userId);
+    if (!exists) {
+      log("addAdmin", `Adding user ${userId} as admin`, levels.INFO);
+      await Admin.create({
+        userId: userId,
+      });
+    }
   }
 };
 
@@ -28,14 +37,16 @@ const addAdmin = async (userId) => {
  * @param {string} userId ID of the user to remove from the admins list (if using AD authentication, this will be the DN of the user)
  */
 const removeAdmin = async (userId) => {
-  const existingAdminRecord = await Admin.findOne({ userId: userId });
-  if (existingAdminRecord) {
-    log(
-      "removeAdmin",
-      `Deleting admin record for user ID ${userId}`,
-      levels.INFO
-    );
-    await existingAdminRecord.deleteOne();
+  if (userId) {
+    const existingAdminRecord = await Admin.findOne({ userId: userId });
+    if (existingAdminRecord) {
+      log(
+        "removeAdmin",
+        `Deleting admin record for user ID ${userId}`,
+        levels.INFO
+      );
+      await existingAdminRecord.deleteOne();
+    }
   }
 };
 
