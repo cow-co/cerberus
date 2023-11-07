@@ -21,6 +21,8 @@
     "node-cron": "^3.0.2",
     "swagger-themes": "^1.2.30",
     "swagger-ui-express": "^5.0.0",
+    "uuid": "^9.0.1",
+    "ws": "^8.14.2",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
