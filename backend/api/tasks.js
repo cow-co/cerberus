@@ -91,6 +91,7 @@ router.post(
       const validity = validateTaskType(req.body);
       if (validity.isValid) {
         response.taskType = await tasksService.createTaskType(req.body);
+        // TODO Send websocket message
       } else {
         status = statusCodes.BAD_REQUEST;
         response.errors = validity.errors;
@@ -118,6 +119,7 @@ router.post("/tasks", accessManager.verifySession, async (req, res) => {
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors = [error];
       }
+      // TODO Send websocket message
     } catch (err) {
       log("POST /tasks", err, levels.ERROR);
       returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
@@ -163,6 +165,7 @@ router.delete(
           );
         } else {
           await tasksService.deleteTask(req.params.taskId);
+          // TODO Send websocket message
         }
       } else {
         log(
@@ -203,6 +206,7 @@ router.delete(
       );
       if (taskType) {
         await tasksService.deleteTaskType(req.params.taskTypeId);
+        // TODO Send websocket message
       } else {
         log(
           `DELETE /task-types/${req.params.taskTypeId}`,

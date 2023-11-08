@@ -68,6 +68,7 @@ const checkActivity = async () => {
     if (missedCheckins > numMissedBeaconsForInactive) {
       implant.isActive = false;
       await implant.save();
+      // TODO Send websocket message
     }
   });
 };

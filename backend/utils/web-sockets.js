@@ -2,7 +2,7 @@ const { WebSocket } = require("ws");
 const { log, levels } = require("./logger");
 const uuidv4 = require("uuid").v4;
 
-const messageTypes = {
+const entityTypes = {
   TASKS: "TASKS",
   TASK_TYPES: "TASK_TYPES",
   IMPLANTS: "IMPLANTS",
@@ -32,7 +32,7 @@ const sendMessage = (data) => {
 };
 
 module.exports = {
-  messageTypes,
+  entityTypes,
   handleConnect,
   handleDisconnect,
   sendMessage,
