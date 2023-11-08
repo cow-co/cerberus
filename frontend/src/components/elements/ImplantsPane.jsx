@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
 import { createErrorAlert } from '../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes } from "../../common/web-sockets";
+import { entityTypes, eventTypes } from "../../common/web-sockets";
 
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
@@ -26,8 +26,8 @@ const ImplantsPane = () => {
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
-      const event = JSON.parse(message.data);
-      return event.type === entityTypes.IMPLANTS;
+      const data = JSON.parse(message.data);
+      return data.entityType === entityTypes.IMPLANTS;
     },
     retryOnError: true,
     shouldReconnect: () => true
@@ -69,7 +69,27 @@ const ImplantsPane = () => {
   // a websocket message has actually arrived
   useEffect(() => {
     if (lastJsonMessage) {
-      dispatch(setImplants(lastJsonMessage.implants));
+      let updated = [...implants];
+
+      switch (lastJsonMessage.eventType) {
+        case eventTypes.CREATE:
+          updated.push(lastJsonMessage.entity);
+          break;
+        case eventTypes.EDIT:
+          updated = updated.map(implant => {
+            if (implant.id === lastJsonMessage.entity.id) {
+              return lastJsonMessage.entity;
+            } else {
+              return implant;
+            }
+          });
+          break;
+        case eventTypes.DELETE:
+          updated = updated.filter(implant => implant.id !== lastJsonMessage.entity.id);
+          break;
+      }
+      
+      dispatch(setImplants(updated));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);

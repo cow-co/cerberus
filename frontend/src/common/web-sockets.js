@@ -4,4 +4,10 @@ const entityTypes = {
   IMPLANTS: "IMPLANTS",
 };
 
-export { entityTypes };
+const eventTypes = {
+  CREATE: "CREATE",
+  EDIT: "EDIT",
+  DELETE: "DELETE",
+};
+
+export { entityTypes, eventTypes };

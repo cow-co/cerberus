@@ -1,4 +1,8 @@
-const { sendMessage, entityTypes } = require("../../utils/web-sockets");
+const {
+  sendMessage,
+  entityTypes,
+  eventTypes,
+} = require("../../utils/web-sockets");
 const Implant = require("../models/Implant");
 
 // TODO Maybe we *should* have separate message types for create/edit/delete?
@@ -15,36 +19,32 @@ const Implant = require("../models/Implant");
  * @param {Implant} details The implant to add
  */
 const addImplant = async (details) => {
-  await Implant.create({
+  const entity = {
     id: details.id,
     ip: details.ip,
     os: details.os,
     beaconIntervalSeconds: details.beaconIntervalSeconds,
     lastCheckinTime: details.lastCheckinTimeSeconds,
     isActive: true,
-  });
-  sendMessage({
-    type: entityTypes.IMPLANTS,
-    implants: await getAllImplants(),
-  });
+  };
+  await Implant.create(entity);
+  sendMessage(entityTypes.IMPLANTS, eventTypes.CREATE, entity);
 };
 
 /**
  * @param {Implant} details The implant to update with
  */
 const updateImplant = async (details) => {
-  await Implant.findOneAndUpdate(
-    { id: details.id },
-    {
-      id: details.id,
-      ip: details.ip,
-      os: details.os,
-      beaconIntervalSeconds: details.beaconIntervalSeconds,
-      lastCheckinTime: details.lastCheckinTimeSeconds,
-      isActive: true,
-    }
-  );
-  // TODO Send websocket message
+  const updatedEntity = {
+    id: details.id,
+    ip: details.ip,
+    os: details.os,
+    beaconIntervalSeconds: details.beaconIntervalSeconds,
+    lastCheckinTime: details.lastCheckinTimeSeconds,
+    isActive: true,
+  };
+  await Implant.findOneAndUpdate({ id: details.id }, updatedEntity);
+  sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, updatedEntity);
 };
 
 /**
@@ -73,11 +73,12 @@ const checkActivity = async () => {
   const implants = await getAllImplants();
   implants.forEach(async (implant) => {
     const missedCheckins =
-      (Date.now() - implant.lastCheckinTime) / implant.beaconIntervalSeconds;
+      (Date.now() - implant.lastCheckinTime) /
+      (implant.beaconIntervalSeconds * 1000); // TODO Will need to store the beacon interval as ms internally
     if (missedCheckins > numMissedBeaconsForInactive) {
       implant.isActive = false;
       await implant.save();
-      // TODO Send websocket message
+      sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, implant);
     }
   });
 };

@@ -8,6 +8,12 @@ const entityTypes = {
   IMPLANTS: "IMPLANTS",
 };
 
+const eventTypes = {
+  CREATE: "CREATE",
+  EDIT: "EDIT",
+  DELETE: "DELETE",
+};
+
 let clients = {};
 
 const handleConnect = (connection) => {
@@ -22,8 +28,12 @@ const handleDisconnect = (clientId) => {
   delete clients[clientId];
 };
 
-const sendMessage = (data) => {
-  const json = JSON.stringify(data);
+const sendMessage = (entityType, eventType, entity) => {
+  const json = JSON.stringify({
+    entityType,
+    eventType,
+    entity,
+  });
   for (const clientId in clients) {
     const client = clients[clientId];
     if (client.readyState === WebSocket.OPEN) {
@@ -34,6 +44,7 @@ const sendMessage = (data) => {
 
 module.exports = {
   entityTypes,
+  eventTypes,
   handleConnect,
   handleDisconnect,
   sendMessage,
