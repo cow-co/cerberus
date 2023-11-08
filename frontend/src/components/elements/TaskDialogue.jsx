@@ -45,7 +45,8 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
       updated.params = selectedTaskTypes[0].params;
       updated.params = selectedTaskTypes[0].params.map(param => {
         return {
-          name: param,
+          name: param.name,
+          type: param.type,
           value: ""
         }
       });

@@ -1,3 +1,8 @@
+const {
+  entityTypes,
+  eventTypes,
+  sendMessage,
+} = require("../../utils/web-sockets");
 const Task = require("../models/Task");
 const TaskType = require("../models/TaskType");
 
@@ -75,10 +80,14 @@ const getTaskTypeById = async (id) => {
  */
 const taskSent = async (mongoId) => {
   if (mongoId) {
-    await Task.findByIdAndUpdate(mongoId, {
-      sent: true,
-    });
-    // TODO Send websocket message
+    const updated = await Task.findByIdAndUpdate(
+      mongoId,
+      {
+        sent: true,
+      },
+      { new: true }
+    );
+    sendMessage(entityTypes.TASKS, eventTypes.EDIT, updated);
   }
 };
 
