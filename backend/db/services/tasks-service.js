@@ -99,7 +99,8 @@ const setTask = async (task) => {
     if (existing.sent) {
       error = "Cannot edit a task that has already been sent";
     } else {
-      await existing.updateOne(task);
+      const updated = await existing.updateOne(task, { new: true });
+      sendMessage(entityTypes.TASKS, eventTypes.EDIT, updated);
     }
   } else {
     // We don't check that the implant actually exists, since there may be cases where we might
@@ -113,14 +114,14 @@ const setTask = async (task) => {
       order = tasksList[0].order + 1;
     }
 
-    await Task.create({
+    const result = await Task.create({
       order: order,
       implantId: task.implantId,
       taskType: task.taskType,
       params: task.params,
       sent: false,
     });
-    // TODO Send websocket message
+    sendMessage(entityTypes.TASKS, eventTypes.CREATE, result);
   }
 
   return error;
@@ -145,7 +146,7 @@ const createTaskType = async (taskType) => {
  */
 const deleteTask = async (taskId) => {
   await Task.findByIdAndDelete(taskId);
-  // TODO Send websocket message
+  sendMessage(entityTypes.TASKS, eventTypes.DELETE, { _id: taskId });
 };
 
 /**
