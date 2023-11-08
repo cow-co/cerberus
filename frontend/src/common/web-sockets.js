@@ -4,6 +4,4 @@ const entityTypes = {
   IMPLANTS: "IMPLANTS",
 };
 
-export default {
-  entityTypes,
-};
+export { entityTypes };

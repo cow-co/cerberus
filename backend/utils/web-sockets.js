@@ -12,6 +12,7 @@ let clients = {};
 
 const handleConnect = (connection) => {
   const clientId = uuidv4();
+  log("handleConnect", `${clientId} connected`, levels.DEBUG);
   clients[clientId] = connection;
   connection.on("close", () => handleDisconnect(clientId));
 };

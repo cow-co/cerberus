@@ -37,7 +37,6 @@ router.post("", async (req, res) => {
       await tasks.forEach(async (task) => {
         await tasksService.taskSent(task._id);
       });
-      // TODO Send websocket message
     } else {
       responseJSON = {
         tasks: [],

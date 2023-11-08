@@ -78,6 +78,7 @@ const taskSent = async (mongoId) => {
     await Task.findByIdAndUpdate(mongoId, {
       sent: true,
     });
+    // TODO Send websocket message
   }
 };
 
@@ -110,6 +111,7 @@ const setTask = async (task) => {
       params: task.params,
       sent: false,
     });
+    // TODO Send websocket message
   }
 
   return error;
@@ -125,6 +127,7 @@ const createTaskType = async (taskType) => {
     name: taskType.name,
     params: taskType.params,
   });
+  // TODO Send websocket message
   return created;
 };
 
@@ -133,6 +136,7 @@ const createTaskType = async (taskType) => {
  */
 const deleteTask = async (taskId) => {
   await Task.findByIdAndDelete(taskId);
+  // TODO Send websocket message
 };
 
 /**
@@ -140,6 +144,7 @@ const deleteTask = async (taskId) => {
  */
 const deleteTaskType = async (taskTypeId) => {
   await TaskType.findByIdAndDelete(taskTypeId);
+  // TODO Send websocket message
 };
 
 const getParamDataTypes = () => {

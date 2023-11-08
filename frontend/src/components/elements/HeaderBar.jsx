@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { setImplants } from "../../common/redux/implants-slice";
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
@@ -30,6 +31,7 @@ const HeaderBar = (props) => {
     } else {
       createSuccessAlert("Successfully logged out");
       dispatch(setUsername(""));
+      dispatch(setImplants([]));
       Cookies.remove("connect.sid");
     }
   }

@@ -12,18 +12,22 @@ import { entityTypes } from "../../common/web-sockets";
 
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
+  const [hasLoggedIn, setHasLoggedIn] = useState(false);
+  const [filtered, setFiltered] = useState([]);
+
   const implants = useSelector((state) => state.implants.implants);
   const username = useSelector((state) => state.users.username);
   const dispatch = useDispatch();
+
   // TODO swap to using config for WS URL
-  const { lastJsonMessage, readyState } = useWebSocket("ws://localhost:5000", {
+  const { lastJsonMessage, readyState } = useWebSocket("wss://localhost:5000", {
     onOpen: () => {
       console.log("WebSocket opened");
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
-      const event = JSON.parse(message);
-      return event.entity === entityTypes.IMPLANTS;
+      const event = JSON.parse(message.data);
+      return event.type === entityTypes.IMPLANTS;
     },
     retryOnError: true,
     shouldReconnect: () => true
@@ -44,29 +48,35 @@ const ImplantsPane = () => {
       await refresh();
     }
 
-    if (username) {
+    if (username && !hasLoggedIn) {
       callRefresh();
+      setHasLoggedIn(true);
+    } else if (!username && hasLoggedIn) {
+      setHasLoggedIn(false);
     }
 
+    setFiltered(implants.filter(implant => {
+      if (showInactive) {
+        return true;
+      } else {
+        return implant.isActive;
+      }
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [username, showInactive, implants]);
+
+  // Splitting this out ensures we don't dispatch redux updates unless 
+  // a websocket message has actually arrived
+  useEffect(() => {
     if (lastJsonMessage) {
-      dispatch(setImplants(lastJsonMessage.data.implants));
+      dispatch(setImplants(lastJsonMessage.implants));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username, showInactive, lastJsonMessage]);
+  }, [lastJsonMessage]);
 
   const handleToggle = () => {
     setShowInactive(!showInactive);
   }
-
-  // Handling the filtering on the client side
-  // TODO Could probably maintain this in component-level state, and filter in the useEffect
-  const filtered = implants.filter(implant => {
-    if (showInactive) {
-      return true;
-    } else {
-      return implant.isActive;
-    }
-  });
 
   const implantsItems = filtered.map(implant => {
     return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))}/>

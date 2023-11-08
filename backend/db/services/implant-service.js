@@ -1,4 +1,8 @@
+const { sendMessage, entityTypes } = require("../../utils/web-sockets");
 const Implant = require("../models/Implant");
+
+// TODO Maybe we *should* have separate message types for create/edit/delete?
+//  Otherwise, every single update method must also call getImplants
 
 /**
  * @typedef {object} Implant
@@ -19,6 +23,10 @@ const addImplant = async (details) => {
     lastCheckinTime: details.lastCheckinTimeSeconds,
     isActive: true,
   });
+  sendMessage({
+    type: entityTypes.IMPLANTS,
+    implants: await getAllImplants(),
+  });
 };
 
 /**
@@ -36,6 +44,7 @@ const updateImplant = async (details) => {
       isActive: true,
     }
   );
+  // TODO Send websocket message
 };
 
 /**
