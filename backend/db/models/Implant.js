@@ -10,7 +10,7 @@ const implantSchema = new Schema({
   },
   ip: String,
   os: String,
-  beaconIntervalMS: {
+  beaconIntervalSeconds: {
     type: Number,
     min: 1,
   },

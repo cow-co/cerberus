@@ -20,7 +20,7 @@ const addImplant = async (details) => {
     id: details.id,
     ip: details.ip,
     os: details.os,
-    beaconIntervalMS: details.beaconIntervalMS,
+    beaconIntervalSeconds: details.beaconIntervalSeconds,
     lastCheckinTime: details.lastCheckinTime,
     isActive: true,
   };
@@ -36,7 +36,7 @@ const updateImplant = async (details) => {
     id: details.id,
     ip: details.ip,
     os: details.os,
-    beaconIntervalMS: details.beaconIntervalMS,
+    beaconIntervalSeconds: details.beaconIntervalSeconds,
     lastCheckinTime: details.lastCheckinTime,
     isActive: true,
   };
@@ -70,7 +70,8 @@ const checkActivity = async () => {
   const implants = await getAllImplants();
   implants.forEach(async (implant) => {
     const missedCheckins =
-      (Date.now() - implant.lastCheckinTime) / implant.beaconIntervalMS;
+      (Date.now() / 1000 - implant.lastCheckinTime) /
+      implant.beaconIntervalSeconds;
     if (missedCheckins > numMissedBeaconsForInactive) {
       implant.isActive = false;
       await implant.save();

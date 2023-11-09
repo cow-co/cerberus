@@ -14,7 +14,7 @@ describe("Implant service tests", () => {
       id: "details.id",
       ip: "details.ip",
       os: "details.os",
-      beaconIntervalMS: 500000,
+      beaconIntervalSeconds: 500,
       lastCheckinTime: 1,
     });
 
@@ -28,7 +28,7 @@ describe("Implant service tests", () => {
       id: "details.id",
       ip: "details.ip",
       os: "details.os",
-      beaconIntervalMS: 500,
+      beaconIntervalSeconds: 500,
       lastCheckinTime: 1,
     });
 
@@ -43,7 +43,7 @@ describe("Implant service tests", () => {
       id: "details.id",
       ip: "details.ip",
       os: "details.os",
-      beaconIntervalMS: 500,
+      beaconIntervalSeconds: 500,
       lastCheckinTime: 1,
       isActive: true,
     });
@@ -61,7 +61,7 @@ describe("Implant service tests", () => {
         id: "details.id",
         ip: "details.ip",
         os: "details.os",
-        beaconIntervalMS: 500,
+        beaconIntervalSeconds: 500,
         lastCheckinTime: 1,
         isActive: true,
       },
@@ -85,7 +85,7 @@ describe("Implant service tests", () => {
         id: "id1",
         ip: "details.ip",
         os: "details.os",
-        beaconIntervalMS: 500,
+        beaconIntervalSeconds: 500,
         lastCheckinTime: Number.MAX_SAFE_INTEGER,
         isActive: true,
         save: async function () {
@@ -97,7 +97,7 @@ describe("Implant service tests", () => {
         id: "id2",
         ip: "details.ip",
         os: "details.os",
-        beaconIntervalMS: 500,
+        beaconIntervalSeconds: 500,
         lastCheckinTime: 1698862658,
         isActive: true,
         save: async function () {
@@ -109,7 +109,7 @@ describe("Implant service tests", () => {
         id: "id3",
         ip: "details.ip",
         os: "details.os",
-        beaconIntervalMS: 500,
+        beaconIntervalSeconds: 500,
         lastCheckinTime: 1698861658,
         isActive: true,
         save: async function () {
