@@ -21,6 +21,43 @@ router.get("", accessManager.verifySession, async (req, res) => {
   res.status(status).json(responseJSON);
 });
 
-// TODO a delete route
+router.delete(
+  "/:implantId",
+  accessManager.verifySession,
+  accessManager.checkAdmin,
+  async (req, res) => {
+    log(
+      `DELETE /implants/${req.params.implantId}`,
+      `Implant ${req.params.implantId}`,
+      levels.INFO
+    );
+
+    let responseJSON = {
+      errors: [],
+    };
+    let returnStatus = statusCodes.OK;
+
+    try {
+      const implant = await implantService.findImplantById(
+        req.params.implantId
+      );
+      if (implant) {
+        await implantService.deleteImplant(req.params.implantId);
+      } else {
+        log(
+          `DELETE /implants/${req.params.implantId}`,
+          `Implant with ID ${req.params.implantId} does not exist`,
+          levels.WARN
+        );
+      }
+    } catch (err) {
+      returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+      responseJSON.errors.push("Internal Server Error");
+      log(`DELETE /implants/${req.params.implantId}`, err, levels.ERROR);
+    }
+
+    return res.status(returnStatus).json(responseJSON);
+  }
+);
 
 module.exports = router;

@@ -2,12 +2,8 @@ let agent;
 let server;
 const { purgeCache } = require("../utils");
 
-const User = require("../../db/models/User");
 const accessManager = require("../../security/user-and-access-manager");
 const adminService = require("../../db/services/admin-service");
-const userService = require("../../db/services/user-service");
-const argon2 = require("argon2");
-const securityConfig = require("../../config/security-config");
 
 jest.mock("../../security/user-and-access-manager");
 jest.mock("../../db/services/admin-service");
@@ -33,7 +29,7 @@ describe("Access tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  test("should create a user", async () => {
+  test("create user - success", async () => {
     accessManager.register.mockResolvedValue({
       _id: "some-mongo-id",
       errors: [],
@@ -47,7 +43,7 @@ describe("Access tests", () => {
     expect(accessManager.register).toHaveBeenCalledTimes(1);
   });
 
-  test("should fail to create a user - error occurred", async () => {
+  test("create user - failure - error occurred", async () => {
     accessManager.register.mockResolvedValue({
       _id: null,
       errors: ["ERROR"],
@@ -60,7 +56,7 @@ describe("Access tests", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  test("should fail to create a user - exception thrown", async () => {
+  test("create user - failure - exception thrown", async () => {
     accessManager.register.mockRejectedValue(new Error("TypeError"));
 
     const res = await agent
@@ -70,7 +66,11 @@ describe("Access tests", () => {
     expect(res.statusCode).toBe(500);
   });
 
-  test("should log in", async () => {
+  test("login - success", async () => {
+    accessManager.findUserByName.mockResolvedValue({
+      _id: "id",
+      name: "user",
+    });
     accessManager.authenticate.mockImplementation((req, res, next) => {
       next();
     });
@@ -83,14 +83,14 @@ describe("Access tests", () => {
     expect(accessManager.authenticate).toHaveBeenCalledTimes(1);
   });
 
-  test("should log out", async () => {
+  test("logout - success", async () => {
     const res = await agent.delete("/api/access/logout");
 
     expect(res.statusCode).toBe(200);
     expect(accessManager.logout).toHaveBeenCalledTimes(1);
   });
 
-  test("should fail to log out - exception thrown", async () => {
+  test("logout - failure - exception thrown", async () => {
     accessManager.logout.mockRejectedValue(new Error("TypeError"));
 
     const res = await agent.delete("/api/access/logout");
@@ -98,7 +98,7 @@ describe("Access tests", () => {
     expect(res.statusCode).toBe(500);
   });
 
-  test("should successfully add an admin", async () => {
+  test("add admin - success", async () => {
     accessManager.checkAdmin.mockImplementation((req, res, next) => {
       next();
     });
@@ -119,7 +119,7 @@ describe("Access tests", () => {
     expect(adminService.addAdmin).toHaveBeenCalledTimes(1);
   });
 
-  test("should successfully remove an admin", async () => {
+  test("remove admin - success", async () => {
     accessManager.findUserById.mockResolvedValue({
       user: {
         id: "650a3a2a7dcd3241ecee2d70",
@@ -134,7 +134,7 @@ describe("Access tests", () => {
     expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
   });
 
-  test("should fail to add an admin - user does not exist", async () => {
+  test("add admin - failure - user does not exist", async () => {
     accessManager.findUserById.mockResolvedValue({
       user: null,
       errors: [],
@@ -148,7 +148,7 @@ describe("Access tests", () => {
     expect(accessManager.findUserById).toHaveBeenCalledTimes(1);
   });
 
-  test("should fail to add an admin - exception thrown", async () => {
+  test("add admin - failure - exception thrown", async () => {
     accessManager.findUserById.mockResolvedValue({
       user: {
         id: "650a3a2a7dcd3241ecee2d70",

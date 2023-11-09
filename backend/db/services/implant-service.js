@@ -80,7 +80,12 @@ const checkActivity = async () => {
   });
 };
 
-// TODO A delete function
+const deleteImplant = async (implantId) => {
+  await Implant.findByIdAndDelete(implantId);
+  sendMessage(entityTypes.IMPLANTS, eventTypes.DELETE, {
+    implantId: implantId,
+  });
+};
 
 module.exports = {
   addImplant,
@@ -88,4 +93,5 @@ module.exports = {
   findImplantById,
   getAllImplants,
   checkActivity,
+  deleteImplant,
 };
