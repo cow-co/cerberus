@@ -1,3 +1,8 @@
+const {
+  entityTypes,
+  eventTypes,
+  sendMessage,
+} = require("../../utils/web-sockets");
 const Task = require("../models/Task");
 const TaskType = require("../models/TaskType");
 
@@ -75,9 +80,14 @@ const getTaskTypeById = async (id) => {
  */
 const taskSent = async (mongoId) => {
   if (mongoId) {
-    await Task.findByIdAndUpdate(mongoId, {
-      sent: true,
-    });
+    const updated = await Task.findByIdAndUpdate(
+      mongoId,
+      {
+        sent: true,
+      },
+      { new: true }
+    );
+    sendMessage(entityTypes.TASKS, eventTypes.EDIT, updated);
   }
 };
 
@@ -89,7 +99,8 @@ const setTask = async (task) => {
     if (existing.sent) {
       error = "Cannot edit a task that has already been sent";
     } else {
-      await existing.updateOne(task);
+      const updated = await existing.updateOne(task, { new: true });
+      sendMessage(entityTypes.TASKS, eventTypes.EDIT, updated);
     }
   } else {
     // We don't check that the implant actually exists, since there may be cases where we might
@@ -103,13 +114,14 @@ const setTask = async (task) => {
       order = tasksList[0].order + 1;
     }
 
-    await Task.create({
+    const result = await Task.create({
       order: order,
       implantId: task.implantId,
       taskType: task.taskType,
       params: task.params,
       sent: false,
     });
+    sendMessage(entityTypes.TASKS, eventTypes.CREATE, result);
   }
 
   return error;
@@ -125,6 +137,7 @@ const createTaskType = async (taskType) => {
     name: taskType.name,
     params: taskType.params,
   });
+  sendMessage(entityTypes.TASK_TYPES, eventTypes.CREATE, created);
   return created;
 };
 
@@ -133,6 +146,7 @@ const createTaskType = async (taskType) => {
  */
 const deleteTask = async (taskId) => {
   await Task.findByIdAndDelete(taskId);
+  sendMessage(entityTypes.TASKS, eventTypes.DELETE, { _id: taskId });
 };
 
 /**
@@ -140,6 +154,7 @@ const deleteTask = async (taskId) => {
  */
 const deleteTaskType = async (taskTypeId) => {
   await TaskType.findByIdAndDelete(taskTypeId);
+  sendMessage(entityTypes.TASK_TYPES, eventTypes.DELETE, { _id: taskTypeId });
 };
 
 const getParamDataTypes = () => {

@@ -1,3 +1,8 @@
+const {
+  sendMessage,
+  entityTypes,
+  eventTypes,
+} = require("../../utils/web-sockets");
 const Implant = require("../models/Implant");
 
 /**
@@ -11,31 +16,32 @@ const Implant = require("../models/Implant");
  * @param {Implant} details The implant to add
  */
 const addImplant = async (details) => {
-  await Implant.create({
+  const entity = {
     id: details.id,
     ip: details.ip,
     os: details.os,
     beaconIntervalSeconds: details.beaconIntervalSeconds,
-    lastCheckinTime: details.lastCheckinTimeSeconds,
+    lastCheckinTime: details.lastCheckinTime,
     isActive: true,
-  });
+  };
+  await Implant.create(entity);
+  sendMessage(entityTypes.IMPLANTS, eventTypes.CREATE, entity);
 };
 
 /**
  * @param {Implant} details The implant to update with
  */
 const updateImplant = async (details) => {
-  await Implant.findOneAndUpdate(
-    { id: details.id },
-    {
-      id: details.id,
-      ip: details.ip,
-      os: details.os,
-      beaconIntervalSeconds: details.beaconIntervalSeconds,
-      lastCheckinTime: details.lastCheckinTimeSeconds,
-      isActive: true,
-    }
-  );
+  const updatedEntity = {
+    id: details.id,
+    ip: details.ip,
+    os: details.os,
+    beaconIntervalSeconds: details.beaconIntervalSeconds,
+    lastCheckinTime: details.lastCheckinTime,
+    isActive: true,
+  };
+  await Implant.findOneAndUpdate({ id: details.id }, updatedEntity);
+  sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, updatedEntity);
 };
 
 /**
@@ -64,10 +70,12 @@ const checkActivity = async () => {
   const implants = await getAllImplants();
   implants.forEach(async (implant) => {
     const missedCheckins =
-      (Date.now() - implant.lastCheckinTime) / implant.beaconIntervalSeconds;
+      (Date.now() / 1000 - implant.lastCheckinTime) /
+      implant.beaconIntervalSeconds;
     if (missedCheckins > numMissedBeaconsForInactive) {
       implant.isActive = false;
       await implant.save();
+      sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, implant);
     }
   });
 };

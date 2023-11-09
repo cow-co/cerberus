@@ -5,8 +5,6 @@ const taskSchema = new Schema({
   order: {
     type: Number,
     min: 0,
-    unique: true,
-    dropDups: true,
     required: true,
   },
   implantId: {
@@ -28,5 +26,7 @@ const taskSchema = new Schema({
     default: false,
   },
 });
+
+taskSchema.index({ implantId: 1, order: 1 }, { unique: true });
 
 module.exports = Task = mongoose.model("Task", taskSchema);

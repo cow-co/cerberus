@@ -20,6 +20,8 @@ const https = require("https");
 const fs = require("fs");
 const http = require("http");
 const nodeCron = require("node-cron");
+const { WebSocketServer } = require("ws");
+const { handleConnect } = require("./utils/web-sockets");
 
 const app = express();
 app.use(express.json());
@@ -93,6 +95,7 @@ app.use(
 
 const port = process.env.PORT || 443;
 let server = null;
+let wsServer = null;
 const stop = () => {
   log("index.js", "Closing server...", levels.INFO);
 
@@ -103,7 +106,7 @@ const stop = () => {
   server.close();
 };
 
-const serveProdClient = () => {
+const serve = () => {
   if (process.env.NODE_ENV === "production") {
     let opts;
 
@@ -136,7 +139,10 @@ const serveProdClient = () => {
     });
   }
 };
-serveProdClient();
+
+serve();
+wsServer = new WebSocketServer({ server });
+wsServer.on("connection", handleConnect);
 
 module.exports = server;
 module.exports.stop = stop;

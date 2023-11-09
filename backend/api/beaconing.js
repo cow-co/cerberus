@@ -19,7 +19,7 @@ router.post("", async (req, res) => {
         ip: req.body.ip,
         os: req.body.os,
         beaconIntervalSeconds: req.body.beaconIntervalSeconds,
-        lastCheckinTimeSeconds: Date.now(),
+        lastCheckinTime: Date.now() / 1000,
       };
 
       if ((await implantService.findImplantById(beacon.id)) === null) {
@@ -52,6 +52,7 @@ router.post("", async (req, res) => {
     };
     log("/beacon", err, levels.ERROR);
   }
+
   return res.status(returnStatus).json(responseJSON);
 });
 

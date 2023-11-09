@@ -15,7 +15,7 @@ describe("Implant service tests", () => {
       ip: "details.ip",
       os: "details.os",
       beaconIntervalSeconds: 500,
-      lastCheckinTimeSeconds: 1,
+      lastCheckinTime: 1,
     });
 
     const args = Implant.create.mock.calls[0];
@@ -29,7 +29,7 @@ describe("Implant service tests", () => {
       ip: "details.ip",
       os: "details.os",
       beaconIntervalSeconds: 500,
-      lastCheckinTimeSeconds: 1,
+      lastCheckinTime: 1,
     });
 
     const args = Implant.findOneAndUpdate.mock.calls[0];
