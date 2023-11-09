@@ -99,6 +99,10 @@ const ImplantsPane = () => {
     setShowInactive(!showInactive);
   }
 
+  const deleteImplant = (implantId) => {
+    
+  }
+
   const implantsItems = filtered.map(implant => {
     return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))}/>
   });

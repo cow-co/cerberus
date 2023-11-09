@@ -1,6 +1,6 @@
 import { AppBar, Toolbar, Button, Typography, Link } from "@mui/material";
 import { checkSessionCookie, logout } from "../../common/apiCalls";
-import { setUsername } from "../../common/redux/users-slice";
+import { setIsAdmin, setUsername } from "../../common/redux/users-slice";
 import { useDispatch, useSelector } from "react-redux";
 import Cookies from "js-cookie";
 import { useEffect } from "react";
@@ -11,6 +11,8 @@ import { setImplants } from "../../common/redux/implants-slice";
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
   const username = useSelector((state) => state.users.username);
+  const isAdmin = useSelector((state) => state.users.isAdmin);
+
   useEffect(() => {
     const checkSession = async () => {
       const res = await checkSessionCookie();
@@ -31,6 +33,7 @@ const HeaderBar = (props) => {
     } else {
       createSuccessAlert("Successfully logged out");
       dispatch(setUsername(""));
+      dispatch(setIsAdmin(false));
       dispatch(setImplants([]));
       Cookies.remove("connect.sid");
     }
@@ -43,6 +46,11 @@ const HeaderBar = (props) => {
     loginoutButton = <Button onClick={props.handleLoginFormOpen}>Log In</Button>
   }
 
+  let adminButton = null;
+  if (isAdmin) {
+    adminButton = <Link underline="none" component={RouterLink} to={"admin"}>Admin</Link>;
+  }
+
   return (
       <AppBar position="static">
         <Toolbar>
@@ -51,7 +59,7 @@ const HeaderBar = (props) => {
           </Typography>
           <Button onClick={props.handleRegisterFormOpen}>Register</Button>
           {loginoutButton}
-          <Link underline="none" component={RouterLink} to={"admin"}>Admin</Link>
+          {adminButton}
         </Toolbar>
       </AppBar>);
 }

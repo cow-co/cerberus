@@ -80,6 +80,8 @@ const checkActivity = async () => {
   });
 };
 
+// TODO A delete function
+
 module.exports = {
   addImplant,
   updateImplant,

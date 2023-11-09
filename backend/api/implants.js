@@ -21,4 +21,6 @@ router.get("", accessManager.verifySession, async (req, res) => {
   res.status(status).json(responseJSON);
 });
 
+// TODO a delete route
+
 module.exports = router;

@@ -4,6 +4,7 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
+const { findUser } = require("../db/services/user-service");
 
 /**
  * Expects request body to contain:
@@ -41,9 +42,11 @@ router.post("/register", async (req, res) => {
  * - password
  */
 router.post("/login", accessManager.authenticate, async (req, res) => {
+  const { _id } = await findUser(req.session.username);
+  const isAdmin = await adminService.isUserAdmin(_id);
   res
     .status(statusCodes.OK)
-    .json({ username: req.session.username, errors: [] });
+    .json({ username: req.session.username, isAdmin, errors: [] });
 });
 
 router.delete("/logout", async (req, res) => {

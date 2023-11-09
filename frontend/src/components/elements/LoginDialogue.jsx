@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 import { login } from "../../common/apiCalls";
 import { useDispatch } from "react-redux";
-import { setUsername } from "../../common/redux/users-slice";
+import { setIsAdmin, setUsername } from "../../common/redux/users-slice";
 import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../common/redux/dispatchers';
 
 const LoginDialogue = (props) => {
@@ -23,6 +23,7 @@ const LoginDialogue = (props) => {
     } else {
         createSuccessAlert("Successfully logged in");
         dispatch(setUsername(response.username));
+        dispatch(setIsAdmin(response.isAdmin));
         await loadTaskTypes();
         handleClose();
     }
