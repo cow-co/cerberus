@@ -1,4 +1,3 @@
-import Button from '@mui/material/Button';
 import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
@@ -9,6 +8,7 @@ import { setImplants, setSelectedImplant } from "../../common/redux/implants-sli
 import { createErrorAlert } from '../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
+import conf from "../../common/config/properties";
 
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
@@ -19,8 +19,7 @@ const ImplantsPane = () => {
   const username = useSelector((state) => state.users.username);
   const dispatch = useDispatch();
 
-  // TODO swap to using config for WS URL
-  const { lastJsonMessage, readyState } = useWebSocket("wss://localhost:5000", {
+  const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
       console.log("WebSocket opened");
     },
@@ -102,13 +101,11 @@ const ImplantsPane = () => {
     return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))}/>
   });
 
-  // TODO Once websocket-updating is working, remove the Refresh button.
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Implants</Typography>
       <Box display="flex" justifyContent="center" alignItems="center">
         <FormControlLabel control={<Checkbox checked={showInactive} onClick={handleToggle}/>} label="Show Inactive" />
-        <Button variant='contained' onClick={refresh}>Refresh</Button>
       </Box>
       <List>
         {implantsItems}

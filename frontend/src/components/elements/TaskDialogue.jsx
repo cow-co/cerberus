@@ -4,6 +4,9 @@ import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button,
 import { useSelector, useDispatch } from "react-redux";
 import { setTaskTypes } from "../../common/redux/tasks-slice";
 import { createErrorAlert } from '../../common/redux/dispatchers';
+import useWebSocket from 'react-use-websocket';
+import { entityTypes, eventTypes } from "../../common/web-sockets";
+import conf from "../../common/config/properties";
 
 const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
   const taskTypes = useSelector((state) => {
@@ -12,7 +15,21 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
   const dispatch = useDispatch();
   const [task, setTask] = useState({_id: "", taskType: {id: "", name: ""}, params: []});
 
+  const { lastJsonMessage } = useWebSocket(conf.wsURL, {
+    onOpen: () => {
+      console.log("WebSocket opened");
+    },
+    share: true,  // This ensures we don't have a new connection for each component etc. 
+    filter: (message) => {
+      const data = JSON.parse(message.data);
+      return data.entityType === entityTypes.TASK_TYPES;
+    },
+    retryOnError: true,
+    shouldReconnect: () => true
+  });
+
   useEffect(() => {
+    // TODO Use the loadTaskTypes() function from dispatchers
     const getData = async () => {
       const types = await fetchTaskTypes();
       if (types.errors.length === 0) {
@@ -20,11 +37,28 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
       } else {
         createErrorAlert(types.errors);
       }
-    }
+    };
     getData();
     setTask(providedTask);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    if (lastJsonMessage) {
+      let updated = [...taskTypes];
+
+      switch (lastJsonMessage.eventType) {
+        case eventTypes.CREATE:
+          updated.push(lastJsonMessage.entity);
+          break;
+        case eventTypes.DELETE:
+          updated = updated.filter(taskType => taskType._id !== lastJsonMessage.entity._id);
+          break;
+      }
+
+      dispatch(setTaskTypes(updated));
+    }
+  }, [lastJsonMessage]);
 
   const handleChange = (event) => {
     const selectedTaskTypes = taskTypes.filter(val => val.name === event.target.value);

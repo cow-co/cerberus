@@ -9,6 +9,7 @@ import { setTasks } from "../../common/redux/tasks-slice";
 import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
+import conf from "../../common/config/properties";
 
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
@@ -19,20 +20,59 @@ function TasksPane() {
   const selectedImplant = useSelector((state) => state.implants.selected);
   const dispatch = useDispatch();
 
-  // TODO swap to using config for WS URL
-  const { lastJsonMessage } = useWebSocket("wss://localhost:5000", {
+  const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
       console.log("WebSocket opened");
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
-      console.log(message);
       const data = JSON.parse(message.data);
       return data.entityType === entityTypes.TASKS;
     },
     retryOnError: true,
     shouldReconnect: () => true
   });
+
+  useEffect(() => {
+    async function callFetcher() {
+      if (selectedImplant.id) {
+        const received = await fetchTasks(selectedImplant.id);
+        dispatch(setTasks(received.tasks));
+      }
+    }
+    callFetcher()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedImplant, showSent]);
+
+  useEffect(() => {
+    if (lastJsonMessage) {
+      let updated = [...tasks];
+
+      switch (lastJsonMessage.eventType) {
+        case eventTypes.CREATE:
+          if (lastJsonMessage.entity.implantId === selectedImplant.id) {
+            updated.push(lastJsonMessage.entity);
+          }
+          break;
+        case eventTypes.EDIT:
+          updated = updated.map(task => {
+            console.log(task);
+            if (task._id === lastJsonMessage.entity._id) {
+              return lastJsonMessage.entity;
+            } else {
+              return task;
+            }
+          });
+          break;
+        case eventTypes.DELETE:
+          updated = updated.filter(task => task._id !== lastJsonMessage.entity._id);
+          break;
+      }
+      
+      dispatch(setTasks(updated));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastJsonMessage]);
 
   const handleToggle = () => {
     setShowSent(!showSent);
@@ -86,47 +126,6 @@ function TasksPane() {
     setSelectedTask(editTask);
     setDialogueOpen(true);
   }
-
-  useEffect(() => {
-    async function callFetcher() {
-      if (selectedImplant.id) {
-        const received = await fetchTasks(selectedImplant.id);
-        dispatch(setTasks(received.tasks));
-      }
-    }
-    callFetcher()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedImplant, showSent]);
-
-  useEffect(() => {
-    if (lastJsonMessage) {
-      let updated = [...tasks];
-
-      switch (lastJsonMessage.eventType) {
-        case eventTypes.CREATE:
-          if (lastJsonMessage.entity.implantId === selectedImplant.id) {
-            updated.push(lastJsonMessage.entity);
-          }
-          break;
-        case eventTypes.EDIT:
-          updated = updated.map(task => {
-            console.log(task);
-            if (task._id === lastJsonMessage.entity._id) {
-              return lastJsonMessage.entity;
-            } else {
-              return task;
-            }
-          });
-          break;
-        case eventTypes.DELETE:
-          updated = updated.filter(task => task._id !== lastJsonMessage.entity._id);
-          break;
-      }
-      
-      dispatch(setTasks(updated));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastJsonMessage]);
 
   let tasksItems = null;
 

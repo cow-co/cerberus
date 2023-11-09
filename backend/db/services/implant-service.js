@@ -5,9 +5,6 @@ const {
 } = require("../../utils/web-sockets");
 const Implant = require("../models/Implant");
 
-// TODO Maybe we *should* have separate message types for create/edit/delete?
-//  Otherwise, every single update method must also call getImplants
-
 /**
  * @typedef {object} Implant
  * @property {string} id

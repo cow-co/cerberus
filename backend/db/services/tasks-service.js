@@ -137,7 +137,7 @@ const createTaskType = async (taskType) => {
     name: taskType.name,
     params: taskType.params,
   });
-  // TODO Send websocket message
+  sendMessage(entityTypes.TASK_TYPES, eventTypes.CREATE, created);
   return created;
 };
 
@@ -154,7 +154,7 @@ const deleteTask = async (taskId) => {
  */
 const deleteTaskType = async (taskTypeId) => {
   await TaskType.findByIdAndDelete(taskTypeId);
-  // TODO Send websocket message
+  sendMessage(entityTypes.TASK_TYPES, eventTypes.DELETE, { _id: taskTypeId });
 };
 
 const getParamDataTypes = () => {
