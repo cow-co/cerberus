@@ -1,6 +1,7 @@
-import { ListItemButton } from '@mui/material';
+import { ListItemButton, IconButton } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useSelector } from "react-redux";
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const ImplantItem = ({implant, chooseImplant, deleteImplant}) => {
   const isAdmin = useSelector((state) => state.users.isAdmin);

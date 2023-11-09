@@ -42,8 +42,8 @@ router.post("/register", async (req, res) => {
  * - password
  */
 router.post("/login", accessManager.authenticate, async (req, res) => {
-  const { _id } = await accessManager.findUserByName(req.session.username);
-  const isAdmin = await adminService.isUserAdmin(_id);
+  const { user } = await accessManager.findUserByName(req.session.username);
+  const isAdmin = await adminService.isUserAdmin(user.id);
   res
     .status(statusCodes.OK)
     .json({ username: req.session.username, isAdmin, errors: [] });

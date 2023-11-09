@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// TODO Include an is-admin status
 export const usersSlice = createSlice({
   name: "users",
   initialState: {

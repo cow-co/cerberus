@@ -20,6 +20,7 @@ const HeaderBar = (props) => {
         createErrorAlert(res.errors);
       } else {
         dispatch(setUsername(res.username));
+        dispatch(setIsAdmin(res.isAdmin));
       }      
     }
     checkSession();
