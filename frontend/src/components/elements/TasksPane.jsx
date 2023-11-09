@@ -67,6 +67,8 @@ function TasksPane() {
         case eventTypes.DELETE:
           updated = updated.filter(task => task._id !== lastJsonMessage.entity._id);
           break;
+        default:
+          break;
       }
       
       dispatch(setTasks(updated));

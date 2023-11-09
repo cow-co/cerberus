@@ -42,8 +42,8 @@ describe("Implant API Tests", () => {
         id: "some-uuid",
         ip: "192.168.0.1",
         os: "Windows",
-        beaconIntervalSeconds: 300,
-        lastCheckinTimeSeconds: 0,
+        beaconIntervalMS: 300,
+        lastCheckinTime: 0,
         isActive: true,
       },
       {
@@ -51,8 +51,8 @@ describe("Implant API Tests", () => {
         id: "some-uuid",
         ip: "192.168.0.1",
         os: "Windows",
-        beaconIntervalSeconds: 300,
-        lastCheckinTimeSeconds: 0,
+        beaconIntervalMS: 300,
+        lastCheckinTime: 0,
         isActive: false,
       },
     ]);

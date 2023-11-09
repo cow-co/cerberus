@@ -86,6 +86,8 @@ const ImplantsPane = () => {
         case eventTypes.DELETE:
           updated = updated.filter(implant => implant.id !== lastJsonMessage.entity.id);
           break;
+        default:
+          break;
       }
       
       dispatch(setImplants(updated));

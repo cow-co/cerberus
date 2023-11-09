@@ -54,10 +54,13 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
         case eventTypes.DELETE:
           updated = updated.filter(taskType => taskType._id !== lastJsonMessage.entity._id);
           break;
+        default:
+          break;
       }
 
       dispatch(setTaskTypes(updated));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 
   const handleChange = (event) => {

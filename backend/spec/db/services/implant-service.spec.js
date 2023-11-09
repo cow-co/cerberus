@@ -14,8 +14,8 @@ describe("Implant service tests", () => {
       id: "details.id",
       ip: "details.ip",
       os: "details.os",
-      beaconIntervalSeconds: 500,
-      lastCheckinTimeSeconds: 1,
+      beaconIntervalMS: 500000,
+      lastCheckinTime: 1,
     });
 
     const args = Implant.create.mock.calls[0];
@@ -28,8 +28,8 @@ describe("Implant service tests", () => {
       id: "details.id",
       ip: "details.ip",
       os: "details.os",
-      beaconIntervalSeconds: 500,
-      lastCheckinTimeSeconds: 1,
+      beaconIntervalMS: 500,
+      lastCheckinTime: 1,
     });
 
     const args = Implant.findOneAndUpdate.mock.calls[0];
@@ -43,7 +43,7 @@ describe("Implant service tests", () => {
       id: "details.id",
       ip: "details.ip",
       os: "details.os",
-      beaconIntervalSeconds: 500,
+      beaconIntervalMS: 500,
       lastCheckinTime: 1,
       isActive: true,
     });
@@ -61,7 +61,7 @@ describe("Implant service tests", () => {
         id: "details.id",
         ip: "details.ip",
         os: "details.os",
-        beaconIntervalSeconds: 500,
+        beaconIntervalMS: 500,
         lastCheckinTime: 1,
         isActive: true,
       },
@@ -85,7 +85,7 @@ describe("Implant service tests", () => {
         id: "id1",
         ip: "details.ip",
         os: "details.os",
-        beaconIntervalSeconds: 500,
+        beaconIntervalMS: 500,
         lastCheckinTime: Number.MAX_SAFE_INTEGER,
         isActive: true,
         save: async function () {
@@ -97,7 +97,7 @@ describe("Implant service tests", () => {
         id: "id2",
         ip: "details.ip",
         os: "details.os",
-        beaconIntervalSeconds: 500,
+        beaconIntervalMS: 500,
         lastCheckinTime: 1698862658,
         isActive: true,
         save: async function () {
@@ -109,7 +109,7 @@ describe("Implant service tests", () => {
         id: "id3",
         ip: "details.ip",
         os: "details.os",
-        beaconIntervalSeconds: 500,
+        beaconIntervalMS: 500,
         lastCheckinTime: 1698861658,
         isActive: true,
         save: async function () {
