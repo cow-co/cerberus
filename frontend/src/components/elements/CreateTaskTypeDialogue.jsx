@@ -10,7 +10,7 @@ const CreateTaskDialogue = (props) => {
   // - name
   // - data type
   const [taskType, setTaskType] = useState({name: "", params: []});
-  const [paramTypes, setParamTypes] = useState([])
+  const [paramTypes, setParamTypes] = useState([]);
 
   useEffect(() => {
     async function callFetcher() {

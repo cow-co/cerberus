@@ -21,6 +21,10 @@ export const alertsSlice = createSlice({
         (alert) => alert.id !== action.payload
       );
     },
+
+    removeAllAlerts: (state, action) => {
+      state.alerts = [];
+    },
   },
 });
 

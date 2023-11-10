@@ -9,6 +9,8 @@ const RegisterDialogue = (props) => {
   const [password, setPassword] = useState("");
 
   const handleClose = () => {
+    setUsername("");
+    setPassword("");
     onClose();
   }
 
@@ -35,7 +37,7 @@ const RegisterDialogue = (props) => {
       <DialogTitle>Register</DialogTitle>
       <FormControl fullWidth>
         <TextField className='text-input' label="Username" variant="outlined" value={username} onChange={handleUsernameUpdate} />
-        <TextField className='text-input' label="Password" variant="outlined" value={password} onChange={handlePasswordUpdate} />
+        <TextField type="password" className='text-input' label="Password" variant="outlined" value={password} onChange={handlePasswordUpdate} />
         <Button onClick={handleSubmit}>Submit</Button>
       </FormControl>
     </Dialog>

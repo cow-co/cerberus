@@ -27,7 +27,7 @@ function MainPage() {
           <ImplantsPane />
         </Grid>
         <Grid item xs={12}>
-          <Box display="flex" justifyContent="center" alignItems="center">
+          <Box display="flex" sx={{width: "100%", position: "fixed", bottom: "0px", zIndex: "99999999"}} justifyContent="center" alignItems="end" alignContent="end">
             <AlertsBar />
           </Box>
         </Grid>

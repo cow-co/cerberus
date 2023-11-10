@@ -12,6 +12,8 @@ const LoginDialogue = (props) => {
   const dispatch = useDispatch();
 
   const handleClose = () => {
+    setCurrentUsername("");
+    setPassword("");
     onClose();
   }
 
