@@ -68,8 +68,11 @@ describe("Access tests", () => {
 
   test("login - success", async () => {
     accessManager.findUserByName.mockResolvedValue({
-      _id: "id",
-      name: "user",
+      user: {
+        id: "id",
+        name: "user",
+      },
+      errors: [],
     });
     accessManager.authenticate.mockImplementation((req, res, next) => {
       next();
