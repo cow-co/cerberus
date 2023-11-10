@@ -113,7 +113,6 @@ function TasksPane() {
       dispatch(setTasks(newList.tasks));
       createSuccessAlert("Successfully deleted task");
     }
-
   }
 
   const handleEdit = (task) => {

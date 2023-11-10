@@ -48,6 +48,22 @@ const fetchImplants = async () => {
   return json;
 };
 
+const deleteImplant = async (implant) => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}implants/${implant.id}`, {
+      method: "DELETE",
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
 const setTask = async (task) => {
   let json = null;
   try {
@@ -255,6 +271,7 @@ const getParamTypes = async () => {
 
 export {
   fetchImplants,
+  deleteImplant,
   fetchTasks,
   fetchTaskTypes,
   setTask,
