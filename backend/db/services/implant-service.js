@@ -80,10 +80,21 @@ const checkActivity = async () => {
   });
 };
 
+/**
+ * @param {String} id Implant to find. NOT the database ID; this is assigned by the implant itself when beaconing.
+ */
+const deleteImplant = async (implantId) => {
+  await Implant.findOneAndDelete({ id: implantId });
+  sendMessage(entityTypes.IMPLANTS, eventTypes.DELETE, {
+    id: implantId,
+  });
+};
+
 module.exports = {
   addImplant,
   updateImplant,
   findImplantById,
   getAllImplants,
   checkActivity,
+  deleteImplant,
 };

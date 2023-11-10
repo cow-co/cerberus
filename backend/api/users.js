@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
+const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
 router.get("/user/:username", accessManager.verifySession, async (req, res) => {
@@ -77,11 +78,16 @@ router.delete(
 );
 
 router.get("/check-session", accessManager.verifySession, async (req, res) => {
+  const { user } = await accessManager.findUserByName(req.session.username);
+  const isAdmin = await adminService.isUserAdmin(user.id);
+
   let status = statusCodes.OK;
   let response = {
     username: req.session.username,
+    isAdmin,
     errors: [],
   };
+
   res.status(status).json(response);
 });
 

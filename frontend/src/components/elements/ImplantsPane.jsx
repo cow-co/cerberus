@@ -2,10 +2,10 @@ import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
-import { fetchImplants } from '../../common/apiCalls';
+import { deleteImplant, fetchImplants } from '../../common/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
-import { createErrorAlert } from '../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
 import conf from "../../common/config/properties";
@@ -99,8 +99,17 @@ const ImplantsPane = () => {
     setShowInactive(!showInactive);
   }
 
+  const removeImplant = async (implant) => {
+    const res = await deleteImplant(implant);
+    if (res.errors.length > 0) {
+      createErrorAlert(res.errors);
+    } else {
+      createSuccessAlert("Successfully deleted implant");
+    }
+  }
+
   const implantsItems = filtered.map(implant => {
-    return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))}/>
+    return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))} deleteImplant={() => removeImplant(implant)} />
   });
 
   return (
