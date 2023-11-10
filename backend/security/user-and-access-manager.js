@@ -126,7 +126,7 @@ const register = async (username, password) => {
     errors: [],
   };
 
-  const existing = findUserByName(username);
+  const existing = await findUserByName(username);
   if (
     !existing &&
     securityConfig.authMethod === securityConfig.availableAuthMethods.DB

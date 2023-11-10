@@ -492,4 +492,16 @@ describe("Access Manager tests", () => {
 
     securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
+
+  test("register - failure - user exists", async () => {
+    dbManager.findUserByName.mockResolvedValue({
+      _id: "id",
+      name: "user",
+    });
+
+    const response = await accessManager.register("user", "pass");
+
+    expect(response._id).toBe(null);
+    expect(response.errors).toHaveLength(1);
+  });
 });
