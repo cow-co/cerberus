@@ -126,9 +126,9 @@ const register = async (username, password) => {
     errors: [],
   };
 
-  const existing = await findUserByName(username);
+  const { user } = await findUserByName(username);
   if (
-    !existing &&
+    !user &&
     securityConfig.authMethod === securityConfig.availableAuthMethods.DB
   ) {
     const createdUser = await dbUserManager.register(
@@ -138,7 +138,7 @@ const register = async (username, password) => {
     );
     response._id = createdUser.userId;
     response.errors = createdUser.errors;
-  } else if (!existing) {
+  } else if (!user) {
     response.errors.push(
       "Registering is not supported for the configured auth method; please ask your administrator to add you."
     );
