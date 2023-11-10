@@ -65,3 +65,7 @@
 .MuiGrid-item > h4 {
   margin: 0;
 }
+
+.alert-message {
+  z-index: 999999;
+}

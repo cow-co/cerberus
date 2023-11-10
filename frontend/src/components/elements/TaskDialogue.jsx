@@ -92,6 +92,7 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
   }
 
   const handleClose = () => {
+    setTask({_id: "", taskType: {id: "", name: ""}, params: []});
     onClose();
   }
 
