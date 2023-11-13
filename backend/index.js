@@ -36,6 +36,7 @@ if (process.env.NODE_ENV === "production") {
       log("index.js", "MongoDB connection successful", levels.INFO);
     })
     .catch((err) => log("index.js", err, levels.ERROR));
+  mongoose.set("sanitizeFilter", true); // Sanitise by default
 
   app.use(
     session({
