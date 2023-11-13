@@ -16,6 +16,7 @@ const adminService = require("../db/services/admin-service");
  */
 const authenticate = async (req, res, next) => {
   log("access-manager#authenticate", "Authenticating...", levels.DEBUG);
+  // TODO Check the user's token is issued at > validity
   let username = null;
   let password = null;
   let errors = [];
@@ -72,7 +73,6 @@ const authenticate = async (req, res, next) => {
   } else if (errors.length > 0) {
     res.status(status).json({ errors });
   } else {
-    req.session.username = username;
     next();
   }
 };

@@ -44,14 +44,14 @@ router.post("/register", async (req, res) => {
 router.post("/login", accessManager.authenticate, async (req, res) => {
   const { user } = await accessManager.findUserByName(req.session.username);
   const isAdmin = await adminService.isUserAdmin(user.id);
-  res
-    .status(statusCodes.OK)
-    .json({ username: req.session.username, isAdmin, errors: [] });
+  // TODO generate JWT
+  res.status(statusCodes.OK).json({ jwt, isAdmin, errors: [] });
 });
 
 router.delete("/logout", async (req, res) => {
   try {
     await accessManager.logout(req.session);
+    // TODO Update user's minimum JWT validity time
     res.status(statusCodes.OK).json({ errors: [] });
   } catch (err) {
     log("/logout", err, levels.ERROR);

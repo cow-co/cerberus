@@ -58,6 +58,8 @@ const deleteUser = async (userId) => {
   await User.findByIdAndDelete(userId);
 };
 
+// TODO Implement a getUserAndPassword, which calls with a populate query, joining HashedPassword and User
+
 module.exports = {
   findUser,
   findUserById,
