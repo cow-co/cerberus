@@ -5,7 +5,7 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
-router.get("", accessManager.verifySession, async (req, res) => {
+router.get("", accessManager.verifyToken, async (req, res) => {
   let responseJSON = {
     implants: null,
     errors: [],
@@ -23,7 +23,7 @@ router.get("", accessManager.verifySession, async (req, res) => {
 
 router.delete(
   "/:implantId",
-  accessManager.verifySession,
+  accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
     log(

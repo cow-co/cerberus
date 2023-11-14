@@ -5,7 +5,7 @@ const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
-router.get("/user/:username", accessManager.verifySession, async (req, res) => {
+router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   log(
     `GET /users/user/${req.params.username}`,
     `getting user ${req.params.username}`,
@@ -38,7 +38,7 @@ router.get("/user/:username", accessManager.verifySession, async (req, res) => {
 
 router.delete(
   "/user/:userId",
-  accessManager.verifySession,
+  accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
     log(
@@ -77,14 +77,17 @@ router.delete(
   }
 );
 
-router.get("/check-session", accessManager.verifySession, async (req, res) => {
-  const { user } = await accessManager.findUserByName(req.session.username);
-  const isAdmin = await adminService.isUserAdmin(user.id);
+router.get("/check-session", accessManager.verifyToken, async (req, res) => {
+  const { user } = await accessManager.findUserById(req.data.userId);
+  const isAdmin = await adminService.isUserAdmin(req.data.userId);
 
   let status = statusCodes.OK;
   let response = {
-    username: req.session.username,
-    isAdmin,
+    user: {
+      id: req.data.userId,
+      name: user.name,
+      isAdmin: isAdmin,
+    },
     errors: [],
   };
 

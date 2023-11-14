@@ -74,7 +74,7 @@ router.delete("/logout/:userId", async (req, res) => {
  */
 router.put(
   "/admin",
-  accessManager.verifySession,
+  accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
     log(
