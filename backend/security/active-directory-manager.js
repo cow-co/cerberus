@@ -53,8 +53,14 @@ const findUserByName = async (username) => {
   }
 };
 
+const deleteUser = async (userId) => {
+  await userService.deleteUser(userId);
+  await adminService.removeAdmin(userId);
+};
+
 module.exports = {
   authenticate,
   findUserById,
   findUserByName,
+  deleteUser,
 };

@@ -1,5 +1,7 @@
 import conf from "./config/properties";
 
+// TODO if receiving a 401, should wipe the login data from redux, and show an alert to request login
+
 const fetchTasks = async (implantId, showSent) => {
   let json = null;
   try {

@@ -7,6 +7,8 @@ const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
 const pki = require("./pki");
 const adminService = require("../db/services/admin-service");
+const jwt = require("jsonwebtoken");
+const userService = require("../db/services/user-service");
 
 /**
  * Basically checks the provided credentials
@@ -16,7 +18,6 @@ const adminService = require("../db/services/admin-service");
  */
 const authenticate = async (req, res, next) => {
   log("access-manager#authenticate", "Authenticating...", levels.DEBUG);
-  // TODO Check the user's token is issued at > validity
   let username = null;
   let password = null;
   let errors = [];
@@ -73,6 +74,20 @@ const authenticate = async (req, res, next) => {
   } else if (errors.length > 0) {
     res.status(status).json({ errors });
   } else {
+    req.data = {};
+    req.data.username = username;
+    req.data.token = token;
+    const result = await findUserByName(username);
+    req.data.userId = result.user.id;
+    req.data.isAdmin = await adminService.isUserAdmin(result.user.id);
+
+    const token = jwt.sign(
+      {
+        userId: req.data.userId,
+      },
+      securityConfig.jwtSecret,
+      { expiresIn: "1h" }
+    );
     next();
   }
 };
@@ -83,22 +98,33 @@ const authenticate = async (req, res, next) => {
  * @param {import("express").Response} res
  * @param {function} next
  */
-const verifySession = async (req, res, next) => {
-  log(
-    "verifySession",
-    "Verifying Session..." + JSON.stringify(req.session.username),
-    levels.DEBUG
-  );
-  if (req.session.username) {
-    next();
-  } else {
-    // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
-    // to manually submit anything
-    if (securityConfig.usePKI) {
-      await authenticate(req, res, next);
+// TODO Change to using entirely user IDs internally, and only expose username interfaces as far forward as possible
+//  ie. allow clients to use usernames, but convert those internally to IDs ASAP, and use the IDs from then on.
+//  This provides better guarantees of uniqueness, and less ambiguity/issues with formatting
+const verifyToken = async (req, res, next) => {
+  log("verifyToken", "Verifying Token...", levels.DEBUG);
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const payload = jwt.verify(token, securityConfig.jwtSecret);
+    console.log(payload);
+    const minTimestamp = await userService.getMinTokenTimestamp(payload.userId);
+
+    if (minTimestamp < payload.iat) {
+      req.data.username = payload.username;
+      next();
     } else {
-      res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
+      // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
+      // to manually submit anything
+      if (securityConfig.usePKI) {
+        await authenticate(req, res, next);
+      } else {
+        res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
+      }
     }
+  } catch (err) {
+    res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
   }
 };
 
@@ -106,9 +132,16 @@ const verifySession = async (req, res, next) => {
  * Destroys the stored session token
  * @param {Session} session (can be null/undefined, in which case function is no-op)
  */
-const logout = async (session) => {
-  if (session) {
-    session.destroy();
+const logout = async (username) => {
+  switch (securityConfig.authMethod) {
+    case securityConfig.availableAuthMethods.DB:
+      await dbUserManager.logout(username);
+      break;
+    case securityConfig.availableAuthMethods.AD:
+      await adUserManager.logout(username); // Actually is the user ID
+      break;
+    default:
+      break;
   }
 };
 
@@ -155,7 +188,7 @@ const register = async (username, password) => {
  * @param {function} next
  */
 const checkAdmin = async (req, res, next) => {
-  const username = req.session.username;
+  const username = req.data.username;
   let isAdmin = false;
 
   // This ensures we call this method after logging in
@@ -192,15 +225,17 @@ const removeUser = async (userId) => {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
         await dbUserManager.deleteUser(userId);
-        await adminService.removeAdmin(userId);
         break;
       case securityConfig.availableAuthMethods.AD:
         log(
           "removeUser",
           "Cannot remove a user when backed by Active Directory. Contact domain admin to remove user.",
-          levels.ERROR
+          levels.WARN
         );
-        errors.push("Internal Server Error");
+        adUserManager.deleteUser(userId);
+        errors.push(
+          "You cannot entirely remove users provided by Active Directory, but the user has been removed as admin."
+        );
         break;
 
       default:
@@ -294,7 +329,7 @@ const findUserById = async (userId) => {
 
 module.exports = {
   authenticate,
-  verifySession,
+  verifyToken,
   logout,
   register,
   checkAdmin,

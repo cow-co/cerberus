@@ -15,7 +15,7 @@ describe("User service tests", () => {
       name: "user",
     });
 
-    const user = await userService.findUser("user");
+    const user = await userService.findUserByName("user");
 
     expect(user._id).toBe("id");
   });

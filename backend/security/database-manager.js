@@ -1,8 +1,10 @@
 const userService = require("../db/services/user-service");
+const adminService = require("../db/services/admin-service");
 const argon2 = require("argon2");
 const securityConfig = require("../config/security-config");
 const { levels, log } = require("../utils/logger");
 const { validatePassword } = require("../validation/security-validation");
+const TokenValidity = require("../db/models/TokenValidity");
 
 /**
  * @param {string} username
@@ -21,10 +23,7 @@ const register = async (username, password, pwReqs) => {
 
     if (validationErrors.length === 0) {
       const hashed = await argon2.hash(password);
-      const userRecord = await userService.createUser({
-        name: username,
-        hashedPassword: hashed,
-      });
+      const userRecord = await userService.createUser(username, hashed);
       response.userId = userRecord._id;
     } else {
       log(
@@ -52,7 +51,7 @@ const authenticate = async (username, password, usePKI) => {
   let authenticated = false;
 
   if (username) {
-    user = await userService.findUser(username);
+    user = await userService.getUserAndPasswordByUsername(username);
     if (user) {
       log("database-manager#authenticate", JSON.stringify(user), levels.DEBUG);
       if (!usePKI) {
@@ -70,12 +69,23 @@ const authenticate = async (username, password, usePKI) => {
   return authenticated;
 };
 
+const logout = async (username) => {
+  const user = await findUserByName(username);
+  if (user) {
+    await TokenValidity.create({
+      userId: user._id,
+      minTokenValidity: Date.now(),
+    });
+  }
+};
+
 /**
  * @param {string} userId
  * @returns
  */
 const deleteUser = async (userId) => {
-  userService.deleteUser(userId);
+  await userService.deleteUser(userId);
+  await adminService.removeAdmin(userId);
 };
 
 /**
@@ -99,7 +109,7 @@ const findUserById = async (userId) => {
  * @returns null, if the user is not found
  */
 const findUserByName = async (username) => {
-  const user = await userService.findUser(username);
+  const user = await userService.findUserByName(username);
   if (!user) {
     return null;
   } else {
@@ -113,6 +123,7 @@ const findUserByName = async (username) => {
 module.exports = {
   register,
   authenticate,
+  logout,
   deleteUser,
   findUserById,
   findUserByName,

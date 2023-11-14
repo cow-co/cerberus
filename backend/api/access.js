@@ -4,7 +4,8 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
-const { findUser } = require("../db/services/user-service");
+const { findUserByName } = require("../db/services/user-service");
+const securityConfig = require("../config/security-config");
 
 /**
  * Expects request body to contain:
@@ -42,16 +43,20 @@ router.post("/register", async (req, res) => {
  * - password
  */
 router.post("/login", accessManager.authenticate, async (req, res) => {
-  const { user } = await accessManager.findUserByName(req.session.username);
-  const isAdmin = await adminService.isUserAdmin(user.id);
-  // TODO generate JWT
-  res.status(statusCodes.OK).json({ jwt, isAdmin, errors: [] });
+  res.status(statusCodes.OK).json({
+    token: req.data.token,
+    user: {
+      id: req.data.userId,
+      name: req.data.username,
+      isAdmin: req.data.isAdmin,
+    },
+    errors: [],
+  });
 });
 
 router.delete("/logout", async (req, res) => {
   try {
     await accessManager.logout(req.session);
-    // TODO Update user's minimum JWT validity time
     res.status(statusCodes.OK).json({ errors: [] });
   } catch (err) {
     log("/logout", err, levels.ERROR);

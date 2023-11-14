@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 // we want to have a separate dedicated table of admins
 const adminSchema = new Schema({
   userId: {
-    type: mongoose.SchemaTypes.ObjectId,
+    type: String,
     unique: true,
     index: true,
     dropDups: true,

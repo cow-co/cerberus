@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const tokenValiditySchema = new Schema({
   userId: {
-    type: mongoose.SchemaTypes.ObjectId,
+    type: String,
     required: true,
   },
   // Is set to the current time when logged out - effectively invalidating existing tokens

@@ -9,6 +9,10 @@ const userSchema = new Schema({
     dropDups: true,
     required: true,
   },
+  passwordId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "HashedPassword",
+  },
 });
 
 module.exports = User = mongoose.model("User", userSchema);

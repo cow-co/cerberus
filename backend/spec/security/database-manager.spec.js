@@ -64,7 +64,7 @@ describe("Database user manager tests", () => {
 
   test("authenticate - success - no PKI", async () => {
     argon2.verify.mockResolvedValue(true);
-    userService.findUser.mockResolvedValue({
+    userService.findUserByName.mockResolvedValue({
       _id: "id",
     });
 
@@ -74,7 +74,7 @@ describe("Database user manager tests", () => {
   });
 
   test("authenticate - success - PKI", async () => {
-    userService.findUser.mockResolvedValue({
+    userService.findUserByName.mockResolvedValue({
       _id: "id",
     });
 
@@ -90,7 +90,7 @@ describe("Database user manager tests", () => {
   });
 
   test("authenticate - failure - user not found", async () => {
-    userService.findUser.mockResolvedValue(null);
+    userService.findUserByName.mockResolvedValue(null);
 
     const auth = await manager.authenticate("user", "pass", false);
 
@@ -99,7 +99,7 @@ describe("Database user manager tests", () => {
 
   test("authenticate - failure - password wrong", async () => {
     argon2.verify.mockResolvedValue(false);
-    userService.findUser.mockResolvedValue({
+    userService.findUserByName.mockResolvedValue({
       _id: "id",
     });
 
@@ -127,7 +127,7 @@ describe("Database user manager tests", () => {
   });
 
   test("find user by name - success - user found", async () => {
-    userService.findUser.mockResolvedValue({
+    userService.findUserByName.mockResolvedValue({
       _id: "id",
     });
 
@@ -137,7 +137,7 @@ describe("Database user manager tests", () => {
   });
 
   test("find user by name - success - no user found", async () => {
-    userService.findUser.mockResolvedValue(null);
+    userService.findUserByName.mockResolvedValue(null);
 
     const user = await manager.findUserByName("user");
 

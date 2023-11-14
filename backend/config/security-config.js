@@ -9,7 +9,7 @@ module.exports = {
   usePKI: false,
   authMethod: authMethods.DB,
   availableAuthMethods: authMethods,
-  sessionSecret: `${process.env.CERBERUS_SESSION_SECRET}`,
+  jwtSecret: `${process.env.CERBERUS_JWT_SECRET}`,
   passwordRequirements: {
     requireUppercase: true,
     requireLowercase: true,
