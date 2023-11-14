@@ -98,9 +98,6 @@ const authenticate = async (req, res, next) => {
  * @param {import("express").Response} res
  * @param {function} next
  */
-// TODO Change to using entirely user IDs internally, and only expose username interfaces as far forward as possible
-//  ie. allow clients to use usernames, but convert those internally to IDs ASAP, and use the IDs from then on.
-//  This provides better guarantees of uniqueness, and less ambiguity/issues with formatting
 const verifyToken = async (req, res, next) => {
   log("verifyToken", "Verifying Token...", levels.DEBUG);
   const authHeader = req.headers.authorization;
@@ -112,7 +109,7 @@ const verifyToken = async (req, res, next) => {
     const minTimestamp = await userService.getMinTokenTimestamp(payload.userId);
 
     if (minTimestamp < payload.iat) {
-      req.data.username = payload.username;
+      req.data.userId = payload.userId;
       next();
     } else {
       // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
@@ -188,24 +185,19 @@ const register = async (username, password) => {
  * @param {function} next
  */
 const checkAdmin = async (req, res, next) => {
-  const username = req.data.username;
+  const userId = req.data.userId;
   let isAdmin = false;
 
   // This ensures we call this method after logging in
-  if (username) {
-    const result = await findUserByName(username);
-    if (result.user === null) {
-      res.status(statusCodes.FORBIDDEN).json({ errors: ["User not found"] });
+  if (userId) {
+    isAdmin = await adminService.isUserAdmin(userId);
+    if (isAdmin) {
+      next();
     } else {
-      isAdmin = await adminService.isUserAdmin(result.user.id);
-      if (isAdmin) {
-        next();
-      } else {
-        log("checkAdmin", "User is not an admin", levels.WARN);
-        res
-          .status(statusCodes.FORBIDDEN)
-          .json({ errors: ["You must be an admin to do this"] });
-      }
+      log("checkAdmin", "User is not an admin", levels.WARN);
+      res
+        .status(statusCodes.FORBIDDEN)
+        .json({ errors: ["You must be an admin to do this"] });
     }
   } else {
     log("checkAdmin", "User is not logged in", levels.WARN);

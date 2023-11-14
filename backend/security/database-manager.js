@@ -1,7 +1,6 @@
 const userService = require("../db/services/user-service");
 const adminService = require("../db/services/admin-service");
 const argon2 = require("argon2");
-const securityConfig = require("../config/security-config");
 const { levels, log } = require("../utils/logger");
 const { validatePassword } = require("../validation/security-validation");
 const TokenValidity = require("../db/models/TokenValidity");
@@ -69,14 +68,11 @@ const authenticate = async (username, password, usePKI) => {
   return authenticated;
 };
 
-const logout = async (username) => {
-  const user = await findUserByName(username);
-  if (user) {
-    await TokenValidity.create({
-      userId: user._id,
-      minTokenValidity: Date.now(),
-    });
-  }
+const logout = async (userId) => {
+  await TokenValidity.create({
+    userId: userId,
+    minTokenValidity: Date.now(),
+  });
 };
 
 /**
