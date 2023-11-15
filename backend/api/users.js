@@ -78,6 +78,7 @@ router.delete(
 );
 
 router.get("/whoami", accessManager.verifyToken, async (req, res) => {
+  // TODO Wrap in try/catch
   const { user } = await accessManager.findUserById(req.data.userId);
   const isAdmin = await adminService.isUserAdmin(req.data.userId);
 
