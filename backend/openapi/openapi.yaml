@@ -232,6 +232,13 @@ paths:
       tags:
         - Users
         - Access
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the user to delete.
       responses:
         "200":
           description: User logged out successfully 
@@ -453,6 +460,13 @@ paths:
       summary: Deletes an implant record.
       tags:
         - Implants
+      parameters:
+        - in: path
+          name: implantId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the implant to delete.
       responses:
         "200":
           description: Successfully deleted.
@@ -496,6 +510,13 @@ paths:
       tags:
         - Tasks
         - Implants
+      parameters:
+        - in: path
+          name: implantId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the implant to find tasks from.
       responses:
         "200": # status code
           description: Tasks.
@@ -648,6 +669,13 @@ paths:
       summary: Deletes a task type. Requires admin access.
       tags:
         - Tasks
+      parameters:
+        - in: path
+          name: taskTypeId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the task type to delete.
       responses:
         "200": # status code
           description: Successfully deleted (or did not exist in the first place)
@@ -761,6 +789,13 @@ paths:
       summary: Deletes a task. Requires operator access to the implant.
       tags:
         - Tasks
+      parameters:
+        - in: path
+          name: taskId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the task to delete.
       responses:
         "200": # status code
           description: Successfully deleted (or did not exist in the first place)
@@ -814,6 +849,13 @@ paths:
       summary: Gets the details (minus hashed password) of the user, if they exist.
       tags:
         - Users
+      parameters:
+        - in: path
+          name: username
+          schema:
+            type: string
+          required: true
+          description: Name of the user to find.
       responses:
         "200": # status code
           description: Successfully found user
@@ -855,6 +897,13 @@ paths:
       summary: Ensures a user does not exist in the database. Requires admin access. Does not work when auth is not DB-backed.
       tags:
         - Users
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the user to delete.
       responses:
         "200": # status code
           description: User deleted or did not exist.
