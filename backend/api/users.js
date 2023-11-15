@@ -77,7 +77,7 @@ router.delete(
   }
 );
 
-router.get("/check-session", accessManager.verifyToken, async (req, res) => {
+router.get("/whoami", accessManager.verifyToken, async (req, res) => {
   const { user } = await accessManager.findUserById(req.data.userId);
   const isAdmin = await adminService.isUserAdmin(req.data.userId);
 

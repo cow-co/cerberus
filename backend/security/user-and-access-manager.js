@@ -93,7 +93,7 @@ const authenticate = async (req, res, next) => {
 };
 
 /**
- * Checks that the session cookie is valid; if not, redirects to the login page
+ * Checks that the JWT is valid; if not, redirects to the login page
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @param {function} next
@@ -112,7 +112,7 @@ const verifyToken = async (req, res, next) => {
       req.data.userId = payload.userId;
       next();
     } else {
-      // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
+      // We attempt to login automatically if PKI is enabled, since we don't need the user
       // to manually submit anything
       if (securityConfig.usePKI) {
         await authenticate(req, res, next);
@@ -126,16 +126,16 @@ const verifyToken = async (req, res, next) => {
 };
 
 /**
- * Destroys the stored session token
- * @param {Session} session (can be null/undefined, in which case function is no-op)
+ * Invalidates the JWTs issued to the user
+ * @param {string} userId
  */
-const logout = async (username) => {
+const logout = async (userId) => {
   switch (securityConfig.authMethod) {
     case securityConfig.availableAuthMethods.DB:
-      await dbUserManager.logout(username);
+      await dbUserManager.logout(userId);
       break;
     case securityConfig.availableAuthMethods.AD:
-      await adUserManager.logout(username); // Actually is the user ID
+      await adUserManager.logout(userId); // Actually is the user ID
       break;
     default:
       break;

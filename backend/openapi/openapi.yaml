@@ -2,13 +2,12 @@ openapi: 3.0.0
 info:
   title: CERBERUS API
   description: API definition for the CERBERUS implant-management API.
-  version: 0.0.1
+  version: 2.0.0
 components:
   securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: connect.sid
+    jwt:
+      type: http
+      scheme: bearer
   schemas:
     logindetails:
       properties:
@@ -112,6 +111,7 @@ paths:
   /access/register:
     post: 
       summary: Creates a user, when user management is backed by the database (rather than AD, for example).
+      security: []
       tags:
         - Users
         - Access
@@ -152,6 +152,7 @@ paths:
   /access/login:
     post: 
       summary: Logs the user in.
+      security: []
       tags:
         - Users
         - Access
@@ -204,6 +205,7 @@ paths:
   /access/logout:
     delete: 
       summary: Logs the user out.
+      security: []
       tags:
         - Users
         - Access
@@ -233,7 +235,7 @@ paths:
   /access/admin:
     put: 
       security:
-        - cookieAuth: []
+        - jwt: [Admin]
       summary: Changes admin status of user. Calling user must themselves be an admin.
       tags:
         - Access
@@ -297,6 +299,7 @@ paths:
   /beacon: 
     post: 
       summary: Checks in from an implant, and retrieves tasks. 
+      security: []
       tags:
         - Implants
       requestBody:
@@ -369,7 +372,7 @@ paths:
   /implants:
     get:
       security:
-        - cookieAuth: []
+        - jwt: [Read]
       summary: Retrieves all implants.
       tags:
         - Implants
@@ -424,7 +427,7 @@ paths:
   /tasks/{implantId}:
     get:
       security:
-        - cookieAuth: []
+        - jwt: [Read]
       summary: Retrieves tasks for the given implant. 
       tags:
         - Tasks
@@ -474,7 +477,7 @@ paths:
   /task-types:
     get:
       security:
-        - cookieAuth: []
+        - jwt: [Read]
       summary: Retrieves the list of all task types
       tags:
         - Tasks
@@ -522,7 +525,7 @@ paths:
                       type: string
     post:
       security:
-        - cookieAuth: []
+        - jwt: [Admin]
       summary: Creates a new task type
       tags:
         - Tasks
@@ -574,7 +577,7 @@ paths:
   /tasks: 
     post: 
       security:
-        - cookieAuth: []
+        - jwt: [Operator]
       summary: Creates or edits a task
       tags:
         - Tasks
@@ -626,7 +629,7 @@ paths:
   /tasks/{taskId}: 
     delete: 
       security:
-        - cookieAuth: []
+        - jwt: [Operator]
       summary: Deletes a task
       tags:
         - Tasks
@@ -679,7 +682,7 @@ paths:
   /users/user/{username}: 
     get: 
       security:
-        - cookieAuth: []
+        - jwt: [Read]
       summary: Gets the details (minus hashed password) of the user, if they exist.
       tags:
         - Users

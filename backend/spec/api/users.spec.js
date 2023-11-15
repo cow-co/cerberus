@@ -19,8 +19,9 @@ describe("User tests", () => {
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
-    accessManager.verifySession.mockImplementation((req, res, next) => {
-      req.session.username = "user";
+    accessManager.verifyToken.mockImplementation((req, res, next) => {
+      req.data.username = "user";
+      req.data.userId = "id";
       next();
     });
 
@@ -135,10 +136,10 @@ describe("User tests", () => {
     expect(res.statusCode).toBe(200);
   });
 
-  test("should check session and return username", async () => {
-    const res = await agent.get("/api/users/check-session");
+  test("should check token and return username", async () => {
+    const res = await agent.get("/api/users/whoami");
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.username).toBe("user");
+    expect(res.body.user.name).toBe("user");
   });
 });

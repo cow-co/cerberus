@@ -246,7 +246,7 @@ const deleteUser = async (userId) => {
 const checkSessionCookie = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}users/check-session`);
+    const response = await fetch(`${conf.apiURL}users/whoami`);
     json = await response.json();
   } catch (err) {
     console.error(err);

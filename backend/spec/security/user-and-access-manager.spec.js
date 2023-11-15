@@ -31,7 +31,6 @@ describe("Access Manager tests", () => {
           username: "user",
           password: "pass",
         },
-        session: {},
       },
       null,
       () => {
@@ -51,15 +50,9 @@ describe("Access Manager tests", () => {
     dbManager.authenticate.mockResolvedValue(true);
 
     let called = false;
-    await accessManager.authenticate(
-      {
-        session: {},
-      },
-      null,
-      () => {
-        called = true;
-      }
-    );
+    await accessManager.authenticate({}, null, () => {
+      called = true;
+    });
 
     expect(called).toBe(true);
     expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
@@ -112,7 +105,6 @@ describe("Access Manager tests", () => {
           username: "user",
           password: "pass",
         },
-        session: {},
       },
       {
         status: (status) => {
@@ -179,7 +171,7 @@ describe("Access Manager tests", () => {
 
     await accessManager.checkAdmin(
       {
-        session: { username: "user" },
+        data: { username: "user" },
       },
       null,
       () => {
@@ -199,7 +191,7 @@ describe("Access Manager tests", () => {
 
     await accessManager.checkAdmin(
       {
-        session: { username: "user" },
+        data: { username: "user" },
       },
       {
         status: (status) => {
@@ -229,7 +221,7 @@ describe("Access Manager tests", () => {
 
     await accessManager.checkAdmin(
       {
-        session: { username: "user" },
+        data: { username: "user" },
       },
       {
         status: (status) => {
@@ -251,7 +243,7 @@ describe("Access Manager tests", () => {
     let resStatus = 200;
     let res = {};
     await accessManager.checkAdmin(
-      { session: {} },
+      { data: {} },
       {
         status: (status) => {
           resStatus = status;
@@ -391,11 +383,11 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  test("verify session - success - no PKI", async () => {
+  test("verify token - success - no PKI", async () => {
     let called = false;
     await accessManager.verifySession(
       {
-        session: {
+        data: {
           username: "user",
         },
       },
@@ -408,13 +400,13 @@ describe("Access Manager tests", () => {
     expect(called).toBe(true);
   });
 
-  test("verify session - failure", async () => {
+  test("verify token - failure", async () => {
     let called = false;
     let resStatus = 200;
     let res = {};
     await accessManager.verifySession(
       {
-        session: {},
+        data: {},
       },
       {
         status: (statusCode) => {
@@ -436,7 +428,7 @@ describe("Access Manager tests", () => {
     expect(resStatus).toBe(403);
   });
 
-  test("verify session - success - PKI", async () => {
+  test("verify token - success - PKI", async () => {
     pki.extractUserDetails.mockReturnValue("user");
     dbManager.authenticate.mockResolvedValue(true);
     securityConfig.usePKI = true;
@@ -444,7 +436,7 @@ describe("Access Manager tests", () => {
 
     await accessManager.verifySession(
       {
-        session: {},
+        data: {},
       },
       null,
       () => {

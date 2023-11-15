@@ -4,8 +4,6 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
-const { findUserByName } = require("../db/services/user-service");
-const securityConfig = require("../config/security-config");
 
 /**
  * Expects request body to contain:
