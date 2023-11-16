@@ -85,12 +85,10 @@ describe("Access tests", () => {
       next();
     });
 
-    console.log("CALLING");
     const res = await agent
       .post("/api/access/login")
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
 
-    console.log(JSON.stringify(res));
     expect(res.statusCode).toBe(200);
     expect(accessManager.authenticate).toHaveBeenCalledTimes(1);
   });

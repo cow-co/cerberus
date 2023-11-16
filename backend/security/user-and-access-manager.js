@@ -133,7 +133,9 @@ const verifyToken = async (req, res, next) => {
       }
     } catch (err) {
       log("verifyToken", err, levels.WARN);
-      res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
+      res
+        .status(statusCodes.INTERNAL_SERVER_ERROR)
+        .json({ errors: ["Internal Server Error"] });
     }
   }
 };

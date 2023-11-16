@@ -70,7 +70,7 @@ const deleteUser = async (userId) => {
     await user.deleteOne();
   }
   // Token validity is set for all auth types
-  await TokenValidity.findOneAndDelete({ userId: user._id });
+  await TokenValidity.findOneAndDelete({ userId: userId });
 };
 
 const getUserAndPasswordByUsername = async (username) => {
@@ -80,9 +80,11 @@ const getUserAndPasswordByUsername = async (username) => {
 const getMinTokenTimestamp = async (username) => {
   let timestamp = 0;
   const user = await User.findOne({ name: username });
-  const tokenValidity = await TokenValidity.findOne({ userId: user._id });
-  if (tokenValidity) {
-    timestamp = tokenValidity.minTokenValidity;
+  if (user) {
+    const tokenValidity = await TokenValidity.findOne({ userId: user._id });
+    if (tokenValidity) {
+      timestamp = tokenValidity.minTokenValidity;
+    }
   }
   return timestamp;
 };

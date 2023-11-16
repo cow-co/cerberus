@@ -152,4 +152,12 @@ describe("User tests", () => {
     expect(res.body.user.name).toBe("user");
     expect(res.body.user.isAdmin).toBe(false);
   });
+
+  test("whoami - failure - exception", async () => {
+    accessManager.findUserById.mockRejectedValue(new Error("TypeError"));
+    const res = await agent.get("/api/users/whoami");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
 });

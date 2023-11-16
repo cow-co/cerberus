@@ -1,5 +1,8 @@
 const securityConfig = require("../config/security-config");
 const ActiveDirectory = require("activedirectory");
+const userService = require("../db/services/user-service");
+const adminService = require("../db/services/admin-service");
+const TokenValidity = require("../db/models/TokenValidity");
 
 const ad = new ActiveDirectory(securityConfig.adConfig);
 
@@ -58,9 +61,23 @@ const deleteUser = async (userId) => {
   await adminService.removeAdmin(userId);
 };
 
+const logout = async (userId) => {
+  const existing = await TokenValidity.findOne({ userId: userId });
+  if (existing) {
+    existing.minTokenValidity = Date.now();
+    await existing.save();
+  } else {
+    await TokenValidity.create({
+      userId: userId,
+      minTokenValidity: Date.now(),
+    });
+  }
+};
+
 module.exports = {
   authenticate,
   findUserById,
   findUserByName,
   deleteUser,
+  logout,
 };

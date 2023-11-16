@@ -78,6 +78,33 @@ describe("Access Manager tests", () => {
     expect(jwt.sign).toHaveBeenCalledTimes(1);
   });
 
+  test("authenticate - failure - PKI, user does not exist", async () => {
+    securityConfig.usePKI = true;
+    pki.extractUserDetails.mockReturnValue("user");
+    dbManager.authenticate.mockResolvedValue(true);
+    dbManager.findUserByName.mockRejectedValue(new Error("TypeError"));
+
+    let called = false;
+    await accessManager.authenticate(
+      {},
+      {
+        status: (status) => {
+          return {
+            json: (data) => {
+              called = true;
+            },
+          };
+        },
+      },
+      () => {}
+    );
+
+    expect(called).toBe(true);
+    expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
+    expect(dbManager.authenticate).toHaveBeenCalledTimes(1);
+    expect(jwt.sign).toHaveBeenCalledTimes(0);
+  });
+
   test("authenticate - failure - exception", async () => {
     dbManager.authenticate.mockRejectedValue(new Error("TypeError"));
 
@@ -237,7 +264,7 @@ describe("Access Manager tests", () => {
 
     await accessManager.checkAdmin(
       {
-        data: { username: "user" },
+        data: { userId: "id" },
       },
       {
         status: (status) => {
@@ -409,6 +436,74 @@ describe("Access Manager tests", () => {
     expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(1);
   });
 
+  test("verify token - failure - invalidated token", async () => {
+    let called = false;
+    let httpStatus = 200;
+    userService.getMinTokenTimestamp.mockResolvedValue(Number.MAX_SAFE_INTEGER);
+    jwt.verify.mockReturnValue({ userId: "id", iat: Date.now() });
+
+    await accessManager.verifyToken(
+      {
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer aaabbbccc",
+        },
+      },
+      {
+        status: (statusCode) => {
+          httpStatus = statusCode;
+          return {
+            json: (data) => {
+              called = true;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBe(true);
+    expect(jwt.verify).toHaveBeenCalledTimes(1);
+    expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(1);
+    expect(httpStatus).toBe(403);
+  });
+
+  test("verify token - failure - exception", async () => {
+    let called = false;
+    let httpStatus = 200;
+    userService.getMinTokenTimestamp.mockRejectedValue(new Error("TypeError"));
+    jwt.verify.mockReturnValue({ userId: "id", iat: Date.now() });
+
+    await accessManager.verifyToken(
+      {
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer aaabbbccc",
+        },
+      },
+      {
+        status: (statusCode) => {
+          httpStatus = statusCode;
+          return {
+            json: (data) => {
+              called = true;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBe(true);
+    expect(jwt.verify).toHaveBeenCalledTimes(1);
+    expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(1);
+    expect(httpStatus).toBe(500);
+  });
+
   test("verify token - failure", async () => {
     let called = false;
     let resStatus = 200;
@@ -473,6 +568,14 @@ describe("Access Manager tests", () => {
     expect(dbManager.logout).toHaveBeenCalledTimes(1);
   });
 
+  test("logout - success - AD", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+
+    await accessManager.logout("id");
+
+    expect(adManager.logout).toHaveBeenCalledTimes(1);
+  });
+
   test("register - success", async () => {
     dbManager.findUserByName.mockResolvedValue(null);
     dbManager.register.mockResolvedValue({
@@ -507,4 +610,6 @@ describe("Access Manager tests", () => {
     expect(response._id).toBe(null);
     expect(response.errors).toHaveLength(1);
   });
+
+  // TODO Can we test the index stuff
 });

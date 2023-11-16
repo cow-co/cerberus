@@ -1,12 +1,16 @@
 const { purgeCache } = require("../utils");
 const argon2 = require("argon2");
 const userService = require("../../db/services/user-service");
+const adminService = require("../../db/services/admin-service");
 const validation = require("../../validation/security-validation");
 const manager = require("../../security/database-manager");
 const { passwordRequirements } = require("../../config/security-config");
+const TokenValidity = require("../../db/models/TokenValidity");
 
 jest.mock("../../validation/security-validation");
 jest.mock("../../db/services/user-service");
+jest.mock("../../db/services/admin-service");
+jest.mock("../../db/models/TokenValidity");
 jest.mock("argon2");
 
 describe("Database user manager tests", () => {
@@ -146,5 +150,18 @@ describe("Database user manager tests", () => {
     const user = await manager.findUserByName("user");
 
     expect(user).toBeNull();
+  });
+
+  test("logout - success", async () => {
+    await manager.logout("id");
+
+    expect(TokenValidity.create).toHaveBeenCalledTimes(1);
+  });
+
+  test("delete user - success", async () => {
+    await manager.deleteUser("id");
+
+    expect(userService.deleteUser).toHaveBeenCalledTimes(1);
+    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
   });
 });
