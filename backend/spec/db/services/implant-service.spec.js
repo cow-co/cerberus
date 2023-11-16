@@ -89,7 +89,6 @@ describe("Implant service tests", () => {
         lastCheckinTime: Number.MAX_SAFE_INTEGER,
         isActive: true,
         save: async function () {
-          console.log(JSON.stringify(this));
           updates.id1 = this.isActive;
         },
       },
@@ -101,7 +100,6 @@ describe("Implant service tests", () => {
         lastCheckinTime: 1698862658,
         isActive: true,
         save: async function () {
-          console.log(JSON.stringify(this));
           updates.id2 = this.isActive;
         },
       },
@@ -113,7 +111,6 @@ describe("Implant service tests", () => {
         lastCheckinTime: 1698861658,
         isActive: true,
         save: async function () {
-          console.log(JSON.stringify(this));
           updates.id3 = this.isActive;
         },
       },

@@ -58,14 +58,18 @@ describe("Database user manager tests", () => {
       passwordRequirements
     );
 
-    console.log(result.errors);
     expect(result.errors).toHaveLength(1);
   });
 
   test("authenticate - success - no PKI", async () => {
     argon2.verify.mockResolvedValue(true);
-    userService.findUserByName.mockResolvedValue({
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
       _id: "id",
+      name: "user",
+      password: {
+        _id: "hashId",
+        hashedPassword: "hash",
+      },
     });
 
     const auth = await manager.authenticate("user", "pass", false);
@@ -90,7 +94,7 @@ describe("Database user manager tests", () => {
   });
 
   test("authenticate - failure - user not found", async () => {
-    userService.findUserByName.mockResolvedValue(null);
+    userService.getUserAndPasswordByUsername.mockResolvedValue(null);
 
     const auth = await manager.authenticate("user", "pass", false);
 

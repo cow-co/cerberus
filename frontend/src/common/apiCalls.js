@@ -25,7 +25,6 @@ const fetchTaskTypes = async () => {
   let json = null;
   try {
     const response = await fetch(`${conf.apiURL}task-types`);
-    console.log("RESPONSE " + JSON.stringify(response));
     json = await response.json();
   } catch (err) {
     console.error(err);

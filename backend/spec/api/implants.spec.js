@@ -19,7 +19,7 @@ describe("Implant API Tests", () => {
   });
 
   beforeEach(() => {
-    accessManager.verifySession.mockImplementation((req, res, next) => {
+    accessManager.verifyToken.mockImplementation((req, res, next) => {
       next();
     });
     accessManager.checkAdmin.mockImplementation((req, res, next) => {

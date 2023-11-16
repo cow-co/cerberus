@@ -110,7 +110,7 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
     try {
       error = await tasksService.setTask(req.body);
       if (error) {
-        console.log(error);
+        console.log(error); // TODO Log properly
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors = [error];
       }

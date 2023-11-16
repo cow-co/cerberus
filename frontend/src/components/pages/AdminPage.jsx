@@ -11,8 +11,6 @@ function AdminPage() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
 
-  console.log("Rendering Admin Page");
-
   return (
     <Box sx={{flexGrow: 1}}>
       <HeaderBar 

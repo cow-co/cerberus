@@ -12,6 +12,7 @@ const userService = require("../db/services/user-service");
 
 /**
  * Basically checks the provided credentials
+ * TODO Should probably neaten this up
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @param {function} next
@@ -74,21 +75,29 @@ const authenticate = async (req, res, next) => {
   } else if (errors.length > 0) {
     res.status(status).json({ errors });
   } else {
+    console.log("AUTHENTICATED");
     req.data = {};
-    req.data.username = username;
-    req.data.token = token;
     const result = await findUserByName(username);
-    req.data.userId = result.user.id;
-    req.data.isAdmin = await adminService.isUserAdmin(result.user.id);
+    if (result.errors.length > 0) {
+      res.status(status).json({ errors });
+    } else {
+      req.data.isAdmin = await adminService.isUserAdmin(result.user.id);
 
-    const token = jwt.sign(
-      {
-        userId: req.data.userId,
-      },
-      securityConfig.jwtSecret,
-      { expiresIn: "1h" }
-    );
-    next();
+      const token = jwt.sign(
+        {
+          userId: result.user.id,
+        },
+        securityConfig.jwtSecret,
+        { expiresIn: "1h" }
+      );
+
+      req.data = {};
+      req.data.userId = result.user.id;
+      req.data.username = username;
+      req.data.token = token;
+
+      next();
+    }
   }
 };
 
@@ -100,28 +109,32 @@ const authenticate = async (req, res, next) => {
  */
 const verifyToken = async (req, res, next) => {
   log("verifyToken", "Verifying Token...", levels.DEBUG);
-  const authHeader = req.headers.authorization;
-  const token = authHeader.split(" ")[1];
 
-  try {
-    const payload = jwt.verify(token, securityConfig.jwtSecret);
-    console.log(payload);
-    const minTimestamp = await userService.getMinTokenTimestamp(payload.userId);
+  if (!req.headers.authorization && !securityConfig.usePKI) {
+    res.status(statusCodes.FORBIDDEN).json({ errors: ["No token"] });
+  } else if (!req.headers.authorization && securityConfig.usePKI) {
+    await authenticate(req, res, next);
+  } else {
+    const authHeader = req.headers.authorization;
+    const token = authHeader.split(" ")[1];
 
-    if (minTimestamp < payload.iat) {
-      req.data.userId = payload.userId;
-      next();
-    } else {
-      // We attempt to login automatically if PKI is enabled, since we don't need the user
-      // to manually submit anything
-      if (securityConfig.usePKI) {
-        await authenticate(req, res, next);
+    try {
+      const payload = jwt.verify(token, securityConfig.jwtSecret);
+      const minTimestamp = await userService.getMinTokenTimestamp(
+        payload.userId
+      );
+
+      if (minTimestamp < payload.iat) {
+        req.data = {};
+        req.data.userId = payload.userId;
+        next();
       } else {
         res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
       }
+    } catch (err) {
+      log("verifyToken", err, levels.WARN);
+      res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
     }
-  } catch (err) {
-    res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
   }
 };
 

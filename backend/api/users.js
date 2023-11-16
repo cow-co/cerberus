@@ -78,19 +78,29 @@ router.delete(
 );
 
 router.get("/whoami", accessManager.verifyToken, async (req, res) => {
-  // TODO Wrap in try/catch
-  const { user } = await accessManager.findUserById(req.data.userId);
-  const isAdmin = await adminService.isUserAdmin(req.data.userId);
-
+  let response = {};
   let status = statusCodes.OK;
-  let response = {
-    user: {
-      id: req.data.userId,
-      name: user.name,
-      isAdmin: isAdmin,
-    },
-    errors: [],
-  };
+
+  try {
+    const { user } = await accessManager.findUserById(req.data.userId);
+    const isAdmin = await adminService.isUserAdmin(req.data.userId);
+
+    status = statusCodes.OK;
+    response = {
+      user: {
+        id: req.data.userId,
+        name: user.name,
+        isAdmin: isAdmin,
+      },
+      errors: [],
+    };
+  } catch (err) {
+    log("/users/whoami", err, levels.WARN);
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response = {
+      errors: ["Internal Server Error"],
+    };
+  }
 
   res.status(status).json(response);
 });

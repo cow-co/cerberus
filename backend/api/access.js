@@ -40,7 +40,8 @@ router.post("/register", async (req, res) => {
  * - username
  * - password
  */
-router.post("/login", accessManager.authenticate, async (req, res) => {
+router.post("/login", accessManager.authenticate, (req, res) => {
+  console.log("BLAH!");
   res.status(statusCodes.OK).json({
     token: req.data.token,
     user: {

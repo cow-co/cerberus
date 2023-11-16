@@ -4,12 +4,16 @@ const pki = require("../../security/pki");
 const dbManager = require("../../security/database-manager");
 const adManager = require("../../security/active-directory-manager");
 const adminService = require("../../db/services/admin-service");
+const userService = require("../../db/services/user-service");
+const jwt = require("jsonwebtoken");
 let accessManager;
 
 jest.mock("../../security/pki");
 jest.mock("../../security/database-manager");
 jest.mock("../../security/active-directory-manager");
 jest.mock("../../db/services/admin-service");
+jest.mock("../../db/services/user-service");
+jest.mock("jsonwebtoken");
 
 describe("Access Manager tests", () => {
   afterAll(() => {
@@ -20,9 +24,19 @@ describe("Access Manager tests", () => {
     accessManager = require("../../security/user-and-access-manager");
   });
 
+  beforeEach(() => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
+    securityConfig.usePKI = false;
+  });
+
   test("authenticate - success - AD", async () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
     adManager.authenticate.mockResolvedValue(true);
+    adManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
 
     let called = false;
     await accessManager.authenticate(
@@ -40,14 +54,18 @@ describe("Access Manager tests", () => {
 
     expect(called).toBe(true);
     expect(adManager.authenticate).toHaveBeenCalledTimes(1);
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
+    expect(jwt.sign).toHaveBeenCalledTimes(1);
   });
 
   test("authenticate - success - PKI", async () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
     dbManager.authenticate.mockResolvedValue(true);
+    dbManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
 
     let called = false;
     await accessManager.authenticate({}, null, () => {
@@ -56,8 +74,8 @@ describe("Access Manager tests", () => {
 
     expect(called).toBe(true);
     expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
-
-    securityConfig.usePKI = false;
+    expect(dbManager.authenticate).toHaveBeenCalledTimes(1);
+    expect(jwt.sign).toHaveBeenCalledTimes(1);
   });
 
   test("authenticate - failure - exception", async () => {
@@ -124,8 +142,6 @@ describe("Access Manager tests", () => {
     expect(called).toBe(false);
     expect(statusCode).toBe(500);
     expect(errors).toHaveLength(1);
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("authenticate - failure - incorrect credentials", async () => {
@@ -171,7 +187,7 @@ describe("Access Manager tests", () => {
 
     await accessManager.checkAdmin(
       {
-        data: { username: "user" },
+        data: { userId: "id" },
       },
       null,
       () => {
@@ -262,7 +278,6 @@ describe("Access Manager tests", () => {
 
     expect(errors).toHaveLength(0);
     expect(dbManager.deleteUser).toHaveBeenCalledTimes(1);
-    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
   });
 
   test("remove user - failure - AD", async () => {
@@ -271,8 +286,6 @@ describe("Access Manager tests", () => {
     const errors = await accessManager.removeUser("userId");
 
     expect(errors).toHaveLength(1);
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("remove user - failure - unsupported auth method", async () => {
@@ -281,8 +294,6 @@ describe("Access Manager tests", () => {
     const errors = await accessManager.removeUser("userId");
 
     expect(errors).toHaveLength(1);
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("remove user - failure - exception", async () => {
@@ -316,8 +327,6 @@ describe("Access Manager tests", () => {
 
     expect(res.errors).toHaveLength(0);
     expect(res.user.name).toBe("user");
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("find user by name - failure - unsupported auth method", async () => {
@@ -326,8 +335,6 @@ describe("Access Manager tests", () => {
 
     expect(res.errors).toHaveLength(1);
     expect(res.user).toBe(null);
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("find user by name - failure - exception", async () => {
@@ -361,8 +368,6 @@ describe("Access Manager tests", () => {
 
     expect(res.errors).toHaveLength(0);
     expect(res.user.name).toBe("user");
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("find user by ID - failure - unsupported auth method", async () => {
@@ -371,8 +376,6 @@ describe("Access Manager tests", () => {
 
     expect(res.errors).toHaveLength(1);
     expect(res.user).toBe(null);
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("find user by ID - failure - exception", async () => {
@@ -385,10 +388,14 @@ describe("Access Manager tests", () => {
 
   test("verify token - success - no PKI", async () => {
     let called = false;
-    await accessManager.verifySession(
+    userService.getMinTokenTimestamp.mockResolvedValue(0);
+    jwt.verify.mockReturnValue({ userId: "id", iat: Date.now() });
+
+    await accessManager.verifyToken(
       {
-        data: {
-          username: "user",
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer aaabbbccc",
         },
       },
       null,
@@ -398,15 +405,19 @@ describe("Access Manager tests", () => {
     );
 
     expect(called).toBe(true);
+    expect(jwt.verify).toHaveBeenCalledTimes(1);
+    expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(1);
   });
 
   test("verify token - failure", async () => {
     let called = false;
     let resStatus = 200;
     let res = {};
-    await accessManager.verifySession(
+    await accessManager.verifyToken(
       {
-        data: {},
+        headers: {
+          "content-type": "application/json",
+        },
       },
       {
         status: (statusCode) => {
@@ -430,13 +441,22 @@ describe("Access Manager tests", () => {
 
   test("verify token - success - PKI", async () => {
     pki.extractUserDetails.mockReturnValue("user");
+    dbManager.findUserByName.mockResolvedValue({
+      user: {
+        id: "id",
+        name: "user",
+      },
+      errors: [],
+    });
     dbManager.authenticate.mockResolvedValue(true);
     securityConfig.usePKI = true;
     let called = false;
 
-    await accessManager.verifySession(
+    await accessManager.verifyToken(
       {
-        data: {},
+        headers: {
+          "content-type": "application/json",
+        },
       },
       null,
       () => {
@@ -445,21 +465,12 @@ describe("Access Manager tests", () => {
     );
 
     expect(called).toBe(true);
-
-    securityConfig.usePKI = false;
   });
 
   test("logout - success", async () => {
-    let called = false;
+    await accessManager.logout("id");
 
-    await accessManager.logout({
-      username: "user",
-      destroy: () => {
-        called = true;
-      },
-    });
-
-    expect(called).toBe(true);
+    expect(dbManager.logout).toHaveBeenCalledTimes(1);
   });
 
   test("register - success", async () => {
@@ -483,8 +494,6 @@ describe("Access Manager tests", () => {
 
     expect(response._id).toBe(null);
     expect(response.errors).toHaveLength(1);
-
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
   });
 
   test("register - failure - user exists", async () => {

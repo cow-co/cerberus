@@ -63,10 +63,10 @@ const createUser = async (username, hashedPassword) => {
  * @returns
  */
 const deleteUser = async (userId) => {
-  const user = User.findById(userId);
+  const user = await User.findById(userId);
   // HashedPassword collection only populated when DB auth
   if (user) {
-    await HashedPassword.findByIdAndDelete(user.passwordId);
+    await HashedPassword.findByIdAndDelete(user.password);
     await user.deleteOne();
   }
   // Token validity is set for all auth types
@@ -74,7 +74,7 @@ const deleteUser = async (userId) => {
 };
 
 const getUserAndPasswordByUsername = async (username) => {
-  return await User.findOne({ name: username }).populate("passwordId");
+  return await User.findOne({ name: username }).populate("password");
 };
 
 const getMinTokenTimestamp = async (username) => {

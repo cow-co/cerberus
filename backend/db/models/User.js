@@ -9,7 +9,7 @@ const userSchema = new Schema({
     dropDups: true,
     required: true,
   },
-  passwordId: {
+  password: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "HashedPassword",
   },

@@ -90,7 +90,7 @@ describe("Tasks API Tests", () => {
       }
     });
 
-    accessManager.verifySession.mockImplementation((req, res, next) => {
+    accessManager.verifyToken.mockImplementation((req, res, next) => {
       next();
     });
 

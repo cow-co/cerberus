@@ -54,7 +54,10 @@ const authenticate = async (username, password, usePKI) => {
     if (user) {
       log("database-manager#authenticate", JSON.stringify(user), levels.DEBUG);
       if (!usePKI) {
-        authenticated = await argon2.verify(user.hashedPassword, password);
+        authenticated = await argon2.verify(
+          user.password.hashedPassword,
+          password
+        );
       } else {
         authenticated = true;
       }
