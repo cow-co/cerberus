@@ -36,6 +36,19 @@ describe("User service tests", () => {
   });
 
   test("create user", async () => {
+    let called = false;
+    User.create.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      save: async function () {
+        called = true;
+      },
+    });
+    HashedPassword.create.mockResolvedValue({
+      _id: "hashId",
+      hashedPassword: "pass",
+    });
+
     await userService.createUser("user", "pass");
 
     const userArgs = User.create.mock.calls[0];
@@ -43,6 +56,7 @@ describe("User service tests", () => {
 
     expect(userArgs[0].name).toBe("user");
     expect(passArgs[0].hashedPassword).toBe("pass");
+    expect(called).toBe(true);
   });
 
   test("delete user", async () => {

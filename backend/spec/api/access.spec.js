@@ -23,6 +23,10 @@ describe("Access tests", () => {
   // since node caches the app
   beforeEach(() => {
     accessManager.verifyToken.mockImplementation((req, res, next) => {
+      req.data = {};
+      req.data.userId = "id";
+      req.data.username = "user";
+      req.data.isAdmin = false;
       next();
     });
     server = require("../../index");
@@ -96,6 +100,7 @@ describe("Access tests", () => {
 
   test("logout - success", async () => {
     const res = await agent.delete("/api/access/logout/id");
+    console.log(JSON.stringify(res));
 
     expect(res.statusCode).toBe(200);
     expect(accessManager.logout).toHaveBeenCalledTimes(1);
