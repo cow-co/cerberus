@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const HashedPassword = require("../models/HashedPassword");
+const TokenValidity = require("../models/TokenValidity");
 
 /**
  * These just provide a little layer of abstraction over the underlying database implementation;
@@ -16,7 +18,7 @@ const User = require("../models/User");
  * @param {string} username
  * @returns
  */
-const findUser = async (username) => {
+const findUserByName = async (username) => {
   let user = null;
 
   if (username) {
@@ -45,8 +47,14 @@ const findUserById = async (userId) => {
  * @param {User} user
  * @returns
  */
-const createUser = async (user) => {
-  return await User.create(user);
+const createUser = async (username, hashedPassword) => {
+  const createdUser = await User.create({
+    name: username,
+  });
+  await HashedPassword.create({
+    hashedPassword: hashedPassword,
+  });
+  return createdUser;
 };
 
 /**
@@ -55,12 +63,37 @@ const createUser = async (user) => {
  * @returns
  */
 const deleteUser = async (userId) => {
-  await User.findByIdAndDelete(userId);
+  const user = await User.findById(userId);
+  // HashedPassword collection only populated when DB auth
+  if (user) {
+    await HashedPassword.findByIdAndDelete(user.password);
+    await user.deleteOne();
+  }
+  // Token validity is set for all auth types
+  await TokenValidity.findOneAndDelete({ userId: userId });
+};
+
+const getUserAndPasswordByUsername = async (username) => {
+  return await User.findOne({ name: username }).populate("password");
+};
+
+const getMinTokenTimestamp = async (username) => {
+  let timestamp = 0;
+  const user = await User.findOne({ name: username });
+  if (user) {
+    const tokenValidity = await TokenValidity.findOne({ userId: user._id });
+    if (tokenValidity) {
+      timestamp = tokenValidity.minTokenValidity;
+    }
+  }
+  return timestamp;
 };
 
 module.exports = {
-  findUser,
+  findUserByName,
   findUserById,
   createUser,
   deleteUser,
+  getUserAndPasswordByUsername,
+  getMinTokenTimestamp,
 };

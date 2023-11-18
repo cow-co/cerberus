@@ -22,7 +22,7 @@ describe("Access tests", () => {
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
-    accessManager.verifySession.mockImplementation((req, res, next) => {
+    accessManager.verifyToken.mockImplementation((req, res, next) => {
       next();
     });
     server = require("../../index");
@@ -74,7 +74,14 @@ describe("Access tests", () => {
       },
       errors: [],
     });
-    accessManager.authenticate.mockImplementation((req, res, next) => {
+    accessManager.authenticate.mockImplementation(async (req, res, next) => {
+      req.data = {
+        token: "token",
+        userId: "id",
+        username: "user",
+        isAdmin: false,
+      };
+
       next();
     });
 
@@ -87,7 +94,7 @@ describe("Access tests", () => {
   });
 
   test("logout - success", async () => {
-    const res = await agent.delete("/api/access/logout");
+    const res = await agent.delete("/api/access/logout/id");
 
     expect(res.statusCode).toBe(200);
     expect(accessManager.logout).toHaveBeenCalledTimes(1);
@@ -96,7 +103,7 @@ describe("Access tests", () => {
   test("logout - failure - exception thrown", async () => {
     accessManager.logout.mockRejectedValue(new Error("TypeError"));
 
-    const res = await agent.delete("/api/access/logout");
+    const res = await agent.delete("/api/access/logout/id");
 
     expect(res.statusCode).toBe(500);
   });

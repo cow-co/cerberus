@@ -2,13 +2,12 @@ openapi: 3.0.0
 info:
   title: CERBERUS API
   description: API definition for the CERBERUS implant-management API.
-  version: 0.0.1
+  version: 2.0.0
 components:
   securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: connect.sid
+    jwt:
+      type: http
+      scheme: bearer
   schemas:
     logindetails:
       properties:
@@ -39,7 +38,20 @@ components:
         isActive:
           nullable: false
           type: "boolean"
-    task:
+    taskreq:
+      properties:
+        implantId:
+          nullable: false
+          type: "string"
+        taskType:
+          nullable: false
+          type: "string"
+        params:
+          nullable: true
+          type: "array"
+          items:
+            $ref: "#/components/schemas/paramvalue"
+    taskdb:
       properties:
         _id:
           nullable: false
@@ -107,14 +119,19 @@ components:
           nullable: false
           type: "string"
 paths:
-
 # ACCESS
   /access/register:
     post: 
       summary: Creates a user, when user management is backed by the database (rather than AD, for example).
+      security: []
       tags:
         - Users
         - Access
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/logindetails"
       responses:
         "200":
           description: User registered successfully 
@@ -152,6 +169,7 @@ paths:
   /access/login:
     post: 
       summary: Logs the user in.
+      security: []
       tags:
         - Users
         - Access
@@ -169,8 +187,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  username:
+                  token:
                     type: string
+                    description: The bearer token to be used in future authenticated requests.
+                  user:
+                    type: object
+                    properties:
+                      id: 
+                        type: string
+                      name:
+                        type: string
+                      isAdmin:
+                        type: boolean
                   errors:
                     type: array
                     items:
@@ -182,8 +210,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  username:
-                    type: string
                   errors:
                     type: array
                     items:
@@ -195,18 +221,24 @@ paths:
               schema:
                 type: object
                 properties:
-                  username:
-                    type: string
                   errors:
                     type: array
                     items:
                       type: string
-  /access/logout:
+  /access/logout/{userId}:
     delete: 
-      summary: Logs the user out.
+      summary: Logs the user out, by invalidating all bearer tokens they possess.
+      security: []
       tags:
         - Users
         - Access
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the user to delete.
       responses:
         "200":
           description: User logged out successfully 
@@ -233,7 +265,7 @@ paths:
   /access/admin:
     put: 
       security:
-        - cookieAuth: []
+        - jwt: [Admin]
       summary: Changes admin status of user. Calling user must themselves be an admin.
       tags:
         - Access
@@ -297,6 +329,7 @@ paths:
   /beacon: 
     post: 
       summary: Checks in from an implant, and retrieves tasks. 
+      security: []
       tags:
         - Implants
       requestBody:
@@ -309,12 +342,12 @@ paths:
                 id:
                   type: string
                   description: The ID of the implant
-                os:
-                  type: string
-                  description: The OS of the implant host
                 ip:
                   type: string
                   description: The IP of the implant host
+                os:
+                  type: string
+                  description: The OS of the implant host
                 beaconIntervalSeconds:
                   type: number
                   description: The interval, in seconds, between checkins for the implant - configured in the implant code to start off, but may be updated by C2
@@ -330,7 +363,7 @@ paths:
                   tasks:
                     type: array
                     items: 
-                      $ref: "#/components/schemas/task"
+                      $ref: "#/components/schemas/taskdb"
                   errors:
                     type: array
                     items:
@@ -345,7 +378,7 @@ paths:
                   tasks:
                     type: array
                     items: 
-                      $ref: "#/components/schemas/task"
+                      $ref: "#/components/schemas/taskdb"
                   errors:
                     type: array
                     items:
@@ -360,7 +393,7 @@ paths:
                   tasks:
                     type: array
                     items: 
-                      $ref: "#/components/schemas/task"
+                      $ref: "#/components/schemas/taskdb"
                   errors:
                     type: array
                     items:
@@ -369,7 +402,8 @@ paths:
   /implants:
     get:
       security:
-        - cookieAuth: []
+        - jwt: [Read]
+      # TODO It should filter implants based on ACGs
       summary: Retrieves all implants.
       tags:
         - Implants
@@ -383,7 +417,6 @@ paths:
                 properties:
                   implants:
                     type: array
-                    description: This will be empty
                     items:
                       $ref: "#/components/schemas/implant"
                   errors:
@@ -420,15 +453,70 @@ paths:
                     type: array
                     items:
                       type: string
+  /implants/{implantId}:
+    delete:
+      security:
+        - jwt: [Admin]
+      summary: Deletes an implant record.
+      tags:
+        - Implants
+      parameters:
+        - in: path
+          name: implantId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the implant to delete.
+      responses:
+        "200":
+          description: Successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403":
+          description: User not logged in, or not an admin.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
 # TASKS
   /tasks/{implantId}:
     get:
       security:
-        - cookieAuth: []
-      summary: Retrieves tasks for the given implant. 
+        - jwt: [Read]
+      summary: Retrieves tasks for the given implant. Requires read access to the implant.
       tags:
         - Tasks
         - Implants
+      parameters:
+        - in: path
+          name: implantId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the implant to find tasks from.
       responses:
         "200": # status code
           description: Tasks.
@@ -441,7 +529,7 @@ paths:
                     type: array
                     description: Tasks for the implant
                     items:
-                      $ref: "#/components/schemas/task"
+                      $ref: "#/components/schemas/taskdb"
                   errors:
                     type: array
                     items:
@@ -474,7 +562,7 @@ paths:
   /task-types:
     get:
       security:
-        - cookieAuth: []
+        - jwt: [Read]
       summary: Retrieves the list of all task types
       tags:
         - Tasks
@@ -522,7 +610,7 @@ paths:
                       type: string
     post:
       security:
-        - cookieAuth: []
+        - jwt: [Admin]
       summary: Creates a new task type
       tags:
         - Tasks
@@ -542,6 +630,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  taskType: 
+                    type: object
+                    $ref: "#/components/schemas/tasktypedb"
                   errors:
                     type: array
                     items:
@@ -571,13 +662,81 @@ paths:
                     type: array
                     items:
                       type: string
+  /task-types/{taskTypeId}:
+    delete:
+      security:
+        - jwt: [Admin]
+      summary: Deletes a task type. Requires admin access.
+      tags:
+        - Tasks
+      parameters:
+        - in: path
+          name: taskTypeId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the task type to delete.
+      responses:
+        "200": # status code
+          description: Successfully deleted (or did not exist in the first place)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: User not logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: An unexpected server-side error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /task-types/param-data-types:
+    get:
+      security: []
+      summary: Gets the list of all the data types that params can use (eg. Number, String)
+      tags:
+        - Tasks
+      responses:
+        "200":
+          description: The list of data types
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  type: string
   /tasks: 
     post: 
       security:
-        - cookieAuth: []
-      summary: Creates or edits a task
+        - jwt: [Operator]
+      summary: Creates or edits a task. Requires operator access to the implant.
       tags:
         - Tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/taskreq"
       responses:
         "200": # status code
           description: Successfully created/updated
@@ -626,10 +785,17 @@ paths:
   /tasks/{taskId}: 
     delete: 
       security:
-        - cookieAuth: []
-      summary: Deletes a task
+        - jwt: [Operator]
+      summary: Deletes a task. Requires operator access to the implant.
       tags:
         - Tasks
+      parameters:
+        - in: path
+          name: taskId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the task to delete.
       responses:
         "200": # status code
           description: Successfully deleted (or did not exist in the first place)
@@ -643,7 +809,7 @@ paths:
                     items:
                       type: string
         "400": # status code
-          description: Task does not exist, or has already been sent to an implant
+          description: Task has already been sent to an implant
           content:
             application/json:
               schema:
@@ -675,14 +841,21 @@ paths:
                     type: array
                     items:
                       type: string
-# USERS    
+# USERS
   /users/user/{username}: 
     get: 
       security:
-        - cookieAuth: []
+        - jwt: [Read]
       summary: Gets the details (minus hashed password) of the user, if they exist.
       tags:
         - Users
+      parameters:
+        - in: path
+          name: username
+          schema:
+            type: string
+          required: true
+          description: Name of the user to find.
       responses:
         "200": # status code
           description: Successfully found user
@@ -717,4 +890,103 @@ paths:
                     type: array
                     items:
                       type: string
+  /users/user/{userId}: 
+    delete: 
+      security:
+        - jwt: [Admin]
+      summary: Ensures a user does not exist in the database. Requires admin access. Does not work when auth is not DB-backed.
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the user to delete.
+      responses:
+        "200": # status code
+          description: User deleted or did not exist.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: Calling user not logged in or not an admin.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /users/whoami:
+    get:
+      security:
+        - jwt: [Read]
+      summary: Checks the token for the user, and returns their details.
+      tags:
+        - Users
+      responses:
+        "200": # status code
+          description: User is logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: 
+                    type: object
+                    properties:
+                      id: 
+                        type: string
+                      name:
+                        type: string
+                      isAdmin:
+                        type: boolean
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "401": # status code
+          description: User is not logged in.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
       

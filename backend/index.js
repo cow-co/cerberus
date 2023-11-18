@@ -12,8 +12,6 @@ const YAML = require("yamljs");
 const swaggerDoc = YAML.load("openapi/openapi.yaml");
 const path = require("path");
 const seeding = require("./db/seed");
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const securityConfig = require("./config/security-config");
 const { SwaggerTheme } = require("swagger-themes");
 const https = require("https");
@@ -38,25 +36,6 @@ if (process.env.NODE_ENV === "production") {
     .catch((err) => log("index.js", err, levels.ERROR));
   mongoose.set("sanitizeFilter", true); // Sanitise by default
 
-  app.use(
-    session({
-      secret: securityConfig.sessionSecret,
-      resave: false,
-      saveUninitialized: false,
-      store: MongoStore.create({
-        client: mongoose.connection.getClient(),
-        stringify: false,
-        autoRemove: "interval",
-      }),
-      cookie: {
-        maxAge: 8 * 60 * 60 * 1000, // Eight hours
-        httpOnly: false,
-        sameSite: "strict",
-        secure: true,
-      },
-    })
-  );
-
   // Seed DB and set up scheduled tasks
   (async () => {
     await seeding.seedTaskTypes();
@@ -65,18 +44,6 @@ if (process.env.NODE_ENV === "production") {
       await implantService.checkActivity();
     });
   })();
-} else {
-  app.use(
-    session({
-      secret: securityConfig.sessionSecret,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        maxAge: 8 * 60 * 60 * 1000, // Eight hours
-        httpOnly: false,
-      },
-    })
-  );
 }
 
 app.use(express.static(path.join(__dirname, "build")));

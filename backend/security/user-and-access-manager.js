@@ -7,9 +7,12 @@ const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
 const pki = require("./pki");
 const adminService = require("../db/services/admin-service");
+const jwt = require("jsonwebtoken");
+const userService = require("../db/services/user-service");
 
 /**
  * Basically checks the provided credentials
+ * TODO Should probably neaten this up
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @param {function} next
@@ -72,43 +75,85 @@ const authenticate = async (req, res, next) => {
   } else if (errors.length > 0) {
     res.status(status).json({ errors });
   } else {
-    req.session.username = username;
-    next();
-  }
-};
-
-/**
- * Checks that the session cookie is valid; if not, redirects to the login page
- * @param {import("express").Request} req
- * @param {import("express").Response} res
- * @param {function} next
- */
-const verifySession = async (req, res, next) => {
-  log(
-    "verifySession",
-    "Verifying Session..." + JSON.stringify(req.session.username),
-    levels.DEBUG
-  );
-  if (req.session.username) {
-    next();
-  } else {
-    // We attempt to sort the session out automatically if PKI is enabled, since we don't need the user
-    // to manually submit anything
-    if (securityConfig.usePKI) {
-      await authenticate(req, res, next);
+    console.log("AUTHENTICATED");
+    req.data = {};
+    const result = await findUserByName(username);
+    if (result.errors.length > 0) {
+      res.status(status).json({ errors });
     } else {
-      res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid session"] });
+      req.data.isAdmin = await adminService.isUserAdmin(result.user.id);
+
+      const token = jwt.sign(
+        {
+          userId: result.user.id,
+        },
+        securityConfig.jwtSecret,
+        { expiresIn: "1h" }
+      );
+
+      req.data = {};
+      req.data.userId = result.user.id;
+      req.data.username = username;
+      req.data.token = token;
+
+      next();
     }
   }
 };
 
 /**
- * Destroys the stored session token
- * @param {Session} session (can be null/undefined, in which case function is no-op)
+ * Checks that the JWT is valid; if not, redirects to the login page
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {function} next
  */
-const logout = async (session) => {
-  if (session) {
-    session.destroy();
+const verifyToken = async (req, res, next) => {
+  log("verifyToken", "Verifying Token...", levels.DEBUG);
+
+  if (!req.headers.authorization && !securityConfig.usePKI) {
+    res.status(statusCodes.FORBIDDEN).json({ errors: ["No token"] });
+  } else if (!req.headers.authorization && securityConfig.usePKI) {
+    await authenticate(req, res, next);
+  } else {
+    const authHeader = req.headers.authorization;
+    const token = authHeader.split(" ")[1];
+
+    try {
+      const payload = jwt.verify(token, securityConfig.jwtSecret);
+      const minTimestamp = await userService.getMinTokenTimestamp(
+        payload.userId
+      );
+
+      if (minTimestamp < payload.iat) {
+        req.data = {};
+        req.data.userId = payload.userId;
+        next();
+      } else {
+        res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
+      }
+    } catch (err) {
+      log("verifyToken", err, levels.WARN);
+      res
+        .status(statusCodes.INTERNAL_SERVER_ERROR)
+        .json({ errors: ["Internal Server Error"] });
+    }
+  }
+};
+
+/**
+ * Invalidates the JWTs issued to the user
+ * @param {string} userId
+ */
+const logout = async (userId) => {
+  switch (securityConfig.authMethod) {
+    case securityConfig.availableAuthMethods.DB:
+      await dbUserManager.logout(userId);
+      break;
+    case securityConfig.availableAuthMethods.AD:
+      await adUserManager.logout(userId); // Actually is the user ID
+      break;
+    default:
+      break;
   }
 };
 
@@ -155,24 +200,19 @@ const register = async (username, password) => {
  * @param {function} next
  */
 const checkAdmin = async (req, res, next) => {
-  const username = req.session.username;
+  const userId = req.data.userId;
   let isAdmin = false;
 
   // This ensures we call this method after logging in
-  if (username) {
-    const result = await findUserByName(username);
-    if (result.user === null) {
-      res.status(statusCodes.FORBIDDEN).json({ errors: ["User not found"] });
+  if (userId) {
+    isAdmin = await adminService.isUserAdmin(userId);
+    if (isAdmin) {
+      next();
     } else {
-      isAdmin = await adminService.isUserAdmin(result.user.id);
-      if (isAdmin) {
-        next();
-      } else {
-        log("checkAdmin", "User is not an admin", levels.WARN);
-        res
-          .status(statusCodes.FORBIDDEN)
-          .json({ errors: ["You must be an admin to do this"] });
-      }
+      log("checkAdmin", "User is not an admin", levels.WARN);
+      res
+        .status(statusCodes.FORBIDDEN)
+        .json({ errors: ["You must be an admin to do this"] });
     }
   } else {
     log("checkAdmin", "User is not logged in", levels.WARN);
@@ -192,15 +232,17 @@ const removeUser = async (userId) => {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
         await dbUserManager.deleteUser(userId);
-        await adminService.removeAdmin(userId);
         break;
       case securityConfig.availableAuthMethods.AD:
         log(
           "removeUser",
           "Cannot remove a user when backed by Active Directory. Contact domain admin to remove user.",
-          levels.ERROR
+          levels.WARN
         );
-        errors.push("Internal Server Error");
+        adUserManager.deleteUser(userId);
+        errors.push(
+          "You cannot entirely remove users provided by Active Directory, but the user has been removed as admin."
+        );
         break;
 
       default:
@@ -294,7 +336,7 @@ const findUserById = async (userId) => {
 
 module.exports = {
   authenticate,
-  verifySession,
+  verifyToken,
   logout,
   register,
   checkAdmin,

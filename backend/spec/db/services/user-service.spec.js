@@ -1,8 +1,12 @@
 const User = require("../../../db/models/User");
+const HashedPassword = require("../../../db/models/HashedPassword");
+const TokenValidity = require("../../../db/models/TokenValidity");
 const userService = require("../../../db/services/user-service");
 const { purgeCache } = require("../../utils");
 
 jest.mock("../../../db/models/User");
+jest.mock("../../../db/models/HashedPassword");
+jest.mock("../../../db/models/TokenValidity");
 
 describe("User service tests", () => {
   afterAll(() => {
@@ -15,7 +19,7 @@ describe("User service tests", () => {
       name: "user",
     });
 
-    const user = await userService.findUser("user");
+    const user = await userService.findUserByName("user");
 
     expect(user._id).toBe("id");
   });
@@ -32,20 +36,63 @@ describe("User service tests", () => {
   });
 
   test("create user", async () => {
-    await userService.createUser({
-      name: "user",
-    });
+    await userService.createUser("user", "pass");
 
-    const args = User.create.mock.calls[0];
+    const userArgs = User.create.mock.calls[0];
+    const passArgs = HashedPassword.create.mock.calls[0];
 
-    expect(args[0].name).toBe("user");
+    expect(userArgs[0].name).toBe("user");
+    expect(passArgs[0].hashedPassword).toBe("pass");
   });
 
   test("delete user", async () => {
+    let called = false;
+    User.findById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      deleteOne: async function () {
+        called = true;
+      },
+    });
     await userService.deleteUser("id");
 
-    const args = User.findByIdAndDelete.mock.calls[0];
+    expect(called).toBe(true);
+    expect(HashedPassword.findByIdAndDelete).toHaveBeenCalledTimes(1);
+    expect(TokenValidity.findOneAndDelete).toHaveBeenCalledTimes(1);
+  });
 
-    expect(args[0]).toBe("id");
+  test("Get min token timestamp - success", async () => {
+    User.findOne.mockResolvedValue({
+      _id: "id",
+      name: "user",
+    });
+    TokenValidity.findOne.mockResolvedValue({
+      _id: "id2",
+      minTokenValidity: 100,
+    });
+
+    const res = await userService.getMinTokenTimestamp("user");
+
+    expect(res).toBe(100);
+  });
+
+  test("Get min token timestamp - user not found", async () => {
+    User.findOne.mockResolvedValue(null);
+
+    const res = await userService.getMinTokenTimestamp("user");
+
+    expect(res).toBe(0);
+  });
+
+  test("Get min token timestamp - validity not found", async () => {
+    User.findOne.mockResolvedValue({
+      _id: "id",
+      name: "user",
+    });
+    TokenValidity.findOne.mockResolvedValue(null);
+
+    const res = await userService.getMinTokenTimestamp("user");
+
+    expect(res).toBe(0);
   });
 });

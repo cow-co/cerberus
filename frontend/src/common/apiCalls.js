@@ -1,5 +1,7 @@
 import conf from "./config/properties";
 
+// TODO if receiving a 401, should wipe the login data from redux, and show an alert to request login
+
 const fetchTasks = async (implantId, showSent) => {
   let json = null;
   try {
@@ -23,7 +25,6 @@ const fetchTaskTypes = async () => {
   let json = null;
   try {
     const response = await fetch(`${conf.apiURL}task-types`);
-    console.log("RESPONSE " + JSON.stringify(response));
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -244,7 +245,7 @@ const deleteUser = async (userId) => {
 const checkSessionCookie = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}users/check-session`);
+    const response = await fetch(`${conf.apiURL}users/whoami`);
     json = await response.json();
   } catch (err) {
     console.error(err);

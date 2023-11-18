@@ -4,7 +4,6 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
-const { findUser } = require("../db/services/user-service");
 
 /**
  * Expects request body to contain:
@@ -41,17 +40,22 @@ router.post("/register", async (req, res) => {
  * - username
  * - password
  */
-router.post("/login", accessManager.authenticate, async (req, res) => {
-  const { user } = await accessManager.findUserByName(req.session.username);
-  const isAdmin = await adminService.isUserAdmin(user.id);
-  res
-    .status(statusCodes.OK)
-    .json({ username: req.session.username, isAdmin, errors: [] });
+router.post("/login", accessManager.authenticate, (req, res) => {
+  console.log("BLAH!");
+  res.status(statusCodes.OK).json({
+    token: req.data.token,
+    user: {
+      id: req.data.userId,
+      name: req.data.username,
+      isAdmin: req.data.isAdmin,
+    },
+    errors: [],
+  });
 });
 
-router.delete("/logout", async (req, res) => {
+router.delete("/logout/:userId", async (req, res) => {
   try {
-    await accessManager.logout(req.session);
+    await accessManager.logout(req.params.userId);
     res.status(statusCodes.OK).json({ errors: [] });
   } catch (err) {
     log("/logout", err, levels.ERROR);
@@ -69,7 +73,7 @@ router.delete("/logout", async (req, res) => {
  */
 router.put(
   "/admin",
-  accessManager.verifySession,
+  accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
     log(

@@ -3,8 +3,10 @@ let server;
 const { purgeCache } = require("../utils");
 
 const accessManager = require("../../security/user-and-access-manager");
+const adminService = require("../../db/services/admin-service");
 
 jest.mock("../../security/user-and-access-manager");
+jest.mock("../../db/services/admin-service");
 
 describe("User tests", () => {
   afterEach(() => {
@@ -19,8 +21,11 @@ describe("User tests", () => {
   // We have to stub this middleware on each test suite, otherwise we get cross-contamination into the other suites,
   // since node caches the app
   beforeEach(() => {
-    accessManager.verifySession.mockImplementation((req, res, next) => {
-      req.session.username = "user";
+    accessManager.verifyToken.mockImplementation((req, res, next) => {
+      req.data = {
+        username: "user",
+        userId: "id",
+      };
       next();
     });
 
@@ -57,7 +62,7 @@ describe("User tests", () => {
     expect(res.body.errors).toHaveLength(1);
   });
 
-  test("should remove hashed password from user in response", async () => {
+  test("get user - does not include password hash", async () => {
     accessManager.findUserByName.mockResolvedValue({
       user: {
         _id: "some-mongo-id3",
@@ -73,7 +78,7 @@ describe("User tests", () => {
     expect(res.body.user.hashedPassword).toBe(undefined);
   });
 
-  test("should delete a user", async () => {
+  test("delete user - success", async () => {
     accessManager.findUserById.mockResolvedValue({
       user: {
         _id: "some-mongo-id3",
@@ -135,10 +140,24 @@ describe("User tests", () => {
     expect(res.statusCode).toBe(200);
   });
 
-  test("should check session and return username", async () => {
-    const res = await agent.get("/api/users/check-session");
+  test("whoami - success", async () => {
+    accessManager.findUserById.mockResolvedValue({
+      user: { _id: "id", name: "user" },
+      errors: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    const res = await agent.get("/api/users/whoami");
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.username).toBe("user");
+    expect(res.body.user.name).toBe("user");
+    expect(res.body.user.isAdmin).toBe(false);
+  });
+
+  test("whoami - failure - exception", async () => {
+    accessManager.findUserById.mockRejectedValue(new Error("TypeError"));
+    const res = await agent.get("/api/users/whoami");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
   });
 });

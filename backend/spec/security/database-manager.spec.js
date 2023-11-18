@@ -1,12 +1,16 @@
 const { purgeCache } = require("../utils");
 const argon2 = require("argon2");
 const userService = require("../../db/services/user-service");
+const adminService = require("../../db/services/admin-service");
 const validation = require("../../validation/security-validation");
 const manager = require("../../security/database-manager");
 const { passwordRequirements } = require("../../config/security-config");
+const TokenValidity = require("../../db/models/TokenValidity");
 
 jest.mock("../../validation/security-validation");
 jest.mock("../../db/services/user-service");
+jest.mock("../../db/services/admin-service");
+jest.mock("../../db/models/TokenValidity");
 jest.mock("argon2");
 
 describe("Database user manager tests", () => {
@@ -58,14 +62,18 @@ describe("Database user manager tests", () => {
       passwordRequirements
     );
 
-    console.log(result.errors);
     expect(result.errors).toHaveLength(1);
   });
 
   test("authenticate - success - no PKI", async () => {
     argon2.verify.mockResolvedValue(true);
-    userService.findUser.mockResolvedValue({
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
       _id: "id",
+      name: "user",
+      password: {
+        _id: "hashId",
+        hashedPassword: "hash",
+      },
     });
 
     const auth = await manager.authenticate("user", "pass", false);
@@ -74,7 +82,7 @@ describe("Database user manager tests", () => {
   });
 
   test("authenticate - success - PKI", async () => {
-    userService.findUser.mockResolvedValue({
+    userService.findUserByName.mockResolvedValue({
       _id: "id",
     });
 
@@ -90,7 +98,7 @@ describe("Database user manager tests", () => {
   });
 
   test("authenticate - failure - user not found", async () => {
-    userService.findUser.mockResolvedValue(null);
+    userService.getUserAndPasswordByUsername.mockResolvedValue(null);
 
     const auth = await manager.authenticate("user", "pass", false);
 
@@ -99,7 +107,7 @@ describe("Database user manager tests", () => {
 
   test("authenticate - failure - password wrong", async () => {
     argon2.verify.mockResolvedValue(false);
-    userService.findUser.mockResolvedValue({
+    userService.findUserByName.mockResolvedValue({
       _id: "id",
     });
 
@@ -127,7 +135,7 @@ describe("Database user manager tests", () => {
   });
 
   test("find user by name - success - user found", async () => {
-    userService.findUser.mockResolvedValue({
+    userService.findUserByName.mockResolvedValue({
       _id: "id",
     });
 
@@ -137,10 +145,23 @@ describe("Database user manager tests", () => {
   });
 
   test("find user by name - success - no user found", async () => {
-    userService.findUser.mockResolvedValue(null);
+    userService.findUserByName.mockResolvedValue(null);
 
     const user = await manager.findUserByName("user");
 
     expect(user).toBeNull();
+  });
+
+  test("logout - success", async () => {
+    await manager.logout("id");
+
+    expect(TokenValidity.create).toHaveBeenCalledTimes(1);
+  });
+
+  test("delete user - success", async () => {
+    await manager.deleteUser("id");
+
+    expect(userService.deleteUser).toHaveBeenCalledTimes(1);
+    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
   });
 });

@@ -56,7 +56,6 @@ function TasksPane() {
           break;
         case eventTypes.EDIT:
           updated = updated.map(task => {
-            console.log(task);
             if (task._id === lastJsonMessage.entity._id) {
               return lastJsonMessage.entity;
             } else {
