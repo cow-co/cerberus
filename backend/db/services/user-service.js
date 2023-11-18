@@ -51,9 +51,11 @@ const createUser = async (username, hashedPassword) => {
   const createdUser = await User.create({
     name: username,
   });
-  await HashedPassword.create({
+  const pw = await HashedPassword.create({
     hashedPassword: hashedPassword,
   });
+  createdUser.password = pw._id;
+  await createdUser.save();
   return createdUser;
 };
 
@@ -77,14 +79,13 @@ const getUserAndPasswordByUsername = async (username) => {
   return await User.findOne({ name: username }).populate("password");
 };
 
-const getMinTokenTimestamp = async (username) => {
+const getMinTokenTimestamp = async (userId) => {
   let timestamp = 0;
-  const user = await User.findOne({ name: username });
-  if (user) {
-    const tokenValidity = await TokenValidity.findOne({ userId: user._id });
-    if (tokenValidity) {
-      timestamp = tokenValidity.minTokenValidity;
-    }
+  // If the user does not exist, there will not be an entry for them
+  //  (validity entry is deleted when user is deleted)
+  const tokenValidity = await TokenValidity.findOne({ userId });
+  if (tokenValidity) {
+    timestamp = tokenValidity.minTokenValidity;
   }
   return timestamp;
 };

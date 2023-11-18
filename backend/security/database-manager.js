@@ -72,10 +72,16 @@ const authenticate = async (username, password, usePKI) => {
 };
 
 const logout = async (userId) => {
-  await TokenValidity.create({
-    userId: userId,
-    minTokenValidity: Date.now(),
-  });
+  const existing = await TokenValidity.findOne({ userId: userId });
+  if (existing) {
+    existing.minTokenValidity = Date.now();
+    await existing.save();
+  } else {
+    await TokenValidity.create({
+      userId: userId,
+      minTokenValidity: Date.now(),
+    });
+  }
 };
 
 /**

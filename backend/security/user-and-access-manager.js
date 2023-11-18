@@ -75,7 +75,6 @@ const authenticate = async (req, res, next) => {
   } else if (errors.length > 0) {
     res.status(status).json({ errors });
   } else {
-    console.log("AUTHENTICATED");
     req.data = {};
     const result = await findUserByName(username);
     if (result.errors.length > 0) {
@@ -86,12 +85,12 @@ const authenticate = async (req, res, next) => {
       const token = jwt.sign(
         {
           userId: result.user.id,
+          iat: Date.now(), // Default IAT is in seconds, which not match with the timestamps we use elsewhere
         },
         securityConfig.jwtSecret,
         { expiresIn: "1h" }
       );
 
-      req.data = {};
       req.data.userId = result.user.id;
       req.data.username = username;
       req.data.token = token;

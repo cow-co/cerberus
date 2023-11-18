@@ -91,6 +91,7 @@ describe("Access tests", () => {
 
     expect(res.statusCode).toBe(200);
     expect(accessManager.authenticate).toHaveBeenCalledTimes(1);
+    expect(res.body.token).toBe("token");
   });
 
   test("logout - success", async () => {

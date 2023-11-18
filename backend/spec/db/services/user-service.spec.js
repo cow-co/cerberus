@@ -62,36 +62,21 @@ describe("User service tests", () => {
   });
 
   test("Get min token timestamp - success", async () => {
-    User.findOne.mockResolvedValue({
-      _id: "id",
-      name: "user",
-    });
     TokenValidity.findOne.mockResolvedValue({
       _id: "id2",
+      userId: "id",
       minTokenValidity: 100,
     });
 
-    const res = await userService.getMinTokenTimestamp("user");
+    const res = await userService.getMinTokenTimestamp("id");
 
     expect(res).toBe(100);
   });
 
-  test("Get min token timestamp - user not found", async () => {
-    User.findOne.mockResolvedValue(null);
-
-    const res = await userService.getMinTokenTimestamp("user");
-
-    expect(res).toBe(0);
-  });
-
   test("Get min token timestamp - validity not found", async () => {
-    User.findOne.mockResolvedValue({
-      _id: "id",
-      name: "user",
-    });
     TokenValidity.findOne.mockResolvedValue(null);
 
-    const res = await userService.getMinTokenTimestamp("user");
+    const res = await userService.getMinTokenTimestamp("id");
 
     expect(res).toBe(0);
   });
