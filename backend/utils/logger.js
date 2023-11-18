@@ -38,8 +38,10 @@ const levels = {
  * @param {LogLevel} level The log level
  */
 const log = (location, message, level) => {
-  if (level.ord >= levels[config["log-level"]].ord) {
-    message = `[${level.value}] ${location} ${message}`;
+  message = `[${level.value}] ${location} ${message}`;
+  if (level.ord === levels.SECURITY.ord) {
+    console.warn(chalk.yellow(message));
+  } else if (level.ord >= levels[config["log-level"]].ord) {
     switch (level) {
       case levels.DEBUG:
         console.debug(chalk.blue(message));
@@ -55,9 +57,6 @@ const log = (location, message, level) => {
         break;
       case levels.FATAL:
         console.warn(chalk.red(message));
-        break;
-      case levels.SECURITY:
-        console.warn(chalk.yellow(message));
         break;
       default:
         console.log(message);
