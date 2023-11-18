@@ -12,7 +12,7 @@ const { log, levels } = require("../utils/logger");
  */
 router.post("/register", async (req, res) => {
   log(
-    "/access/register",
+    "POST /access/register",
     `User registering with username ${req.body.username}`,
     levels.DEBUG
   );
@@ -29,7 +29,7 @@ router.post("/register", async (req, res) => {
 
     if (result.errors.length > 0) {
       log(
-        "/access/register",
+        "POST /access/register",
         `Errors: ${JSON.stringify(result.errors)}`,
         levels.DEBUG
       );
@@ -37,7 +37,7 @@ router.post("/register", async (req, res) => {
       responseStatus = statusCodes.BAD_REQUEST;
     }
   } catch (err) {
-    log("/register", err, levels.ERROR);
+    log("POST /register", err, levels.ERROR);
     responseJSON.errors = ["Internal Server Error"];
     responseStatus = statusCodes.INTERNAL_SERVER_ERROR;
   }
@@ -52,11 +52,10 @@ router.post("/register", async (req, res) => {
  */
 router.post("/login", accessManager.authenticate, (req, res) => {
   log(
-    "/access/login",
+    "POST /access/login",
     `User ${req.data.username} (${req.data.userId}) logged in`,
-    levels.SECURITY
+    levels.DEBUG
   );
-  console.log(JSON.stringify(req.data));
   res.status(statusCodes.OK).json({
     token: req.data.token,
     user: {
@@ -75,7 +74,7 @@ router.delete(
     try {
       if (req.data.userId !== req.params.userId) {
         log(
-          "/access/logout",
+          "DELETE /access/logout",
           `User ${req.data.userId} attempted to log someone else out (${req.params.userId})!`,
           levels.SECURITY
         );
@@ -86,13 +85,13 @@ router.delete(
         await accessManager.logout(req.params.userId);
         res.status(statusCodes.OK).json({ errors: [] });
         log(
-          "/access/logout",
+          "DELETE /access/logout",
           `User ${req.params.userId} logged out`,
-          levels.SECURITY
+          levels.DEBUG
         );
       }
     } catch (err) {
-      log("/access/logout", err, levels.ERROR);
+      log("DELETE /access/logout", err, levels.ERROR);
       res
         .status(statusCodes.INTERNAL_SERVER_ERROR)
         .json({ errors: ["Internal Server Error"] });
@@ -112,9 +111,9 @@ router.put(
   accessManager.checkAdmin,
   async (req, res) => {
     log(
-      "/access/admin",
+      "PUT /access/admin",
       `Changing admin status of ${req.body.userId} to ${req.body.makeAdmin}`,
-      levels.SECURITY
+      levels.INFO
     );
     let status = statusCodes.OK;
     let response = {
@@ -132,7 +131,7 @@ router.put(
         }
       } else {
         log(
-          "/access/admin",
+          "PUT /access/admin",
           "Tried to make a non-existent user into an admin",
           levels.WARN
         );
@@ -140,7 +139,7 @@ router.put(
         response.errors.push("User not found");
       }
     } catch (err) {
-      log("/access/admin", err, levels.ERROR);
+      log("PUT /access/admin", err, levels.ERROR);
       response.errors = ["Internal Server Error"];
       status = statusCodes.INTERNAL_SERVER_ERROR;
     }
