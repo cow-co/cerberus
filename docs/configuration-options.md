@@ -17,4 +17,6 @@
 | `certFile` | `config/security-config.json` | Which certificate file will the server use |
 | `certPassword` | `config/security-config.json` | Password for the cert |
 | `rateLimit` | `config/security-config.json` | Details of the rate limit |
+| `PORT` | environment variable | Which port to run the server on |
+| `NODE_ENV` | environment variable | What environment we are running in. Use `production` for a prod environment. |
 
