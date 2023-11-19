@@ -1,25 +1,29 @@
 const express = require("express");
-const beacons = require("./api/beaconing");
-const implants = require("./api/implants");
-const implantService = require("./db/services/implant-service");
-const tasks = require("./api/tasks");
-const access = require("./api/access");
-const users = require("./api/users");
 const swaggerUI = require("swagger-ui-express");
 const mongoose = require("mongoose");
-const { levels, log } = require("./utils/logger");
 const YAML = require("yamljs");
-const swaggerDoc = YAML.load("openapi/openapi.yaml");
-const path = require("path");
-const seeding = require("./db/seed");
-const securityConfig = require("./config/security-config");
 const { SwaggerTheme } = require("swagger-themes");
 const https = require("https");
 const fs = require("fs");
 const http = require("http");
 const nodeCron = require("node-cron");
 const { WebSocketServer } = require("ws");
+const { default: rateLimit } = require("express-rate-limit");
+const path = require("path");
+
+const beacons = require("./api/beaconing");
+const implants = require("./api/implants");
+const tasks = require("./api/tasks");
+const access = require("./api/access");
+const users = require("./api/users");
+
+const seeding = require("./db/seed");
+const implantService = require("./db/services/implant-service");
 const { handleConnect } = require("./utils/web-sockets");
+const { levels, log } = require("./utils/logger");
+const securityConfig = require("./config/security-config");
+
+const swaggerDoc = YAML.load("openapi/openapi.yaml");
 
 const app = express();
 app.use(express.json());
@@ -35,6 +39,17 @@ if (process.env.NODE_ENV === "production") {
     })
     .catch((err) => log("index.js", err, levels.ERROR));
   mongoose.set("sanitizeFilter", true); // Sanitise by default
+
+  // Uses an in-memory store, which should be fine for most purposes.
+  // If you're especially worried, you can simply reduce the rate/window
+  // TODO Make some of the options configurable
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+  });
+  app.use(limiter);
 
   // Seed DB and set up scheduled tasks
   (async () => {

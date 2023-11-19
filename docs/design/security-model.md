@@ -17,3 +17,7 @@ This method is what I would suggest to use in a live environment. This checks us
 In production, I would also suggest enabling PKI. That way your users will not need to log in via username/password. With this method, the user will be "logged in" upon the first request that requires authentication.
 
 ## Authorisation
+
+## Rate Limiting
+
+# TODO Fill this one out
