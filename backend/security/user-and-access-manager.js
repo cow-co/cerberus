@@ -95,19 +95,21 @@ const authenticate = async (req, res, next) => {
     if (result.errors.length > 0) {
       res.status(status).json({ errors });
     } else {
+      req.data.userId = result.user.id;
+      req.data.username = username;
       req.data.isAdmin = await adminService.isUserAdmin(result.user.id);
 
       const token = jwt.sign(
         {
-          userId: result.user.id,
+          userId: req.data.id,
+          username: req.data.username,
+          isAdmin: req.data.isAdmin,
           iat: Date.now(), // Default IAT is in seconds, which not match with the timestamps we use elsewhere
         },
         securityConfig.jwtSecret,
         { expiresIn: "1h" }
       );
 
-      req.data.userId = result.user.id;
-      req.data.username = username;
       req.data.token = token;
 
       next();
@@ -140,7 +142,7 @@ const verifyToken = async (req, res, next) => {
 
       if (minTimestamp < payload.iat) {
         req.data = {};
-        req.data.userId = payload.userId;
+        req.data.userId = payload.userId; // TODO We should extract username and isAdmin here too.
         next();
       } else {
         log(
@@ -152,6 +154,7 @@ const verifyToken = async (req, res, next) => {
       }
     } catch (err) {
       // This is logged at the SECURITY level, since a JWT verification failure will go down this path
+      // TODO JWT package docs detail the types of error that it throws; use that to choose correct log/response path
       log("verifyToken", err, levels.SECURITY);
       res
         .status(statusCodes.INTERNAL_SERVER_ERROR)
