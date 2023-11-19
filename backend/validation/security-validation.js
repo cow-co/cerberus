@@ -13,19 +13,21 @@ const validatePassword = (password, pwReqs) => {
   let errors = [];
 
   if (pwReqs.requireUppercase && password.toLowerCase() === password) {
-    errors.push("At least one uppercase character is required");
+    errors.push("Password must contain at least one uppercase character");
   }
 
   if (pwReqs.requireLowercase && password.toUpperCase() === password) {
-    errors.push("At least one lowercase character is required");
+    errors.push("Password must contain at least one lowercase character");
   }
 
   if (pwReqs.requireNumber && password.match(DIGITS_REGEX) === null) {
-    errors.push("At least one numeric digit is required");
+    errors.push("Password must contain at least one numeric digit");
   }
 
   if (password.length < pwReqs.minLength) {
-    errors.push(`The password must be at least ${pwReqs.minLength} characters`);
+    errors.push(
+      `Password must be at least ${pwReqs.minLength} characters long`
+    );
   }
 
   return errors;

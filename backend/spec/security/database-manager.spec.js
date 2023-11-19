@@ -27,6 +27,7 @@ describe("Database user manager tests", () => {
       _id: "id",
     });
     validation.validatePassword.mockReturnValue([]);
+    validation.validateUsername.mockReturnValue([]);
 
     const result = await manager.register(
       "user1",
@@ -40,6 +41,7 @@ describe("Database user manager tests", () => {
   test("register - failure - exception", async () => {
     userService.createUser.mockRejectedValue(new Error("error"));
     validation.validatePassword.mockReturnValue([]);
+    validation.validateUsername.mockReturnValue([]);
 
     const result = await manager.register(
       "user2",
@@ -50,11 +52,28 @@ describe("Database user manager tests", () => {
     expect(result.errors).toHaveLength(1);
   });
 
-  test("register - failure - validation error", async () => {
+  test("register - failure - password validation error", async () => {
     userService.createUser.mockResolvedValue({
       _id: "id",
     });
     validation.validatePassword.mockReturnValue(["error"]);
+    validation.validateUsername.mockReturnValue([]);
+
+    const result = await manager.register(
+      "user1",
+      "pass2",
+      passwordRequirements
+    );
+
+    expect(result.errors).toHaveLength(1);
+  });
+
+  test("register - failure - username validation error", async () => {
+    userService.createUser.mockResolvedValue({
+      _id: "id",
+    });
+    validation.validatePassword.mockReturnValue([]);
+    validation.validateUsername.mockReturnValue(["error"]);
 
     const result = await manager.register(
       "user1",
