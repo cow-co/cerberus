@@ -1,6 +1,5 @@
 # Configuration 
 
-# TODO Should allow username/password for the DB connection!
 | Option | Location | Description |
 |  ---   |    ---   |     ---     |
 | `mongo_uri` | `config/dbConfig.js` | Connection string for MongoDB. Set the username and password via `CERBERUS_DB_USER` and `CERBERUS_DB_PASS` environment variables. |
