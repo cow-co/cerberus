@@ -18,6 +18,8 @@ In production, I would also suggest enabling PKI. That way your users will not n
 
 ## Authorisation
 
+Currently, access control is limited to a distinction between admins and regular users; however, in future we will implement an Access Control Groups (ACGs) feature.
+
 ## Rate Limiting
 
-# TODO Fill this one out
+Rate limiting is implemented via an in-memory store, and uses a configurable window and maximum request count. The in-memory store should be sufficient for this purpose.

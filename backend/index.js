@@ -42,10 +42,9 @@ if (process.env.NODE_ENV === "production") {
 
   // Uses an in-memory store, which should be fine for most purposes.
   // If you're especially worried, you can simply reduce the rate/window
-  // TODO Make some of the options configurable
   const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 100,
+    windowMs: securityConfig.rateLimit.windowTimeMS,
+    limit: securityConfig.rateLimit.maxRequestsInWindow,
     standardHeaders: "draft-7",
     legacyHeaders: false,
   });
