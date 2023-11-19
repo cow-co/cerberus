@@ -67,7 +67,7 @@ const createUser = async (username, hashedPassword) => {
  * @returns
  */
 const deleteUser = async (userId) => {
-  log("deleteUser", `Deleting user with name ${username}`, levels.INFO);
+  log("deleteUser", `Deleting user with ID ${userId}`, levels.INFO);
   const user = await User.findById(userId);
   // HashedPassword collection only populated when DB auth
   if (user) {

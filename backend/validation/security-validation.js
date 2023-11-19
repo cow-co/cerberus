@@ -1,3 +1,5 @@
+const { levels, log } = require("../utils/logger");
+
 const DIGITS_REGEX = /[0-9]+/g;
 
 /**

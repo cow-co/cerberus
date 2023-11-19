@@ -3,6 +3,7 @@ const ActiveDirectory = require("activedirectory");
 const userService = require("../db/services/user-service");
 const adminService = require("../db/services/admin-service");
 const TokenValidity = require("../db/models/TokenValidity");
+const { levels, log } = require("../utils/logger");
 
 const ad = new ActiveDirectory(securityConfig.adConfig);
 
@@ -69,7 +70,7 @@ const findUserByName = async (username) => {
 const deleteUser = async (userId) => {
   log(
     "active-directory-manager/deleteUser",
-    `Deleting user ${username}`,
+    `Deleting user ${userId}`,
     levels.DEBUG
   );
   await userService.deleteUser(userId);
