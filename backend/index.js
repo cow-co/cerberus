@@ -26,12 +26,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 if (process.env.NODE_ENV === "production") {
-  log("index.js", "Connecting to db...", levels.INFO);
+  log("index", "Connecting to db", levels.INFO);
   const db = require("./config/dbConfig").mongo_uri;
   mongoose
     .connect(db, { useNewUrlParser: true })
     .then(() => {
-      log("index.js", "MongoDB connection successful", levels.INFO);
+      log("index", "MongoDB connection successful", levels.INFO);
     })
     .catch((err) => log("index.js", err, levels.ERROR));
   mongoose.set("sanitizeFilter", true); // Sanitise by default
@@ -65,7 +65,7 @@ const port = process.env.PORT || 443;
 let server = null;
 let wsServer = null;
 const stop = () => {
-  log("index.js", "Closing server...", levels.INFO);
+  log("index", "Closing server...", levels.INFO);
 
   if (process.env.NODE_ENV === "production") {
     mongoose.disconnect();
@@ -93,17 +93,17 @@ const serve = () => {
     }
 
     server = https.createServer(opts, app).listen(port, async () => {
-      log("index.js", `server running on port ${port}`, levels.INFO);
+      log("index", `Server running on port ${port}`, levels.INFO);
     });
     app.use(express.static("client/build"));
     app.get(/^\/(?!api).*/, (req, res) => {
       res.sendFile(path.join(__dirname, "./build/index.html"));
     });
 
-    log("index.js", "Serving React App...", levels.INFO);
+    log("index", "Serving frontend...", levels.INFO);
   } else {
     server = http.createServer(app).listen(port, async () => {
-      log("index.js", `server running on port ${port}`, levels.INFO);
+      log("index", `Server running on port ${port}`, levels.INFO);
     });
   }
 };

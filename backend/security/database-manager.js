@@ -12,6 +12,7 @@ const TokenValidity = require("../db/models/TokenValidity");
  * @returns User ID and any errors
  */
 const register = async (username, password, pwReqs) => {
+  log("database-manager/register", "Validating password", levels.DEBUG);
   let response = {
     userId: "",
     errors: [],
@@ -26,14 +27,14 @@ const register = async (username, password, pwReqs) => {
       response.userId = userRecord._id;
     } else {
       log(
-        "database-manager#register",
+        "database-manager/register",
         "Validation of password failed: " + validationErrors,
         levels.WARN
       );
       response.errors = response.errors.concat(validationErrors);
     }
   } catch (err) {
-    log("database-manager#register", err, levels.ERROR);
+    log("database-manager/register", err, levels.ERROR);
     response.errors.push("Internal Server Error");
   }
   return response;
@@ -45,14 +46,17 @@ const register = async (username, password, pwReqs) => {
  * @returns
  */
 const authenticate = async (username, password, usePKI) => {
-  log("database-manager#authenticate", "DB Authentication...", levels.DEBUG);
+  log(
+    "database-manager/authenticate",
+    `Authenticating user ${username}`,
+    levels.DEBUG
+  );
   let user = null;
   let authenticated = false;
 
   if (username) {
     user = await userService.getUserAndPasswordByUsername(username);
     if (user) {
-      log("database-manager#authenticate", JSON.stringify(user), levels.DEBUG);
       if (!usePKI) {
         authenticated = await argon2.verify(
           user.password.hashedPassword,
@@ -62,16 +66,17 @@ const authenticate = async (username, password, usePKI) => {
         authenticated = true;
       }
     } else {
-      log("db-user-manager#authenticate", "User does not exist", levels.WARN);
+      log("database-manager/authenticate", "User does not exist", levels.WARN);
     }
   } else {
-    log("db-user-manager#authenticate", "Username not provided", levels.WARN);
+    log("database-manager/authenticate", "Username not provided", levels.WARN);
   }
 
   return authenticated;
 };
 
 const logout = async (userId) => {
+  log("database-manager/logout", `Logging out user ${userId}`, levels.DEBUG);
   const existing = await TokenValidity.findOne({ userId: userId });
   if (existing) {
     existing.minTokenValidity = Date.now();
@@ -89,6 +94,7 @@ const logout = async (userId) => {
  * @returns
  */
 const deleteUser = async (userId) => {
+  log("database-manager/deleteUser", `Deleting user ${userId}`, levels.DEBUG);
   await userService.deleteUser(userId);
   await adminService.removeAdmin(userId);
 };
@@ -98,6 +104,7 @@ const deleteUser = async (userId) => {
  * @returns null, if the user is not found
  */
 const findUserById = async (userId) => {
+  log("database-manager/findUserById", `Fidning user ${userId}`, levels.DEBUG);
   const user = await userService.findUserById(userId);
   if (!user) {
     return null;
@@ -114,6 +121,11 @@ const findUserById = async (userId) => {
  * @returns null, if the user is not found
  */
 const findUserByName = async (username) => {
+  log(
+    "database-manager/findUserByName",
+    `Finding user ${username}`,
+    levels.DEBUG
+  );
   const user = await userService.findUserByName(username);
   if (!user) {
     return null;

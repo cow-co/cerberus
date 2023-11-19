@@ -4,6 +4,7 @@ const {
   eventTypes,
 } = require("../../utils/web-sockets");
 const Implant = require("../models/Implant");
+const { log, levels } = require("../../utils/logger");
 
 /**
  * @typedef {object} Implant
@@ -16,6 +17,7 @@ const Implant = require("../models/Implant");
  * @param {Implant} details The implant to add
  */
 const addImplant = async (details) => {
+  log("addImplant", `Adding implant`, levels.DEBUG);
   const entity = {
     id: details.id,
     ip: details.ip,
@@ -32,6 +34,7 @@ const addImplant = async (details) => {
  * @param {Implant} details The implant to update with
  */
 const updateImplant = async (details) => {
+  log("updateImplant", `Updating implant ${details.id}`, levels.DEBUG);
   const updatedEntity = {
     id: details.id,
     ip: details.ip,
@@ -66,6 +69,7 @@ const getAllImplants = async () => {
 };
 
 const checkActivity = async () => {
+  log("checkActivity", "Checking for inactive implants", levels.DEBUG);
   const numMissedBeaconsForInactive = 3; // How many beacons must the implant have missed in order to be deemed "inactive"
   const implants = await getAllImplants();
   implants.forEach(async (implant) => {
@@ -84,6 +88,7 @@ const checkActivity = async () => {
  * @param {String} id Implant to find. NOT the database ID; this is assigned by the implant itself when beaconing.
  */
 const deleteImplant = async (implantId) => {
+  log("deleteImplant", `Deleting implant ${implantId}`, levels.INFO);
   await Implant.findOneAndDelete({ id: implantId });
   sendMessage(entityTypes.IMPLANTS, eventTypes.DELETE, {
     id: implantId,

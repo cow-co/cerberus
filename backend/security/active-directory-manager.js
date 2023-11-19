@@ -12,6 +12,11 @@ const ad = new ActiveDirectory(securityConfig.adConfig);
  * @returns true if authenticated, false otherwise
  */
 const authenticate = async (username, password, usePKI) => {
+  log(
+    "active-directory-manager/authenticate",
+    `Authenticating user ${username}`,
+    levels.DEBUG
+  );
   let success = false;
   if (usePKI) {
     ad.userExists(username, (err, exists) => {
@@ -41,6 +46,11 @@ const findUserById = async (userId) => {
  * @returns
  */
 const findUserByName = async (username) => {
+  log(
+    "active-directory-manager/findUserByName",
+    `Finding user ${username}`,
+    levels.DEBUG
+  );
   let foundUser = null;
   ad.findUser(username, (err, user) => {
     foundUser = user;
@@ -57,11 +67,21 @@ const findUserByName = async (username) => {
 };
 
 const deleteUser = async (userId) => {
+  log(
+    "active-directory-manager/deleteUser",
+    `Deleting user ${username}`,
+    levels.DEBUG
+  );
   await userService.deleteUser(userId);
   await adminService.removeAdmin(userId);
 };
 
 const logout = async (userId) => {
+  log(
+    "active-directory-manager/logout",
+    `Logging user ${userId} out`,
+    levels.DEBUG
+  );
   const existing = await TokenValidity.findOne({ userId: userId });
   if (existing) {
     existing.minTokenValidity = Date.now();

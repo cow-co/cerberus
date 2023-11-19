@@ -71,6 +71,11 @@ router.delete(
   "/logout/:userId",
   accessManager.verifyToken,
   async (req, res) => {
+    log(
+      "DELETE /access/logout",
+      `Loggin out user ${req.params.userId}`,
+      levels.DEBUG
+    );
     try {
       if (req.data.userId !== req.params.userId) {
         log(

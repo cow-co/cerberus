@@ -18,7 +18,11 @@ const userService = require("../db/services/user-service");
  * @param {function} next
  */
 const authenticate = async (req, res, next) => {
-  log("access-manager#authenticate", "Authenticating...", levels.DEBUG);
+  log(
+    "user-and-access-manager/authenticate",
+    "Authenticating...",
+    levels.DEBUG
+  );
   let username = null;
   let password = null;
   let errors = [];
@@ -53,7 +57,7 @@ const authenticate = async (req, res, next) => {
 
       default:
         log(
-          "authenticate",
+          "user-and-access-manager/authenticate",
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
@@ -62,17 +66,28 @@ const authenticate = async (req, res, next) => {
         break;
     }
   } catch (err) {
-    log("authenticate", err, levels.ERROR);
+    log("user-and-access-manager/authenticate", err, levels.ERROR);
     errors.push("Internal Server Error");
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }
 
   if (!authenticated && errors.length === 0) {
-    log("authenticate", `User failed login`, levels.WARN);
+    log(
+      "user-and-access-manager/authenticate",
+      `User ${req.body.username} failed login due to incorrect credentials`,
+      levels.SECURITY
+    );
     status = statusCodes.UNAUTHENTICATED;
     errors.push("Incorrect login credentials");
     res.status(status).json({ errors });
   } else if (errors.length > 0) {
+    log(
+      "user-and-access-manager/authenticate",
+      `User ${
+        req.body.username
+      } failed login due to miscellaneous errors: ${JSON.stringify(errors)}`,
+      levels.SECURITY
+    );
     res.status(status).json({ errors });
   } else {
     req.data = {};
@@ -118,7 +133,7 @@ const verifyToken = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
 
     try {
-      const payload = jwt.verify(token, securityConfig.jwtSecret);
+      const payload = jwt.verify(token, securityConfig.jwtSecret); // TODO Sanitise payload (not a critical priority since db requests already sanitised)
       const minTimestamp = await userService.getMinTokenTimestamp(
         payload.userId
       );
@@ -128,10 +143,16 @@ const verifyToken = async (req, res, next) => {
         req.data.userId = payload.userId;
         next();
       } else {
+        log(
+          "verifyToken",
+          "User provided an invalid token. Potential token stealing/token re-use attack!",
+          levels.SECURITY
+        );
         res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
       }
     } catch (err) {
-      log("verifyToken", err, levels.WARN);
+      // This is logged at the SECURITY level, since a JWT verification failure will go down this path
+      log("verifyToken", err, levels.SECURITY);
       res
         .status(statusCodes.INTERNAL_SERVER_ERROR)
         .json({ errors: ["Internal Server Error"] });
@@ -144,6 +165,11 @@ const verifyToken = async (req, res, next) => {
  * @param {string} userId
  */
 const logout = async (userId) => {
+  log(
+    "user-and-access-manager/logout",
+    `Logging out user ${userId}`,
+    levels.DEBUG
+  );
   switch (securityConfig.authMethod) {
     case securityConfig.availableAuthMethods.DB:
       await dbUserManager.logout(userId);
@@ -164,6 +190,11 @@ const logout = async (userId) => {
  * @returns An error if user management is backed by an external system (eg. AD).
  */
 const register = async (username, password) => {
+  log(
+    "user-and-access-manager/register",
+    `Registering user ${username}`,
+    levels.DEBUG
+  );
   username = username.trim();
   let response = {
     _id: null,
@@ -183,10 +214,20 @@ const register = async (username, password) => {
     response._id = createdUser.userId;
     response.errors = createdUser.errors;
   } else if (!user) {
+    log(
+      "user-and-access-manager/register",
+      `Cannot register users from CERBERUS when using the ${securityConfig.authMethod} auth method`,
+      levels.WARN
+    );
     response.errors.push(
       "Registering is not supported for the configured auth method; please ask your administrator to add you."
     );
   } else {
+    log(
+      "user-and-access-manager/register",
+      "A user already exists with that name",
+      levels.WARN
+    );
     response.errors.push("A user already exists with that name");
   }
 
@@ -199,6 +240,7 @@ const register = async (username, password) => {
  * @param {function} next
  */
 const checkAdmin = async (req, res, next) => {
+  log("checkAdmin", "Checking if user is admin", levels.DEBUG);
   const userId = req.data.userId;
   let isAdmin = false;
 
@@ -208,13 +250,13 @@ const checkAdmin = async (req, res, next) => {
     if (isAdmin) {
       next();
     } else {
-      log("checkAdmin", "User is not an admin", levels.WARN);
+      log("checkAdmin", `User ${userId} is not an admin`, levels.SECURITY);
       res
         .status(statusCodes.FORBIDDEN)
         .json({ errors: ["You must be an admin to do this"] });
     }
   } else {
-    log("checkAdmin", "User is not logged in", levels.WARN);
+    log("checkAdmin", "User is not logged in", levels.SECURITY);
     res
       .status(statusCodes.FORBIDDEN)
       .json({ errors: ["You must be logged in to do this"] });
@@ -226,6 +268,7 @@ const checkAdmin = async (req, res, next) => {
  * @returns
  */
 const removeUser = async (userId) => {
+  log("removeUser", `Removing user ${userId}`, levels.DEBUG);
   let errors = [];
   try {
     switch (securityConfig.authMethod) {
@@ -235,7 +278,7 @@ const removeUser = async (userId) => {
       case securityConfig.availableAuthMethods.AD:
         log(
           "removeUser",
-          "Cannot remove a user when backed by Active Directory. Contact domain admin to remove user.",
+          "Cannot remove a user when backed by Active Directory. However, the user will be removed from the admins list, if they are on it.",
           levels.WARN
         );
         adUserManager.deleteUser(userId);
@@ -262,24 +305,29 @@ const removeUser = async (userId) => {
 };
 
 /**
- * @param {string} userName
+ * @param {string} username
  * @returns
  */
-const findUserByName = async (userName) => {
+const findUserByName = async (username) => {
+  log(
+    "user-and-access-manager/findUserByName",
+    `Finding user ${username}`,
+    levels.DEBUG
+  );
   let errors = [];
   let user = null;
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
-        user = await dbUserManager.findUserByName(userName);
+        user = await dbUserManager.findUserByName(username);
         break;
       case securityConfig.availableAuthMethods.AD:
-        user = await adUserManager.findUserByName(userName);
+        user = await adUserManager.findUserByName(username);
         break;
 
       default:
         log(
-          "findUserByName",
+          "user-and-access-manager/findUserByName",
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
@@ -287,7 +335,7 @@ const findUserByName = async (userName) => {
         break;
     }
   } catch (err) {
-    log("findUserByName", err, levels.ERROR);
+    log("user-and-access-manager/findUserByName", err, levels.ERROR);
     errors.push("Internal Server Error");
   }
 
@@ -302,6 +350,11 @@ const findUserByName = async (userName) => {
  * @returns
  */
 const findUserById = async (userId) => {
+  log(
+    "user-and-access-manager/findUserById",
+    `Finding user ${userId}`,
+    levels.DEBUG
+  );
   let errors = [];
   let user = null;
   try {
@@ -315,7 +368,7 @@ const findUserById = async (userId) => {
 
       default:
         log(
-          "findUserById",
+          "user-and-access-manager/findUserById",
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
@@ -323,7 +376,7 @@ const findUserById = async (userId) => {
         break;
     }
   } catch (err) {
-    log("findUserById", err, levels.ERROR);
+    log("user-and-access-manager/findUserById", err, levels.ERROR);
     errors.push("Internal Server Error");
   }
 

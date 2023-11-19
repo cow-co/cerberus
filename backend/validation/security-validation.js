@@ -5,6 +5,7 @@ const DIGITS_REGEX = /[0-9]+/g;
  * @returns errors
  */
 const validatePassword = (password, pwReqs) => {
+  log("validatePassword", "Validating password", levels.DEBUG);
   let errors = [];
 
   if (pwReqs.requireUppercase && password.toLowerCase() === password) {

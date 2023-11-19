@@ -9,7 +9,7 @@
   - `WARN`: A *client-caused* issue that will cause a single request to fail. For example, a malformed request.
   - `SECURITY`: An issue that is of  particular relevance to security. For example, a failed login. Should be treated at the same tier as `ERROR`. Will always be logged, regardless of log level configuration.
   - `INFO`: Generally useful information about the running of the application. In particular, `INFO` is used to log calls to particularly sensitive endpoints (deletes, admin endpoints, etc.)
-  - `DEBUG`: Messages which are useful for developers to track the progress of the application through its various code paths.
+  - `DEBUG`: Messages which are useful for developers to track the progress of the application through its various code paths. Placed at the start of most of the non-trivial functions.
 - The log level can be configured in `config/general.json`
   - This should probably be set to `INFO` or `WARN` in production.
 - Log message format is:
@@ -26,6 +26,7 @@
   - Example log message:
 
     `2023-11-18T21:53:45.006Z [INFO] removeAdmin Deleting admin record for user ID id`
+  - The `location` will be either the function name, endpoint path, or `{module}/{function}` if the function name by itself would be ambiguous. 
 
 ## Suggested High-Level Architecture
 
