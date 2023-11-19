@@ -19,6 +19,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.6.3",
     "node-cron": "^3.0.2",
+    "sanitize": "^2.1.2",
     "swagger-themes": "^1.2.30",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",

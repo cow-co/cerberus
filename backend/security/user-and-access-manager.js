@@ -9,6 +9,9 @@ const pki = require("./pki");
 const adminService = require("../db/services/admin-service");
 const jwt = require("jsonwebtoken");
 const userService = require("../db/services/user-service");
+const sanitize = require("sanitize");
+
+const sanitizer = sanitize();
 
 /**
  * Basically checks the provided credentials
@@ -135,14 +138,17 @@ const verifyToken = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
 
     try {
-      const payload = jwt.verify(token, securityConfig.jwtSecret); // TODO Sanitise payload (not a critical priority since db requests already sanitised)
+      let payload = jwt.verify(token, securityConfig.jwtSecret);
+      payload = sanitizer.primitives(payload); // This ensures all the keys are at least only Booleans, Integers, or Strings. Sufficient for our purposes.
       const minTimestamp = await userService.getMinTokenTimestamp(
         payload.userId
       );
 
       if (minTimestamp < payload.iat) {
         req.data = {};
-        req.data.userId = payload.userId; // TODO We should extract username and isAdmin here too.
+        req.data.userId = payload.userId;
+        req.data.username = payload.username;
+        req.data.isAdmin = Boolean(payload.isAdmin);
         next();
       } else {
         log(
@@ -153,12 +159,19 @@ const verifyToken = async (req, res, next) => {
         res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
       }
     } catch (err) {
-      // This is logged at the SECURITY level, since a JWT verification failure will go down this path
-      // TODO JWT package docs detail the types of error that it throws; use that to choose correct log/response path
-      log("verifyToken", err, levels.SECURITY);
-      res
-        .status(statusCodes.INTERNAL_SERVER_ERROR)
-        .json({ errors: ["Internal Server Error"] });
+      if (
+        err.name === "TokenExpiredError" ||
+        err.name === "JsonWebTokenError" ||
+        err.name === "NotBeforeError"
+      ) {
+        log("verifyToken", err, levels.SECURITY);
+        res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid Token"] });
+      } else {
+        log("verifyToken", err, levels.ERROR);
+        res
+          .status(statusCodes.INTERNAL_SERVER_ERROR)
+          .json({ errors: ["Internal Server Error"] });
+      }
     }
   }
 };
