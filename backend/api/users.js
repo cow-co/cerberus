@@ -8,8 +8,8 @@ const { log, levels } = require("../utils/logger");
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   log(
     `GET /users/user/${req.params.username}`,
-    `getting user ${req.params.username}`,
-    levels.INFO
+    `Getting user ${req.params.username}`,
+    levels.DEBUG
   );
   let status = statusCodes.OK;
   let response = {
@@ -78,6 +78,7 @@ router.delete(
 );
 
 router.get("/whoami", accessManager.verifyToken, async (req, res) => {
+  log("GET /users/whoami", "Checking user status...", levels.DEBUG);
   let response = {};
   let status = statusCodes.OK;
 
@@ -95,7 +96,7 @@ router.get("/whoami", accessManager.verifyToken, async (req, res) => {
       errors: [],
     };
   } catch (err) {
-    log("/users/whoami", err, levels.WARN);
+    log("GET /users/whoami", err, levels.ERROR);
     status = statusCodes.INTERNAL_SERVER_ERROR;
     response = {
       errors: ["Internal Server Error"],

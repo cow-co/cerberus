@@ -610,6 +610,4 @@ describe("Access Manager tests", () => {
     expect(response._id).toBe(null);
     expect(response.errors).toHaveLength(1);
   });
-
-  // TODO Can we test the index stuff
 });

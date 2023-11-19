@@ -5,6 +5,7 @@ const {
 } = require("../../utils/web-sockets");
 const Task = require("../models/Task");
 const TaskType = require("../models/TaskType");
+const { log, levels } = require("../../utils/logger");
 
 /**
  * @typedef {object} TaskType
@@ -79,6 +80,7 @@ const getTaskTypeById = async (id) => {
  * @param {string} mongoId
  */
 const taskSent = async (mongoId) => {
+  log("taskSent", `Setting task ${mongoId} to sent`, levels.DEBUG);
   if (mongoId) {
     const updated = await Task.findByIdAndUpdate(
       mongoId,
@@ -92,6 +94,7 @@ const taskSent = async (mongoId) => {
 };
 
 const setTask = async (task) => {
+  log("setTask", "Creating or updating task", levels.DEBUG);
   let error = null;
 
   const existing = await getTaskById(task._id);
@@ -133,6 +136,7 @@ const setTask = async (task) => {
  * @returns
  */
 const createTaskType = async (taskType) => {
+  log("createTaskType", "Creating task type", levels.DEBUG);
   const created = await TaskType.create({
     name: taskType.name,
     params: taskType.params,
@@ -145,6 +149,7 @@ const createTaskType = async (taskType) => {
  * @param {string} taskId
  */
 const deleteTask = async (taskId) => {
+  log("deleteTask", `Deleting task ${taskId}`, levels.INFO);
   await Task.findByIdAndDelete(taskId);
   sendMessage(entityTypes.TASKS, eventTypes.DELETE, { _id: taskId });
 };
@@ -153,6 +158,7 @@ const deleteTask = async (taskId) => {
  * @param {string} taskTypeId
  */
 const deleteTaskType = async (taskTypeId) => {
+  log("deleteTaskType", `Deleting task type ${taskTypeId}`, levels.INFO);
   await TaskType.findByIdAndDelete(taskTypeId);
   sendMessage(entityTypes.TASK_TYPES, eventTypes.DELETE, { _id: taskTypeId });
 };

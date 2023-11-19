@@ -6,6 +6,11 @@ const { levels, log } = require("../utils/logger");
  * @returns The CN of the certificate subject
  */
 const extractUserDetails = (req) => {
+  log(
+    "extractUserDetails",
+    "Extracting user details from client certificate",
+    levels.DEBUG
+  );
   const clientCert = req.socket.getPeerCertificate();
   let username = null;
 

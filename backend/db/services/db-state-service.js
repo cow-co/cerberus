@@ -1,4 +1,5 @@
 const DBState = require("../models/DBState");
+const { log, levels } = require("../../utils/logger");
 
 /**
  * Tells us how many database versions there are -
@@ -18,6 +19,7 @@ const getNumDbVersions = async () => {
  * (we could in future potentially tie schemas/task types to specific DB versions)
  */
 const updateDBVersion = async () => {
+  log("updateDBVersion", `Bumping database state version`, levels.INFO);
   const states = await DBState.find().sort({ appliedDate: "desc" });
   let mostRecentVer = 0;
 

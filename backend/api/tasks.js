@@ -15,7 +15,7 @@ const accessManager = require("../security/user-and-access-manager");
  */
 router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
   log(
-    `/tasks/${req.params.implantId}`,
+    `GET /tasks/${req.params.implantId}`,
     "Getting tasks for implant...",
     levels.DEBUG
   );
@@ -33,7 +33,7 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
       errors: [],
     };
   } catch (err) {
-    log(`/tasks/${req.params.implantId}`, err, levels.ERROR);
+    log(`GET /tasks/${req.params.implantId}`, err, levels.ERROR);
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
       tasks: [],
@@ -45,7 +45,7 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
 });
 
 router.get("/task-types", accessManager.verifyToken, async (req, res) => {
-  log("/task-types", "Getting task types...", levels.DEBUG);
+  log("GET /task-types", "Getting task types...", levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
@@ -56,7 +56,7 @@ router.get("/task-types", accessManager.verifyToken, async (req, res) => {
       errors: [],
     };
   } catch (err) {
-    log("/task-types", err, levels.ERROR);
+    log("GET /task-types", err, levels.ERROR);
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
       taskTypes: [],
@@ -77,7 +77,7 @@ router.post(
   accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
-    log("/task-types", "Creating a task type...", levels.DEBUG);
+    log("POST /task-types", "Creating a task type...", levels.DEBUG);
     let response = {
       taskType: null,
       errors: [],
@@ -92,7 +92,7 @@ router.post(
         response.errors = validity.errors;
       }
     } catch (err) {
-      log("/task-types", err, levels.ERROR);
+      log("POST /task-types", err, levels.ERROR);
       response.errors = ["Internal Server Error"];
       status = statusCodes.INTERNAL_SERVER_ERROR;
     }
@@ -110,7 +110,7 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
     try {
       error = await tasksService.setTask(req.body);
       if (error) {
-        console.log(error); // TODO Log properly
+        log("POST /tasks", error, levels.WARN);
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors = [error];
       }
@@ -152,7 +152,7 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
         log(
           `DELETE /tasks/${req.params.taskId}`,
           "Task already sent",
-          levels.ERROR
+          levels.WARN
         );
       } else {
         await tasksService.deleteTask(req.params.taskId);
@@ -213,6 +213,11 @@ router.delete(
 );
 
 router.get("/task-types/param-data-types", (req, res) => {
+  log(
+    `GET /task-types/param-data-types`,
+    "Getting param data types...",
+    levels.DEBUG
+  );
   let response = {};
   let statusCode = statusCodes.OK;
   response.dataTypes = tasksService.getParamDataTypes();

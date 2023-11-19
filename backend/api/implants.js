@@ -6,6 +6,7 @@ const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
 router.get("", accessManager.verifyToken, async (req, res) => {
+  log("GET /implants/", "Request to get all implants", levels.DEBUG);
   let responseJSON = {
     implants: null,
     errors: [],
@@ -14,7 +15,7 @@ router.get("", accessManager.verifyToken, async (req, res) => {
   try {
     responseJSON.implants = await implantService.getAllImplants();
   } catch (err) {
-    log("implants/", err, levels.ERROR);
+    log("GET /implants/", err, levels.ERROR);
     responseJSON.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }

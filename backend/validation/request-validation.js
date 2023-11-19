@@ -7,11 +7,7 @@ const tasksService = require("../db/services/tasks-service");
  * @returns Validity status (isValid and errors)
  */
 const validateBeacon = (beacon) => {
-  log(
-    "validateBeacon",
-    `Validating beacon ${JSON.stringify(beacon)}`,
-    levels.DEBUG
-  );
+  log("validateBeacon", "Validating beacon", levels.DEBUG);
 
   let validity = {
     isValid: true,
@@ -46,7 +42,7 @@ const validateBeacon = (beacon) => {
  * @returns Validity status (isValid and errors)
  */
 const validateTask = async (task) => {
-  log("validateTask", `Validating task ${JSON.stringify(task)}`, levels.DEBUG);
+  log("validateTask", "Validating task", levels.DEBUG);
 
   let validity = {
     isValid: true,
@@ -89,6 +85,7 @@ const validateTask = async (task) => {
  * @returns Validity status (isValid and errors)
  */
 const validateTaskType = (taskType) => {
+  log("validateTaskType", "Validating task type", levels.DEBUG);
   let validity = {
     isValid: true,
     errors: [],

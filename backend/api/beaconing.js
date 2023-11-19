@@ -7,7 +7,11 @@ const implantService = require("../db/services/implant-service");
 const tasksService = require("../db/services/tasks-service");
 
 router.post("", async (req, res) => {
-  log("/beacon", `Received beacon: ${JSON.stringify(req.body)}`, levels.DEBUG);
+  log(
+    "POST /beacon",
+    `Received beacon: ${JSON.stringify(req.body)}`,
+    levels.DEBUG
+  );
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
@@ -42,6 +46,11 @@ router.post("", async (req, res) => {
         tasks: [],
         errors: validationResult.errors,
       };
+      log(
+        "POST /beacon",
+        `Invalid beacon: ${JSON.stringify(validationResult.errors)}`,
+        levels.WARN
+      );
       returnStatus = statusCodes.BAD_REQUEST;
     }
   } catch (err) {
@@ -50,7 +59,7 @@ router.post("", async (req, res) => {
       tasks: [],
       errors: ["Internal Server Error"],
     };
-    log("/beacon", err, levels.ERROR);
+    log("POST /beacon", err, levels.ERROR);
   }
 
   return res.status(returnStatus).json(responseJSON);

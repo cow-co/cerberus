@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const HashedPassword = require("../models/HashedPassword");
 const TokenValidity = require("../models/TokenValidity");
+const { log, levels } = require("../../utils/logger");
 
 /**
  * These just provide a little layer of abstraction over the underlying database implementation;
@@ -48,12 +49,15 @@ const findUserById = async (userId) => {
  * @returns
  */
 const createUser = async (username, hashedPassword) => {
+  log("createUser", `Creating user with name ${username}`, levels.DEBUG);
   const createdUser = await User.create({
     name: username,
   });
-  await HashedPassword.create({
+  const pw = await HashedPassword.create({
     hashedPassword: hashedPassword,
   });
+  createdUser.password = pw._id;
+  await createdUser.save();
   return createdUser;
 };
 
@@ -63,6 +67,7 @@ const createUser = async (username, hashedPassword) => {
  * @returns
  */
 const deleteUser = async (userId) => {
+  log("deleteUser", `Deleting user with ID ${userId}`, levels.INFO);
   const user = await User.findById(userId);
   // HashedPassword collection only populated when DB auth
   if (user) {
@@ -77,14 +82,13 @@ const getUserAndPasswordByUsername = async (username) => {
   return await User.findOne({ name: username }).populate("password");
 };
 
-const getMinTokenTimestamp = async (username) => {
+const getMinTokenTimestamp = async (userId) => {
   let timestamp = 0;
-  const user = await User.findOne({ name: username });
-  if (user) {
-    const tokenValidity = await TokenValidity.findOne({ userId: user._id });
-    if (tokenValidity) {
-      timestamp = tokenValidity.minTokenValidity;
-    }
+  // If the user does not exist, there will not be an entry for them
+  //  (validity entry is deleted when user is deleted)
+  const tokenValidity = await TokenValidity.findOne({ userId });
+  if (tokenValidity) {
+    timestamp = tokenValidity.minTokenValidity;
   }
   return timestamp;
 };
