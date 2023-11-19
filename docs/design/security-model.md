@@ -17,3 +17,9 @@ This method is what I would suggest to use in a live environment. This checks us
 In production, I would also suggest enabling PKI. That way your users will not need to log in via username/password. With this method, the user will be "logged in" upon the first request that requires authentication.
 
 ## Authorisation
+
+Currently, access control is limited to a distinction between admins and regular users; however, in future we will implement an Access Control Groups (ACGs) feature.
+
+## Rate Limiting
+
+Rate limiting is implemented via an in-memory store, and uses a configurable window and maximum request count. The in-memory store should be sufficient for this purpose.

@@ -23,6 +23,7 @@ module.exports = {
     password: `${process.env.CERBERUS_LDAP_BIND_PASS}`,
     adminGroup: "",
   },
+  // TODO We should ensure the seeding of initial admin works for AD auth too (ie creates the admin record, not the user)
   initialAdmin: {
     username: `${process.env.CERBERUS_INIT_ADMIN_USER}`,
     password: `${process.env.CERBERUS_INIT_ADMIN_PASS}`,
@@ -30,4 +31,8 @@ module.exports = {
   certType: "PFX",
   certFile: "../powershellcert.pfx",
   certPassword: "password1234",
+  rateLimit: {
+    windowTimeMS: 15 * 60 * 1000, // The timespan over which the rate is taken
+    maxRequestsInWindow: 100, // How many requests can each IP make, per window
+  },
 };
