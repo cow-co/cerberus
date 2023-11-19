@@ -10,6 +10,7 @@ const nodeCron = require("node-cron");
 const { WebSocketServer } = require("ws");
 const { default: rateLimit } = require("express-rate-limit");
 const path = require("path");
+const sanitize = require("sanitize");
 
 const beacons = require("./api/beaconing");
 const implants = require("./api/implants");
@@ -28,6 +29,7 @@ const swaggerDoc = YAML.load("openapi/openapi.yaml");
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(sanitize.middleware);
 
 if (process.env.NODE_ENV === "production") {
   log("index", "Connecting to db", levels.INFO);

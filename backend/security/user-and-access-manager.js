@@ -35,7 +35,9 @@ const authenticate = async (req, res, next) => {
     username = pki.extractUserDetails(req);
   } else {
     username = req.body.username;
+    username = sanitizer.value(username, "string");
     password = req.body.password;
+    password = sanitizer.value(password, "string");
   }
   let authenticated = false;
 
@@ -211,13 +213,16 @@ const register = async (username, password) => {
     `Registering user ${username}`,
     levels.DEBUG
   );
+  username = sanitizer.value(username, String);
   username = username.trim();
+  const { user } = await findUserByName(username);
+  password = sanitizer.value(password, String);
+
   let response = {
     _id: null,
     errors: [],
   };
 
-  const { user } = await findUserByName(username);
   if (
     !user &&
     securityConfig.authMethod === securityConfig.availableAuthMethods.DB
@@ -257,7 +262,8 @@ const register = async (username, password) => {
  */
 const checkAdmin = async (req, res, next) => {
   log("checkAdmin", "Checking if user is admin", levels.DEBUG);
-  const userId = req.data.userId;
+  let userId = req.data.userId;
+  userId = sanitizer.value(userId, String);
   let isAdmin = false;
 
   // This ensures we call this method after logging in
@@ -285,7 +291,9 @@ const checkAdmin = async (req, res, next) => {
  */
 const removeUser = async (userId) => {
   log("removeUser", `Removing user ${userId}`, levels.DEBUG);
+  userId = sanitizer.value(userId, String);
   let errors = [];
+
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
@@ -330,6 +338,7 @@ const findUserByName = async (username) => {
     `Finding user ${username}`,
     levels.DEBUG
   );
+  userId = sanitizer.value(username, String);
   let errors = [];
   let user = null;
   try {
