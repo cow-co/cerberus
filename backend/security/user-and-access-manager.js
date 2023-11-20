@@ -9,6 +9,9 @@ const pki = require("./pki");
 const adminService = require("../db/services/admin-service");
 const jwt = require("jsonwebtoken");
 const userService = require("../db/services/user-service");
+const sanitize = require("sanitize");
+
+const sanitizer = sanitize();
 
 /**
  * Basically checks the provided credentials
@@ -32,7 +35,9 @@ const authenticate = async (req, res, next) => {
     username = pki.extractUserDetails(req);
   } else {
     username = req.body.username;
+    username = sanitizer.value(username, "str");
     password = req.body.password;
+    password = sanitizer.value(password, "str");
   }
   let authenticated = false;
 
@@ -74,7 +79,7 @@ const authenticate = async (req, res, next) => {
   if (!authenticated && errors.length === 0) {
     log(
       "user-and-access-manager/authenticate",
-      `User ${req.body.username} failed login due to incorrect credentials`,
+      `User ${username} failed login due to incorrect credentials`,
       levels.SECURITY
     );
     status = statusCodes.UNAUTHENTICATED;
@@ -83,9 +88,9 @@ const authenticate = async (req, res, next) => {
   } else if (errors.length > 0) {
     log(
       "user-and-access-manager/authenticate",
-      `User ${
-        req.body.username
-      } failed login due to miscellaneous errors: ${JSON.stringify(errors)}`,
+      `User ${username} failed login due to miscellaneous errors: ${JSON.stringify(
+        errors
+      )}`,
       levels.SECURITY
     );
     res.status(status).json({ errors });
@@ -124,25 +129,28 @@ const authenticate = async (req, res, next) => {
  * @param {function} next
  */
 const verifyToken = async (req, res, next) => {
+  const authHeader = req.headerString("authorization");
   log("verifyToken", "Verifying Token...", levels.DEBUG);
 
-  if (!req.headers.authorization && !securityConfig.usePKI) {
+  if (!authHeader && !securityConfig.usePKI) {
     res.status(statusCodes.FORBIDDEN).json({ errors: ["No token"] });
-  } else if (!req.headers.authorization && securityConfig.usePKI) {
+  } else if (!authHeader && securityConfig.usePKI) {
     await authenticate(req, res, next);
   } else {
-    const authHeader = req.headers.authorization;
     const token = authHeader.split(" ")[1];
 
     try {
-      const payload = jwt.verify(token, securityConfig.jwtSecret); // TODO Sanitise payload (not a critical priority since db requests already sanitised)
+      let payload = jwt.verify(token, securityConfig.jwtSecret);
+      payload = sanitizer.primitives(payload); // This ensures all the keys are at least only Booleans, Integers, or Strings. Sufficient for our purposes.
       const minTimestamp = await userService.getMinTokenTimestamp(
         payload.userId
       );
 
       if (minTimestamp < payload.iat) {
         req.data = {};
-        req.data.userId = payload.userId; // TODO We should extract username and isAdmin here too.
+        req.data.userId = payload.userId;
+        req.data.username = payload.username;
+        req.data.isAdmin = Boolean(payload.isAdmin);
         next();
       } else {
         log(
@@ -153,12 +161,19 @@ const verifyToken = async (req, res, next) => {
         res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
       }
     } catch (err) {
-      // This is logged at the SECURITY level, since a JWT verification failure will go down this path
-      // TODO JWT package docs detail the types of error that it throws; use that to choose correct log/response path
-      log("verifyToken", err, levels.SECURITY);
-      res
-        .status(statusCodes.INTERNAL_SERVER_ERROR)
-        .json({ errors: ["Internal Server Error"] });
+      if (
+        err.name === "TokenExpiredError" ||
+        err.name === "JsonWebTokenError" ||
+        err.name === "NotBeforeError"
+      ) {
+        log("verifyToken", err, levels.SECURITY);
+        res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid Token"] });
+      } else {
+        log("verifyToken", err, levels.ERROR);
+        res
+          .status(statusCodes.INTERNAL_SERVER_ERROR)
+          .json({ errors: ["Internal Server Error"] });
+      }
     }
   }
 };
@@ -198,13 +213,16 @@ const register = async (username, password) => {
     `Registering user ${username}`,
     levels.DEBUG
   );
+  username = sanitizer.value(username, "str");
   username = username.trim();
+  const { user } = await findUserByName(username);
+  password = sanitizer.value(password, "str");
+
   let response = {
     _id: null,
     errors: [],
   };
 
-  const { user } = await findUserByName(username);
   if (
     !user &&
     securityConfig.authMethod === securityConfig.availableAuthMethods.DB
@@ -244,7 +262,8 @@ const register = async (username, password) => {
  */
 const checkAdmin = async (req, res, next) => {
   log("checkAdmin", "Checking if user is admin", levels.DEBUG);
-  const userId = req.data.userId;
+  let userId = req.data.userId;
+  userId = sanitizer.value(userId, "str");
   let isAdmin = false;
 
   // This ensures we call this method after logging in
@@ -272,7 +291,9 @@ const checkAdmin = async (req, res, next) => {
  */
 const removeUser = async (userId) => {
   log("removeUser", `Removing user ${userId}`, levels.DEBUG);
+  userId = sanitizer.value(userId, "str");
   let errors = [];
+
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
@@ -317,6 +338,7 @@ const findUserByName = async (username) => {
     `Finding user ${username}`,
     levels.DEBUG
   );
+  userId = sanitizer.value(username, "str");
   let errors = [];
   let user = null;
   try {

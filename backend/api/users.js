@@ -6,18 +6,15 @@ const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
-  log(
-    `GET /users/user/${req.params.username}`,
-    `Getting user ${req.params.username}`,
-    levels.DEBUG
-  );
+  const username = req.paramString("username");
+  log(`GET /users/user/${username}`, `Getting user ${username}`, levels.DEBUG);
   let status = statusCodes.OK;
   let response = {
     user: null,
     errors: [],
   };
 
-  const chosenUser = req.params.username.trim();
+  const chosenUser = username.trim();
 
   try {
     const result = await accessManager.findUserByName(chosenUser);
@@ -41,16 +38,13 @@ router.delete(
   accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
-    log(
-      `DELETE /users/user/${req.params.userId}`,
-      `Deleting user ${req.params.userId}`,
-      levels.INFO
-    );
+    const userId = req.paramString("userId");
+    log(`DELETE /users/user/${userId}`, `Deleting user ${userId}`, levels.INFO);
     let status = statusCodes.OK;
     let response = {
       errors: [],
     };
-    const chosenUser = req.params.userId.trim();
+    const chosenUser = userId.trim();
 
     try {
       const result = await accessManager.findUserById(chosenUser);
@@ -62,8 +56,8 @@ router.delete(
         }
       } else {
         log(
-          `DELETE /users/user/${req.params.userId}`,
-          `User with ID ${req.params.userId} does not exist`,
+          `DELETE /users/user/${userId}`,
+          `User with ID ${userId} does not exist`,
           levels.WARN
         );
       }

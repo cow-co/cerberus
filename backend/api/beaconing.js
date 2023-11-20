@@ -19,10 +19,10 @@ router.post("", async (req, res) => {
     const validationResult = validateBeacon(req.body);
     if (validationResult.isValid) {
       const beacon = {
-        id: req.body.id,
-        ip: req.body.ip,
-        os: req.body.os,
-        beaconIntervalSeconds: req.body.beaconIntervalSeconds,
+        id: req.bodyString("id"),
+        ip: req.bodyString("ip"),
+        os: req.bodyString("os"),
+        beaconIntervalSeconds: req.bodyInt("beaconIntervalSeconds"),
         lastCheckinTime: Date.now() / 1000,
       };
 

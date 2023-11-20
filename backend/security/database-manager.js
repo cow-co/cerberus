@@ -2,7 +2,10 @@ const userService = require("../db/services/user-service");
 const adminService = require("../db/services/admin-service");
 const argon2 = require("argon2");
 const { levels, log } = require("../utils/logger");
-const { validatePassword } = require("../validation/security-validation");
+const {
+  validatePassword,
+  validateUsername,
+} = require("../validation/security-validation");
 const TokenValidity = require("../db/models/TokenValidity");
 
 /**
@@ -19,7 +22,8 @@ const register = async (username, password, pwReqs) => {
   };
 
   try {
-    const validationErrors = validatePassword(password, pwReqs);
+    let validationErrors = validatePassword(password, pwReqs);
+    validationErrors = validationErrors.concat(validateUsername(username));
 
     if (validationErrors.length === 0) {
       const hashed = await argon2.hash(password);
@@ -28,7 +32,7 @@ const register = async (username, password, pwReqs) => {
     } else {
       log(
         "database-manager/register",
-        "Validation of password failed: " + validationErrors,
+        "Validation of username/password failed",
         levels.WARN
       );
       response.errors = response.errors.concat(validationErrors);
