@@ -424,6 +424,9 @@ describe("Access Manager tests", () => {
           "content-type": "application/json",
           authorization: "Bearer aaabbbccc",
         },
+        headerString: function (header) {
+          return this.headers[header];
+        },
       },
       null,
       () => {
@@ -447,6 +450,9 @@ describe("Access Manager tests", () => {
         headers: {
           "content-type": "application/json",
           authorization: "Bearer aaabbbccc",
+        },
+        headerString: function (header) {
+          return this.headers[header];
         },
       },
       {
@@ -482,6 +488,9 @@ describe("Access Manager tests", () => {
           "content-type": "application/json",
           authorization: "Bearer aaabbbccc",
         },
+        headerString: function (header) {
+          return this.headers[header];
+        },
       },
       {
         status: (statusCode) => {
@@ -512,6 +521,9 @@ describe("Access Manager tests", () => {
       {
         headers: {
           "content-type": "application/json",
+        },
+        headerString: function (header) {
+          return this.headers[header];
         },
       },
       {
@@ -551,6 +563,9 @@ describe("Access Manager tests", () => {
       {
         headers: {
           "content-type": "application/json",
+        },
+        headerString: function (header) {
+          return this.headers[header];
         },
       },
       null,

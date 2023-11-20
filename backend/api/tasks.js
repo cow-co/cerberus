@@ -14,26 +14,20 @@ const accessManager = require("../security/user-and-access-manager");
  * Requires user to be logged in.
  */
 router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
-  log(
-    `GET /tasks/${req.params.implantId}`,
-    "Getting tasks for implant...",
-    levels.DEBUG
-  );
+  const implantId = req.paramString("implantId");
+  log(`GET /tasks/${implantId}`, "Getting tasks for implant...", levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
   try {
     const includeSent = req.query.includeSent === "true";
-    const tasks = await tasksService.getTasksForImplant(
-      req.params.implantId,
-      includeSent
-    );
+    const tasks = await tasksService.getTasksForImplant(implantId, includeSent);
     responseJSON = {
       tasks: tasks,
       errors: [],
     };
   } catch (err) {
-    log(`GET /tasks/${req.params.implantId}`, err, levels.ERROR);
+    log(`GET /tasks/${implantId}`, err, levels.ERROR);
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON = {
       tasks: [],
@@ -130,11 +124,8 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
 });
 
 router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
-  log(
-    `DELETE /tasks/${req.params.taskId}`,
-    `Deleting task ${req.params.taskId}`,
-    levels.INFO
-  );
+  const taskId = req.paramString("taskId");
+  log(`DELETE /tasks/${taskId}`, `Deleting task ${taskId}`, levels.INFO);
 
   let responseJSON = {
     errors: [],
@@ -142,32 +133,28 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
   let returnStatus = statusCodes.OK;
 
   try {
-    const task = await tasksService.getTaskById(req.params.taskId);
+    const task = await tasksService.getTaskById(taskId);
     if (task) {
       if (task.sent) {
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors.push(
           "Cannot delete a task that has been sent to an implant."
         );
-        log(
-          `DELETE /tasks/${req.params.taskId}`,
-          "Task already sent",
-          levels.WARN
-        );
+        log(`DELETE /tasks/${taskId}`, "Task already sent", levels.WARN);
       } else {
-        await tasksService.deleteTask(req.params.taskId);
+        await tasksService.deleteTask(taskId);
       }
     } else {
       log(
-        `DELETE /tasks/${req.params.taskId}`,
-        `Task with ID ${req.params.taskId} does not exist`,
+        `DELETE /tasks/${taskId}`,
+        `Task with ID ${taskId} does not exist`,
         levels.WARN
       );
     }
   } catch (err) {
     returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
     responseJSON.errors.push("Internal Server Error");
-    log(`DELETE /tasks/${req.params.taskId}`, err, levels.ERROR);
+    log(`DELETE /tasks/${taskId}`, err, levels.ERROR);
   }
 
   return res.status(returnStatus).json(responseJSON);
@@ -178,9 +165,10 @@ router.delete(
   accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
+    const taskTypeId = req.paramString("taskTypeId");
     log(
-      `DELETE /task-types/${req.params.taskTypeId}`,
-      `Deleting task type ${req.params.taskTypeId}`,
+      `DELETE /task-types/${taskTypeId}`,
+      `Deleting task type ${taskTypeId}`,
       levels.INFO
     );
 
@@ -190,22 +178,20 @@ router.delete(
     let returnStatus = statusCodes.OK;
 
     try {
-      const taskType = await tasksService.getTaskTypeById(
-        req.params.taskTypeId
-      );
+      const taskType = await tasksService.getTaskTypeById(taskTypeId);
       if (taskType) {
-        await tasksService.deleteTaskType(req.params.taskTypeId);
+        await tasksService.deleteTaskType(taskTypeId);
       } else {
         log(
-          `DELETE /task-types/${req.params.taskTypeId}`,
-          `Task type with ID ${req.params.taskTypeId} does not exist`,
+          `DELETE /task-types/${taskTypeId}`,
+          `Task type with ID ${taskTypeId} does not exist`,
           levels.WARN
         );
       }
     } catch (err) {
       returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
       responseJSON.errors.push("Internal Server Error");
-      log(`DELETE /task-types/${req.params.taskTypeId}`, err, levels.ERROR);
+      log(`DELETE /task-types/${taskTypeId}`, err, levels.ERROR);
     }
 
     return res.status(returnStatus).json(responseJSON);

@@ -16,8 +16,8 @@ router.post("/register", async (req, res) => {
     `User registering with username ${req.body.username}`,
     levels.DEBUG
   );
-  const username = req.body.username;
-  const password = req.body.password;
+  const username = req.bodyString("username");
+  const password = req.bodyString("password");
 
   let responseStatus = statusCodes.OK;
   let responseJSON = {
@@ -71,29 +71,22 @@ router.delete(
   "/logout/:userId",
   accessManager.verifyToken,
   async (req, res) => {
-    log(
-      "DELETE /access/logout",
-      `Loggin out user ${req.params.userId}`,
-      levels.DEBUG
-    );
+    const userId = req.paramString("userId");
+    log("DELETE /access/logout", `Loggin out user ${userId}`, levels.DEBUG);
     try {
-      if (req.data.userId !== req.params.userId) {
+      if (req.data.userId !== userId) {
         log(
           "DELETE /access/logout",
-          `User ${req.data.userId} attempted to log someone else out (${req.params.userId})!`,
+          `User ${req.data.userId} attempted to log someone else out (${userId})!`,
           levels.SECURITY
         );
         res
           .status(statusCodes.FORBIDDEN)
           .json({ errors: ["You cannot log another user out!"] });
       } else {
-        await accessManager.logout(req.params.userId);
+        await accessManager.logout(userId);
         res.status(statusCodes.OK).json({ errors: [] });
-        log(
-          "DELETE /access/logout",
-          `User ${req.params.userId} logged out`,
-          levels.DEBUG
-        );
+        log("DELETE /access/logout", `User ${userId} logged out`, levels.DEBUG);
       }
     } catch (err) {
       log("DELETE /access/logout", err, levels.ERROR);
@@ -115,21 +108,22 @@ router.put(
   accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
+    const userId = req.bodyString("userId");
     log(
       "PUT /access/admin",
-      `Changing admin status of ${req.body.userId} to ${req.body.makeAdmin}`,
+      `Changing admin status of ${userId} to ${req.body.makeAdmin}`,
       levels.INFO
     );
     let status = statusCodes.OK;
     let response = {
       errors: [],
     };
-    const chosenUser = req.body.userId.trim();
+    const chosenUser = userId.trim();
 
     try {
       const result = await accessManager.findUserById(chosenUser);
       if (result.user) {
-        if (req.body.makeAdmin) {
+        if (Boolean(req.body.makeAdmin)) {
           await adminService.addAdmin(result.user.id);
         } else {
           await adminService.removeAdmin(result.user.id);

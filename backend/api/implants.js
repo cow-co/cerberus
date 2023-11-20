@@ -27,11 +27,8 @@ router.delete(
   accessManager.verifyToken,
   accessManager.checkAdmin,
   async (req, res) => {
-    log(
-      `DELETE /implants/${req.params.implantId}`,
-      `Implant ${req.params.implantId}`,
-      levels.INFO
-    );
+    const implantId = req.paramString("implantId");
+    log(`DELETE /implants/${implantId}`, `Implant ${implantId}`, levels.INFO);
 
     let responseJSON = {
       errors: [],
@@ -39,22 +36,20 @@ router.delete(
     let returnStatus = statusCodes.OK;
 
     try {
-      const implant = await implantService.findImplantById(
-        req.params.implantId
-      );
+      const implant = await implantService.findImplantById(implantId);
       if (implant) {
-        await implantService.deleteImplant(req.params.implantId);
+        await implantService.deleteImplant(implantId);
       } else {
         log(
-          `DELETE /implants/${req.params.implantId}`,
-          `Implant with ID ${req.params.implantId} does not exist`,
+          `DELETE /implants/${implantId}`,
+          `Implant with ID ${implantId} does not exist`,
           levels.WARN
         );
       }
     } catch (err) {
       returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
       responseJSON.errors.push("Internal Server Error");
-      log(`DELETE /implants/${req.params.implantId}`, err, levels.ERROR);
+      log(`DELETE /implants/${implantId}`, err, levels.ERROR);
     }
 
     return res.status(returnStatus).json(responseJSON);

@@ -35,9 +35,9 @@ const authenticate = async (req, res, next) => {
     username = pki.extractUserDetails(req);
   } else {
     username = req.body.username;
-    username = sanitizer.value(username, "string");
+    username = sanitizer.value(username, "str");
     password = req.body.password;
-    password = sanitizer.value(password, "string");
+    password = sanitizer.value(password, "str");
   }
   let authenticated = false;
 
@@ -79,7 +79,7 @@ const authenticate = async (req, res, next) => {
   if (!authenticated && errors.length === 0) {
     log(
       "user-and-access-manager/authenticate",
-      `User ${req.body.username} failed login due to incorrect credentials`,
+      `User ${username} failed login due to incorrect credentials`,
       levels.SECURITY
     );
     status = statusCodes.UNAUTHENTICATED;
@@ -88,9 +88,9 @@ const authenticate = async (req, res, next) => {
   } else if (errors.length > 0) {
     log(
       "user-and-access-manager/authenticate",
-      `User ${
-        req.body.username
-      } failed login due to miscellaneous errors: ${JSON.stringify(errors)}`,
+      `User ${username} failed login due to miscellaneous errors: ${JSON.stringify(
+        errors
+      )}`,
       levels.SECURITY
     );
     res.status(status).json({ errors });
@@ -129,14 +129,14 @@ const authenticate = async (req, res, next) => {
  * @param {function} next
  */
 const verifyToken = async (req, res, next) => {
+  const authHeader = req.headerString("authorization");
   log("verifyToken", "Verifying Token...", levels.DEBUG);
 
-  if (!req.headers.authorization && !securityConfig.usePKI) {
+  if (!authHeader && !securityConfig.usePKI) {
     res.status(statusCodes.FORBIDDEN).json({ errors: ["No token"] });
-  } else if (!req.headers.authorization && securityConfig.usePKI) {
+  } else if (!authHeader && securityConfig.usePKI) {
     await authenticate(req, res, next);
   } else {
-    const authHeader = req.headers.authorization;
     const token = authHeader.split(" ")[1];
 
     try {
@@ -213,10 +213,10 @@ const register = async (username, password) => {
     `Registering user ${username}`,
     levels.DEBUG
   );
-  username = sanitizer.value(username, String);
+  username = sanitizer.value(username, "str");
   username = username.trim();
   const { user } = await findUserByName(username);
-  password = sanitizer.value(password, String);
+  password = sanitizer.value(password, "str");
 
   let response = {
     _id: null,
@@ -263,7 +263,7 @@ const register = async (username, password) => {
 const checkAdmin = async (req, res, next) => {
   log("checkAdmin", "Checking if user is admin", levels.DEBUG);
   let userId = req.data.userId;
-  userId = sanitizer.value(userId, String);
+  userId = sanitizer.value(userId, "str");
   let isAdmin = false;
 
   // This ensures we call this method after logging in
@@ -291,7 +291,7 @@ const checkAdmin = async (req, res, next) => {
  */
 const removeUser = async (userId) => {
   log("removeUser", `Removing user ${userId}`, levels.DEBUG);
-  userId = sanitizer.value(userId, String);
+  userId = sanitizer.value(userId, "str");
   let errors = [];
 
   try {
@@ -338,7 +338,7 @@ const findUserByName = async (username) => {
     `Finding user ${username}`,
     levels.DEBUG
   );
-  userId = sanitizer.value(username, String);
+  userId = sanitizer.value(username, "str");
   let errors = [];
   let user = null;
   try {
