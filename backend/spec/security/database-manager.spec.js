@@ -183,4 +183,43 @@ describe("Database user manager tests", () => {
     expect(userService.deleteUser).toHaveBeenCalledTimes(1);
     expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
   });
+
+  test("check group membership - success", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: ["acg1"],
+    });
+
+    const isInGroup = await manager.isUserInGroup("id", "acg1");
+
+    expect(isInGroup).toBe(true);
+  });
+
+  test("check group membership - success - multiple groups on user", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: ["acg1", "acg2", "acg3"],
+    });
+
+    const isInGroup = await manager.isUserInGroup("id", "acg2");
+
+    expect(isInGroup).toBe(true);
+  });
+
+  test("check group membership - failure", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: ["acg1"],
+    });
+
+    const isInGroup = await manager.isUserInGroup("id", "acg2");
+
+    expect(isInGroup).toBe(false);
+  });
 });

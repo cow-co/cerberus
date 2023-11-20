@@ -143,9 +143,9 @@ const findUserByName = async (username) => {
   }
 };
 
-const isUserInGroup = async (username, acgId) => {
+const isUserInGroup = async (userId, acgId) => {
   let isInGroup = false;
-  const user = await findUserByName(username);
+  const user = await findUserById(userId);
   if (user) {
     isInGroup = user.acgs.find((id) => id === acgId) !== undefined;
   }

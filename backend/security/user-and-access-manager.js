@@ -411,13 +411,13 @@ const findUserById = async (userId) => {
   };
 };
 
-const isUserInGroup = async (username, acgId) => {
+const isUserInGroup = async (userId, acgId) => {
   let errors = [];
   let isInGroup = false;
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
-        isInGroup = await dbUserManager.isUserInGroup(username, acgId);
+        isInGroup = await dbUserManager.isUserInGroup(userId, acgId);
         break;
       case securityConfig.availableAuthMethods.AD:
         // TODO Implement
