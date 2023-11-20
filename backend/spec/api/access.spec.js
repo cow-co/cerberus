@@ -9,7 +9,6 @@ jest.mock("../../security/user-and-access-manager");
 jest.mock("../../db/services/admin-service");
 jest.mock("../../db/services/user-service");
 
-// TODO More sanitisation tests across all API endpoints, and across middlewares
 describe("Access tests", () => {
   afterEach(() => {
     server.stop();
