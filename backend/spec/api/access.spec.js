@@ -9,6 +9,7 @@ jest.mock("../../security/user-and-access-manager");
 jest.mock("../../db/services/admin-service");
 jest.mock("../../db/services/user-service");
 
+// TODO More sanitisation tests across all API endpoints, and across middlewares
 describe("Access tests", () => {
   afterEach(() => {
     server.stop();
@@ -45,6 +46,39 @@ describe("Access tests", () => {
 
     expect(res.statusCode).toBe(200);
     expect(accessManager.register).toHaveBeenCalledTimes(1);
+  });
+
+  test("create user - success - sanitisation applied to username", async () => {
+    accessManager.register.mockResolvedValue({
+      _id: "some-mongo-id",
+      errors: [],
+    });
+
+    const res = await agent
+      .post("/api/access/register")
+      .send({ username: true, password: "abcdefghijklmnopqrstuvwxyZ11" });
+
+    const args = accessManager.register.mock.calls[0];
+    expect(res.statusCode).toBe(200);
+    expect(accessManager.register).toHaveBeenCalledTimes(1);
+    expect(args[0]).toBe("true");
+  });
+
+  test("create user - success - sanitisation applied to password", async () => {
+    accessManager.register.mockResolvedValue({
+      _id: "some-mongo-id",
+      errors: [],
+    });
+
+    const res = await agent.post("/api/access/register").send({
+      username: "user",
+      password: 111,
+    });
+
+    const args = accessManager.register.mock.calls[0];
+    expect(res.statusCode).toBe(200);
+    expect(accessManager.register).toHaveBeenCalledTimes(1);
+    expect(args[1]).toBe("111");
   });
 
   test("create user - failure - error occurred", async () => {
