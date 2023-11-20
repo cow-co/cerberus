@@ -411,6 +411,38 @@ const findUserById = async (userId) => {
   };
 };
 
+const isUserInGroup = async (username, acgId) => {
+  let errors = [];
+  let isInGroup = false;
+  try {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        isInGroup = await dbUserManager.isUserInGroup(username, acgId);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        // TODO Implement
+        break;
+
+      default:
+        log(
+          "findUserById",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        break;
+    }
+  } catch (err) {
+    log("findUserById", err, levels.ERROR);
+    errors.push("Internal Server Error");
+  }
+
+  return {
+    isInGroup,
+    errors,
+  };
+};
+
 module.exports = {
   authenticate,
   verifyToken,
@@ -420,4 +452,5 @@ module.exports = {
   removeUser,
   findUserByName,
   findUserById,
+  isUserInGroup,
 };

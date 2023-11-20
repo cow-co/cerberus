@@ -116,6 +116,7 @@ const findUserById = async (userId) => {
     return {
       id: user._id,
       name: user.name,
+      acgs: user.acgs,
     };
   }
 };
@@ -137,8 +138,18 @@ const findUserByName = async (username) => {
     return {
       id: user._id,
       name: user.name,
+      acgs: user.acgs,
     };
   }
+};
+
+const isUserInGroup = async (username, acgId) => {
+  let isInGroup = false;
+  const user = await findUserByName(username);
+  if (user) {
+    isInGroup = user.acgs.find((id) => id === acgId) !== undefined;
+  }
+  return isInGroup;
 };
 
 module.exports = {
@@ -148,4 +159,5 @@ module.exports = {
   deleteUser,
   findUserById,
   findUserByName,
+  isUserInGroup,
 };
