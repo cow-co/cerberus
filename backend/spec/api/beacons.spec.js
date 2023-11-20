@@ -29,7 +29,7 @@ describe("Beacon API tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  test("should succeed", async () => {
+  test("beacon - success", async () => {
     validation.validateBeacon.mockReturnValue({
       isValid: true,
       errors: [],
@@ -55,6 +55,49 @@ describe("Beacon API tests", () => {
     });
 
     expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      tasks: [
+        {
+          _id: "some-mongo-id",
+          order: 1,
+          implantId: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+          taskType: "Task2",
+          params: [],
+          sent: false,
+        },
+      ],
+      errors: [],
+    });
+  });
+
+  test("beacon - success - body content is sanitised to string", async () => {
+    validation.validateBeacon.mockReturnValue({
+      isValid: true,
+      errors: [],
+    });
+    implantService.findImplantById.mockResolvedValue(null);
+    implantService.addImplant.mockResolvedValue(null);
+    tasksService.getTasksForImplant.mockResolvedValue([
+      {
+        _id: "some-mongo-id",
+        order: 1,
+        implantId: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+        taskType: "Task2",
+        params: [],
+        sent: false,
+      },
+    ]);
+
+    const res = await agent.post("/api/beacon").send({
+      id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",
+      ip: "192.168.0.1",
+      os: true,
+      beaconIntervalSeconds: 300,
+    });
+
+    const args = implantService.addImplant.mock.calls[0];
+    expect(res.statusCode).toBe(200);
+    expect(typeof args[0].os).toBe("string");
     expect(res.body).toEqual({
       tasks: [
         {

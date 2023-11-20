@@ -62,6 +62,7 @@ describe("Access tests", () => {
     expect(res.statusCode).toBe(200);
     expect(accessManager.register).toHaveBeenCalledTimes(1);
     expect(args[0]).toBe("true");
+    expect(typeof args[0]).toBe("string");
   });
 
   test("create user - success - sanitisation applied to password", async () => {
@@ -79,6 +80,7 @@ describe("Access tests", () => {
     expect(res.statusCode).toBe(200);
     expect(accessManager.register).toHaveBeenCalledTimes(1);
     expect(args[1]).toBe("111");
+    expect(typeof args[1]).toBe("string");
   });
 
   test("create user - failure - error occurred", async () => {
