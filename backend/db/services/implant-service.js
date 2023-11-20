@@ -47,17 +47,52 @@ const updateImplant = async (details) => {
   sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, updatedEntity);
 };
 
+// TODO Have a think about how the filtering will actually work (edit vs read, etc)
+const filterImplants = (implants, userAcgs, userIsAdmin) => {
+  let result = [];
+  if (userIsAdmin) {
+    result = implants;
+  } else {
+  }
+  return result;
+};
+
+// TODO Should this go in the accessManager?
+// TODO Make operation an enum
+const isPermittedForOperation = (userAcgs, implant, isAdmin, operation) => {
+  let allowed = false;
+  if (isAdmin) {
+    allowed = true;
+  } else {
+    if (operation === "READ") {
+    } else if (operation === "EDIT") {
+    }
+  }
+  return allowed;
+};
+
 /**
  * @param {string} id Implant to find. NOT the database ID; this is assigned by the implant itself when beaconing.
  * @returns The implant (or null)
  */
-const findImplantById = async (id) => {
+const findImplantById = async (userAcgs, userIsAdmin, id) => {
   let implant = null;
-  if (id) {
+  if (id && userIsAdmin) {
     implant = await Implant.findOne({ id: id });
+  } else if (id) {
+    implant = await Implant.findOne({ id: id })
+      .and()
+      .or([
+        {
+          readOnlyACGs: { $in: userAcgs },
+        },
+        { operatorACGs: { $in: userAcgs } },
+      ]);
   }
   return implant;
 };
+
+// TODO Do the filtering at the API layer, since we need to build in functionality for if the implant has no ACGs (all users can interact)
 
 /**
  * @returns All the implant records that the user is permitted to view
