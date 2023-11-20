@@ -177,6 +177,21 @@ describe("Database user manager tests", () => {
     expect(TokenValidity.create).toHaveBeenCalledTimes(1);
   });
 
+  test("logout - success - validity entry exists", async () => {
+    let newTimestamp = 0;
+    TokenValidity.findOne.mockResolvedValue({
+      minTokenValidity: 100,
+      save: async function () {
+        newTimestamp = this.minTokenValidity;
+      },
+    });
+
+    await manager.logout("id");
+
+    expect(TokenValidity.create).toHaveBeenCalledTimes(0);
+    expect(newTimestamp).toBeGreaterThan(100);
+  });
+
   test("delete user - success", async () => {
     await manager.deleteUser("id");
 

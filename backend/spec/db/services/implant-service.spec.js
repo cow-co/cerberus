@@ -73,6 +73,16 @@ describe("Implant service tests", () => {
     expect(imps).toHaveLength(1);
   });
 
+  test("delete implant - success", async () => {
+    Implant.findOneAndDelete.mockResolvedValue(null);
+
+    await implantService.deleteImplant("id");
+
+    const args = Implant.findOneAndDelete.mock.calls[0];
+    expect(Implant.findOneAndDelete).toHaveBeenCalledTimes(1);
+    expect(args[0]).toEqual({ id: "id" });
+  });
+
   test("activity checker - should deactivate an implant", async () => {
     let updates = {
       id1: true,

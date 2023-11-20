@@ -60,11 +60,20 @@ const findImplantById = async (id) => {
 };
 
 /**
- * @returns All the implant records
+ * @returns All the implant records that the user is permitted to view
  */
-const getAllImplants = async () => {
+const getAllImplants = async (userAcgs, userIsAdmin) => {
   let implants = [];
-  implants = await Implant.find();
+  if (userIsAdmin) {
+    implants = await Implant.find();
+  } else {
+    implants = await Implant.find().or([
+      {
+        readOnlyACGs: { $in: userAcgs },
+      },
+      { operatorACGs: { $in: userAcgs } },
+    ]);
+  }
   return implants;
 };
 
