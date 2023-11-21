@@ -7,6 +7,7 @@ const dbUserManager = require("./database-manager");
 const adUserManager = require("./active-directory-manager");
 const pki = require("./pki");
 const adminService = require("../db/services/admin-service");
+const implantService = require("../db/services/implant-service");
 const jwt = require("jsonwebtoken");
 const userService = require("../db/services/user-service");
 const sanitize = require("sanitize");
@@ -416,7 +417,6 @@ const findUserById = async (userId) => {
   };
 };
 
-// TODO Test this
 /**
  * @param {String} userId ID (either database ID, or UPN for active directory) of user
  * @param {String} acgId Database ID of group to check
@@ -454,7 +454,6 @@ const isUserInGroup = async (userId, acgId) => {
   };
 };
 
-// TODO Test this
 /**
  * @param {String} userId ID (either database ID, or UPN for active directory) of user
  * @returns Object: {errors, groups}
@@ -492,7 +491,6 @@ const getGroupsForUser = async (userId) => {
 };
 
 /**
- * TODO Test this function
  * @param {Array} implants
  * @param {String} userId
  * @returns
@@ -531,7 +529,6 @@ const filterImplantsForView = async (implants, userId) => {
   };
 };
 
-// TODO Test this
 /**
  * @param {String} userId Which user is conducting the operation?
  * @param {String} implantId Which implant (implantId, NOT database ID) is being operated on?
@@ -551,21 +548,28 @@ const isUserAuthorisedForOperation = async (userId, implantId, operation) => {
       let acgs = implant.operatorACGs;
 
       switch (operation) {
-        case accessType.READ:
+        case operationType.READ:
           acgs = acgs.concat(implant.readOnlyACGs);
           break;
         default:
           break;
       }
 
-      if (acgs) {
-        const { userGroups, errors } = await getGroupsForUser(userId);
+      if (acgs && acgs.length > 0) {
+        const { groups, errors } = await getGroupsForUser(userId);
         if (errors.length === 0) {
           isAuthorised =
-            acgs.filter((group) => userGroups.includes(group)).length > 0;
+            acgs.filter((group) => groups.includes(group)).length > 0;
         }
       } else {
-        isAuthorised = true;
+        // If we are trying to edit, then we check to ensure the readOnlyACGs list is empty;
+        // if it *isn't* (ie. read-only list is populated, but operator list is not) then operator is
+        // restricted to admins-only. This secures us against mistakes in ACG setup/cases where
+        // the read-only list is created before the operator list is populated.
+        isAuthorised =
+          operation === operationType.READ ||
+          (operation === operationType.EDIT &&
+            implant.readOnlyACGs.length === 0);
       }
     }
   }

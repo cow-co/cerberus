@@ -4,6 +4,7 @@ const pki = require("../../security/pki");
 const dbManager = require("../../security/database-manager");
 const adManager = require("../../security/active-directory-manager");
 const adminService = require("../../db/services/admin-service");
+const implantService = require("../../db/services/implant-service");
 const userService = require("../../db/services/user-service");
 const jwt = require("jsonwebtoken");
 let accessManager;
@@ -12,6 +13,7 @@ jest.mock("../../security/pki");
 jest.mock("../../security/database-manager");
 jest.mock("../../security/active-directory-manager");
 jest.mock("../../db/services/admin-service");
+jest.mock("../../db/services/implant-service");
 jest.mock("../../db/services/user-service");
 jest.mock("jsonwebtoken");
 
@@ -626,17 +628,211 @@ describe("Access Manager tests", () => {
     expect(response.errors).toHaveLength(1);
   });
 
-  test("User authorisation - success - read, admin", async () => {});
-  test("User authorisation - success - edit, admin", async () => {});
-  test("User authorisation - success - read, no ACGs", async () => {});
-  test("User authorisation - success - read, read-only ACGs", async () => {});
-  test("User authorisation - success - read, operator (no read-only) ACGs", async () => {});
-  test("User authorisation - success - edit, no ACGs", async () => {});
-  test("User authorisation - success - edit, operator ACGs", async () => {});
-  test("User authorisation - failure - read, read-only ACGs", async () => {});
-  test("User authorisation - failure - edit, only read-only ACGs", async () => {});
-  test("User authorisation - failure - edit, operator ACGs", async () => {});
-  test("User authorisation - failure - exception", async () => {});
+  test("User authorisation - success - read, admin", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(true);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.READ
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - edit, admin", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(true);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.EDIT
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - read, no ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: [],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.READ
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - read, read-only ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.READ
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - read, operator (no read-only) ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: [],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["operator", "read2"]);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.READ
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - edit, no ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: [],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.EDIT
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - edit, operator ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: [],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "operator"]);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.EDIT
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - failure - read, read-only ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read2"]);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.READ
+    );
+
+    expect(isPermitted).toBe(false);
+  });
+
+  // TODO Note in docs that if readOnlyACGs.length > 0 but operatorACGs.length === 0, then only admins can operate
+  test("User authorisation - failure - edit, only read-only ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.EDIT
+    );
+
+    expect(isPermitted).toBe(false);
+  });
+
+  test("User authorisation - failure - edit, operator ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.EDIT
+    );
+
+    expect(isPermitted).toBe(false);
+  });
+
+  test("User authorisation - failure - exception", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockRejectedValue(new Error("TypeError"));
+
+    const isPermitted = await accessManager.isUserAuthorisedForOperation(
+      "id",
+      "implant",
+      accessManager.operationType.READ
+    );
+
+    expect(isPermitted).toBe(false);
+  });
 
   test("Implant view filtering - success - admin", async () => {});
   test("Implant view filtering - success - read access", async () => {});

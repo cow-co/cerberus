@@ -1,4 +1,5 @@
 {
+  "testRegex": "user-and-access-manager.spec.js",
   "clearMocks": true,
   "restoreMocks": true
 }
