@@ -152,6 +152,15 @@ const isUserInGroup = async (userId, acgId) => {
   return isInGroup;
 };
 
+const getGroupsForUser = async (userId) => {
+  let acgs = [];
+  const user = await findUserById(userId);
+  if (user) {
+    acgs = user.acgs;
+  }
+  return acgs;
+};
+
 module.exports = {
   register,
   authenticate,
@@ -160,4 +169,5 @@ module.exports = {
   findUserById,
   findUserByName,
   isUserInGroup,
+  getGroupsForUser,
 };

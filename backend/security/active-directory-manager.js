@@ -59,7 +59,7 @@ const findUserByName = async (username) => {
 
   if (foundUser !== null) {
     return {
-      id: foundUser.sn,
+      id: foundUser.userPrincipalName,
       name: foundUser.sAMAccountName,
     };
   } else {

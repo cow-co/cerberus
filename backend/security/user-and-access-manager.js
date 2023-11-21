@@ -328,65 +328,6 @@ const removeUser = async (userId) => {
   return errors;
 };
 
-// TODO Work on this
-// TODO operation should be an enum
-const isUserAuthorisedForOperation = async (userId, implantId, operation) => {
-  let isAuthorised = false;
-  const implant = await implantService.findImplantById(implantId);
-
-  if (implant) {
-    const isAdmin = await adminService.isUserAdmin(userId);
-
-    if (isAdmin) {
-      isAuthorised = true;
-    } else {
-      let acgs = implant.operatorACGs;
-
-      switch (operation) {
-        case accessType.READ:
-          acgs = acgs.concat(implant.readOnlyACGs);
-          break;
-        default:
-          break;
-      }
-
-      if (acgs) {
-        for (const acg of acgs) {
-          const res = await isUserInGroup(userId, acg);
-          if (res.isInGroup) {
-            isAuthorised = true;
-            break;
-          }
-        }
-      } else {
-        isAuthorised = true;
-      }
-    }
-  }
-
-  return isAuthorised;
-};
-
-/**
- *
- * @param {Array} implants
- * @param {String} userId
- * @returns
- */
-const filterImplantsForView = async (implants, userId) => {
-  let filtered = [];
-  const isAdmin = await adminService.isUserAdmin(userId);
-
-  if (isAdmin) {
-    filtered = implants;
-  } else {
-    const user = await findUserById(userId);
-    filtered = implants.filter((implant) => {}); // TODO Need an efficient way to check if the intersection of the user and the implant ACGs has any elements
-  }
-
-  return filtered;
-};
-
 /**
  * @param {string} username
  * @returns
@@ -471,6 +412,7 @@ const findUserById = async (userId) => {
 };
 
 // TODO Possibly take the user record itself as an arg rather than the ID. That'll optimise for array filtering.
+// TODO JSDoc comment
 const isUserInGroup = async (userId, acgId) => {
   let errors = [];
   let isInGroup = false;
@@ -485,7 +427,7 @@ const isUserInGroup = async (userId, acgId) => {
 
       default:
         log(
-          "findUserById",
+          "user-and-access-manager/findUserById",
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
@@ -493,7 +435,7 @@ const isUserInGroup = async (userId, acgId) => {
         break;
     }
   } catch (err) {
-    log("findUserById", err, levels.ERROR);
+    log("user-and-access-manager/findUserById", err, levels.ERROR);
     errors.push("Internal Server Error");
   }
 
@@ -501,6 +443,122 @@ const isUserInGroup = async (userId, acgId) => {
     isInGroup,
     errors,
   };
+};
+
+// TODO Fill this out
+// TODO Use this in the auth checks
+// TODO JSDoc comment
+const getGroupsForUser = async (userId) => {
+  let errors = [];
+  let groups = [];
+  try {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        groups = await dbUserManager.getGroupsForUser(userId);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        // TODO Implement
+        break;
+
+      default:
+        log(
+          "user-and-access-manager/getGroupsForUser",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+        errors.push("Internal Server Error");
+        break;
+    }
+  } catch (err) {
+    log("user-and-access-manager/getGroupsForUser", err, levels.ERROR);
+    errors.push("Internal Server Error");
+  }
+
+  return {
+    groups,
+    errors,
+  };
+};
+
+/**
+ * TODO Test this function
+ * @param {Array} implants
+ * @param {String} userId
+ * @returns
+ */
+const filterImplantsForView = async (implants, userId) => {
+  let filtered = [];
+  let errors = [];
+  const isAdmin = await adminService.isUserAdmin(userId);
+
+  if (isAdmin) {
+    filtered = implants;
+  } else {
+    const groupsResult = await getGroupsForUser(userId);
+    // FIXME As-is, this doesn't work for non-DB auth
+    // TODO Maybe put this into a separate function
+    if (groupsResult.errors.length === 0) {
+      filtered = implants.filter((implant) => {
+        // TODO Clean this up
+        const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
+        if (implant.readOnlyACGs.length === 0) {
+          return true;
+        } else {
+          return readGroups.filter((group) =>
+            groupsResult.groups.includes(group)
+          );
+        }
+      });
+    } else {
+      errors = groupsResult.errors;
+    }
+  }
+
+  return {
+    filtered,
+    errors,
+  };
+};
+
+// TODO Work on this
+// TODO operation should be an enum
+// TODO Test this
+// TODO Document its API (JSDoc comment)
+const isUserAuthorisedForOperation = async (userId, implantId, operation) => {
+  let isAuthorised = false;
+  const implant = await implantService.findImplantById(implantId);
+
+  if (implant) {
+    const isAdmin = await adminService.isUserAdmin(userId);
+
+    if (isAdmin) {
+      isAuthorised = true;
+    } else {
+      let acgs = implant.operatorACGs;
+
+      switch (operation) {
+        case accessType.READ:
+          acgs = acgs.concat(implant.readOnlyACGs);
+          break;
+        default:
+          break;
+      }
+
+      if (acgs) {
+        for (const acg of acgs) {
+          const res = await isUserInGroup(userId, acg);
+          if (res.isInGroup) {
+            isAuthorised = true;
+            break;
+          }
+        }
+      } else {
+        isAuthorised = true;
+      }
+    }
+  }
+
+  return isAuthorised;
 };
 
 module.exports = {
@@ -512,5 +570,5 @@ module.exports = {
   removeUser,
   findUserByName,
   findUserById,
-  isUserInGroup,
+  filterImplantsForView,
 };
