@@ -67,7 +67,7 @@ describe("Implant API Tests", () => {
   });
 
   test("get all implants - failure - exception thrown", async () => {
-    implantService.getAllImplants.mockRejectedValue(new Error("TypeError"));
+    implantService.getAllImplants.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.get("/api/implants");
 
@@ -98,7 +98,7 @@ describe("Implant API Tests", () => {
       _id: "_id3",
       implantId: "id3",
     });
-    implantService.deleteImplant.mockRejectedValue(new Error("TypeError"));
+    implantService.deleteImplant.mockRejectedValue(new TypeError("TEST"));
     const res = await agent.delete("/api/implants/id3");
 
     expect(res.statusCode).toBe(500);

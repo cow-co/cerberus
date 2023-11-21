@@ -54,7 +54,7 @@ describe("User tests", () => {
   });
 
   test("find user - failure - exception", async () => {
-    accessManager.findUserByName.mockRejectedValue(new Error("TypeError"));
+    accessManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.get("/api/users/user/username");
 
@@ -121,7 +121,7 @@ describe("User tests", () => {
       },
       errors: [],
     });
-    accessManager.removeUser.mockRejectedValue(new Error("TypeError"));
+    accessManager.removeUser.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/users/user/some-mongo-id3");
 
@@ -154,7 +154,7 @@ describe("User tests", () => {
   });
 
   test("whoami - failure - exception", async () => {
-    accessManager.findUserById.mockRejectedValue(new Error("TypeError"));
+    accessManager.findUserById.mockRejectedValue(new TypeError("TEST"));
     const res = await agent.get("/api/users/whoami");
 
     expect(res.statusCode).toBe(500);

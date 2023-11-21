@@ -96,7 +96,7 @@ describe("Access tests", () => {
   });
 
   test("create user - failure - exception thrown", async () => {
-    accessManager.register.mockRejectedValue(new Error("TypeError"));
+    accessManager.register.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent
       .post("/api/access/register")
@@ -142,7 +142,7 @@ describe("Access tests", () => {
   });
 
   test("logout - failure - exception thrown", async () => {
-    accessManager.logout.mockRejectedValue(new Error("TypeError"));
+    accessManager.logout.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/access/logout/id");
 
@@ -205,7 +205,7 @@ describe("Access tests", () => {
         id: "650a3a2a7dcd3241ecee2d70",
       },
     });
-    adminService.addAdmin.mockRejectedValue(new Error("TypeError"));
+    adminService.addAdmin.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent
       .put("/api/access/admin")

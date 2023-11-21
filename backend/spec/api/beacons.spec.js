@@ -157,7 +157,7 @@ describe("Beacon API tests", () => {
       os: "Windows",
       beaconIntervalSeconds: 500,
     });
-    implantService.updateImplant.mockRejectedValue(new Error("TypeError"));
+    implantService.updateImplant.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.post("/api/beacon").send({
       id: "eb706e60-5b2c-47f5-bc32-45e1765f7ce8",

@@ -84,7 +84,7 @@ describe("Access Manager tests", () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
     dbManager.authenticate.mockResolvedValue(true);
-    dbManager.findUserByName.mockRejectedValue(new Error("TypeError"));
+    dbManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
 
     let called = false;
     await accessManager.authenticate(
@@ -108,7 +108,7 @@ describe("Access Manager tests", () => {
   });
 
   test("authenticate - failure - exception", async () => {
-    dbManager.authenticate.mockRejectedValue(new Error("TypeError"));
+    dbManager.authenticate.mockRejectedValue(new TypeError("TEST"));
 
     let called = false;
     let resStatus = 200;
@@ -326,7 +326,7 @@ describe("Access Manager tests", () => {
   });
 
   test("remove user - failure - exception", async () => {
-    dbManager.deleteUser.mockRejectedValue(new Error("TypeError"));
+    dbManager.deleteUser.mockRejectedValue(new TypeError("TEST"));
 
     const errors = await accessManager.removeUser("userId");
 
@@ -367,7 +367,7 @@ describe("Access Manager tests", () => {
   });
 
   test("find user by name - failure - exception", async () => {
-    dbManager.findUserByName.mockRejectedValue(new Error("TypeError"));
+    dbManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
 
     const res = await accessManager.findUserByName("user");
 
@@ -408,7 +408,7 @@ describe("Access Manager tests", () => {
   });
 
   test("find user by ID - failure - exception", async () => {
-    dbManager.findUserById.mockRejectedValue(new Error("TypeError"));
+    dbManager.findUserById.mockRejectedValue(new TypeError("TEST"));
 
     const res = await accessManager.findUserById("userId");
 
@@ -481,7 +481,7 @@ describe("Access Manager tests", () => {
   test("verify token - failure - exception", async () => {
     let called = false;
     let httpStatus = 200;
-    userService.getMinTokenTimestamp.mockRejectedValue(new Error("TypeError"));
+    userService.getMinTokenTimestamp.mockRejectedValue(new TypeError("TEST"));
     jwt.verify.mockReturnValue({ userId: "id", iat: Date.now() });
 
     await accessManager.verifyToken(
@@ -816,22 +816,22 @@ describe("Access Manager tests", () => {
     expect(isPermitted).toBe(false);
   });
 
-  test("User authorisation - failure - exception", async () => {
+  test("User authorisation - failure - throws exception out", async () => {
     implantService.findImplantById.mockResolvedValue({
       _id: "implant_id",
       id: "implant",
       readOnlyACGs: ["read"],
       operatorACGs: [],
     });
-    adminService.isUserAdmin.mockRejectedValue(new Error("TypeError"));
+    adminService.isUserAdmin.mockRejectedValue(new TypeError("TEST"));
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
-      "implant",
-      accessManager.operationType.READ
-    );
-
-    expect(isPermitted).toBe(false);
+    expect(
+      await accessManager.isUserAuthorisedForOperation(
+        "id",
+        "implant",
+        accessManager.operationType.READ
+      )
+    ).toThrow(TypeError);
   });
 
   test("Implant view filtering - success - admin", async () => {});

@@ -68,7 +68,7 @@ describe("Tasks API Tests", () => {
       } else if (id === "id-3") {
         return Promise.resolve([]);
       } else if (id === "id-7") {
-        return Promise.reject(new Error("TypeError"));
+        return Promise.reject(new TypeError("TEST"));
       }
     });
 
@@ -171,7 +171,7 @@ describe("Tasks API Tests", () => {
   });
 
   test("should fail to get all task types - exception thrown", async () => {
-    tasksService.getTaskTypes.mockRejectedValue(new Error("TypeError"));
+    tasksService.getTaskTypes.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.get("/api/task-types");
 
@@ -268,7 +268,7 @@ describe("Tasks API Tests", () => {
         params: ["param1", "param2"],
       },
     ]);
-    tasksService.setTask.mockRejectedValue(new Error("TypeError"));
+    tasksService.setTask.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.post("/api/tasks").send({
       type: {
@@ -318,7 +318,7 @@ describe("Tasks API Tests", () => {
   });
 
   test("should fail to create a task type - exception thrown", async () => {
-    tasksService.createTaskType.mockRejectedValue(new Error("TypeError"));
+    tasksService.createTaskType.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.post("/api/task-types").send({
       name: "tasktype",
@@ -380,7 +380,7 @@ describe("Tasks API Tests", () => {
   });
 
   test("delete task - failure - exception", async () => {
-    tasksService.getTaskById.mockRejectedValue(new Error("TypeError"));
+    tasksService.getTaskById.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/tasks/some-mongo-id");
 
@@ -402,7 +402,7 @@ describe("Tasks API Tests", () => {
   });
 
   test("delete task type - failure - exception", async () => {
-    tasksService.deleteTaskType.mockRejectedValue(new Error("TypeError"));
+    tasksService.deleteTaskType.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/task-types/tasktypeid1");
 
