@@ -61,42 +61,15 @@ const filterImplants = (implants, userAcgs, userIsAdmin) => {
  * @param {string} id Implant to find. NOT the database ID; this is assigned by the implant itself when beaconing.
  * @returns The implant (or null)
  */
-// FIXME I'd like to not have to leak user info into this module - encapsulation issue
-const findImplantById = async (userAcgs, userIsAdmin, id) => {
-  let implant = null;
-  if (id && userIsAdmin) {
-    implant = await Implant.findOne({ id: id });
-  } else if (id) {
-    implant = await Implant.findOne({ id: id })
-      .and()
-      .or([
-        {
-          readOnlyACGs: { $in: userAcgs },
-        },
-        { operatorACGs: { $in: userAcgs } },
-      ]);
-  }
-  return implant;
+const findImplantById = async (id) => {
+  return await Implant.findOne({ id: id });
 };
-
-// TODO Do the filtering at the API layer, since we need to build in functionality for if the implant has no ACGs (all users can interact)
 
 /**
  * @returns All the implant records that the user is permitted to view
  */
-const getAllImplants = async (userAcgs, userIsAdmin) => {
-  let implants = [];
-  if (userIsAdmin) {
-    implants = await Implant.find();
-  } else {
-    implants = await Implant.find().or([
-      {
-        readOnlyACGs: { $in: userAcgs },
-      },
-      { operatorACGs: { $in: userAcgs } },
-    ]);
-  }
-  return implants;
+const getAllImplants = async () => {
+  return await Implant.find();
 };
 
 const checkActivity = async () => {

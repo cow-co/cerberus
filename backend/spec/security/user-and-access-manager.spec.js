@@ -625,4 +625,28 @@ describe("Access Manager tests", () => {
     expect(response._id).toBe(null);
     expect(response.errors).toHaveLength(1);
   });
+
+  test("User authorisation - success - read, admin", async () => {});
+  test("User authorisation - success - edit, admin", async () => {});
+  test("User authorisation - success - read, no ACGs", async () => {});
+  test("User authorisation - success - read, read-only ACGs", async () => {});
+  test("User authorisation - success - read, operator (no read-only) ACGs", async () => {});
+  test("User authorisation - success - edit, no ACGs", async () => {});
+  test("User authorisation - success - edit, operator ACGs", async () => {});
+  test("User authorisation - failure - read, read-only ACGs", async () => {});
+  test("User authorisation - failure - edit, only read-only ACGs", async () => {});
+  test("User authorisation - failure - edit, operator ACGs", async () => {});
+  test("User authorisation - failure - exception", async () => {});
+
+  test("Implant view filtering - success - admin", async () => {});
+  test("Implant view filtering - success - read access", async () => {});
+  test("Implant view filtering - success - operator access", async () => {});
+  test("Implant view filtering - success - operator access to some, read on others", async () => {});
+  test("Implant view filtering - success - no ACGs on implants", async () => {});
+  test("Implant view filtering - failure - exception", async () => {});
+
+  test("Get user groups - success - DB Backed", async () => {});
+  test("Get user groups - success - AD Backed", async () => {});
+  test("Get user groups - failure - Fake auth method", async () => {});
+  test("Get user groups - failure - exception", async () => {});
 });

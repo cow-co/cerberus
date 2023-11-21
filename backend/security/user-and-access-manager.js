@@ -13,6 +13,11 @@ const sanitize = require("sanitize");
 
 const sanitizer = sanitize();
 
+const operationType = {
+  READ: "READ",
+  EDIT: "EDIT",
+};
+
 /**
  * Basically checks the provided credentials
  * TODO Should probably neaten this up
@@ -411,8 +416,12 @@ const findUserById = async (userId) => {
   };
 };
 
-// TODO Possibly take the user record itself as an arg rather than the ID. That'll optimise for array filtering.
-// TODO JSDoc comment
+// TODO Test this
+/**
+ * @param {String} userId ID (either database ID, or UPN for active directory) of user
+ * @param {String} acgId Database ID of group to check
+ * @returns true if user is in group, false otherwise
+ */
 const isUserInGroup = async (userId, acgId) => {
   let errors = [];
   let isInGroup = false;
@@ -445,9 +454,11 @@ const isUserInGroup = async (userId, acgId) => {
   };
 };
 
-// TODO Fill this out
-// TODO Use this in the auth checks
-// TODO JSDoc comment
+// TODO Test this
+/**
+ * @param {String} userId ID (either database ID, or UPN for active directory) of user
+ * @returns Object: {errors, groups}
+ */
 const getGroupsForUser = async (userId) => {
   let errors = [];
   let groups = [];
@@ -457,7 +468,7 @@ const getGroupsForUser = async (userId) => {
         groups = await dbUserManager.getGroupsForUser(userId);
         break;
       case securityConfig.availableAuthMethods.AD:
-        // TODO Implement
+        groups = await adUserManager.getGroupsForUser(userId);
         break;
 
       default:
@@ -495,17 +506,17 @@ const filterImplantsForView = async (implants, userId) => {
     filtered = implants;
   } else {
     const groupsResult = await getGroupsForUser(userId);
-    // FIXME As-is, this doesn't work for non-DB auth
+
     // TODO Maybe put this into a separate function
     if (groupsResult.errors.length === 0) {
       filtered = implants.filter((implant) => {
-        // TODO Clean this up
         const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
         if (implant.readOnlyACGs.length === 0) {
           return true;
         } else {
-          return readGroups.filter((group) =>
-            groupsResult.groups.includes(group)
+          return (
+            readGroups.filter((group) => groupsResult.groups.includes(group))
+              .length > 0
           );
         }
       });
@@ -520,10 +531,13 @@ const filterImplantsForView = async (implants, userId) => {
   };
 };
 
-// TODO Work on this
-// TODO operation should be an enum
 // TODO Test this
-// TODO Document its API (JSDoc comment)
+/**
+ * @param {String} userId Which user is conducting the operation?
+ * @param {String} implantId Which implant (implantId, NOT database ID) is being operated on?
+ * @param {'READ' | 'EDIT'} operation What sort of operation is being conducted?
+ * @returns true if authorised, false otherwise
+ */
 const isUserAuthorisedForOperation = async (userId, implantId, operation) => {
   let isAuthorised = false;
   const implant = await implantService.findImplantById(implantId);
@@ -545,12 +559,10 @@ const isUserAuthorisedForOperation = async (userId, implantId, operation) => {
       }
 
       if (acgs) {
-        for (const acg of acgs) {
-          const res = await isUserInGroup(userId, acg);
-          if (res.isInGroup) {
-            isAuthorised = true;
-            break;
-          }
+        const { userGroups, errors } = await getGroupsForUser(userId);
+        if (errors.length === 0) {
+          isAuthorised =
+            acgs.filter((group) => userGroups.includes(group)).length > 0;
         }
       } else {
         isAuthorised = true;
@@ -562,6 +574,7 @@ const isUserAuthorisedForOperation = async (userId, implantId, operation) => {
 };
 
 module.exports = {
+  operationType,
   authenticate,
   verifyToken,
   logout,
@@ -571,4 +584,5 @@ module.exports = {
   findUserByName,
   findUserById,
   filterImplantsForView,
+  isUserAuthorisedForOperation,
 };

@@ -58,7 +58,7 @@ describe("AD User Manager Tests", () => {
   test("find user - success", async () => {
     ActiveDirectory.prototype.findUser.mockImplementation(
       (username, callback) =>
-        callback(null, { sn: "123", sAMAccountName: "user" })
+        callback(null, { userPrincipalName: "123", sAMAccountName: "user" })
     );
 
     const res = await adUserManager.findUserByName("user");

@@ -95,10 +95,23 @@ const logout = async (userId) => {
   }
 };
 
+const getGroupsForUser = (userId) => {
+  let groups = [];
+  ad.getGroupMembershipForUser(userId, (err, adGroups) => {
+    if (!err) {
+      groups = adGroups;
+    } else {
+      log("active-directory-manager/getGroupsForUser", err, levels.WARN);
+    }
+  });
+  return groups;
+};
+
 module.exports = {
   authenticate,
   findUserById,
   findUserByName,
   deleteUser,
   logout,
+  getGroupsForUser,
 };
