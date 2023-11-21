@@ -17,6 +17,39 @@ jest.mock("../../db/services/implant-service");
 jest.mock("../../db/services/user-service");
 jest.mock("jsonwebtoken");
 
+const implantSearchResults = [
+  {
+    _id: "id1",
+    id: "implant1",
+    readOnlyACGs: ["read1"],
+    operatorACGs: ["operator1"],
+  },
+  {
+    _id: "id2",
+    id: "implant2",
+    readOnlyACGs: ["read1", "read2"],
+    operatorACGs: ["operator2"],
+  },
+  {
+    _id: "id3",
+    id: "implant3",
+    readOnlyACGs: [],
+    operatorACGs: [],
+  },
+  {
+    _id: "id4",
+    id: "implant4",
+    readOnlyACGs: ["read4"],
+    operatorACGs: [],
+  },
+  {
+    _id: "id5",
+    id: "implant5",
+    readOnlyACGs: [],
+    operatorACGs: ["operator5"],
+  },
+];
+
 describe("Access Manager tests", () => {
   afterAll(() => {
     purgeCache();
@@ -826,20 +859,87 @@ describe("Access Manager tests", () => {
     adminService.isUserAdmin.mockRejectedValue(new TypeError("TEST"));
 
     expect(
-      await accessManager.isUserAuthorisedForOperation(
-        "id",
-        "implant",
-        accessManager.operationType.READ
-      )
-    ).toThrow(TypeError);
+      async () =>
+        await accessManager.isUserAuthorisedForOperation(
+          "id",
+          "implant",
+          accessManager.operationType.READ
+        )
+    ).rejects.toThrow(TypeError);
   });
 
-  test("Implant view filtering - success - admin", async () => {});
-  test("Implant view filtering - success - read access", async () => {});
-  test("Implant view filtering - success - operator access", async () => {});
-  test("Implant view filtering - success - operator access to some, read on others", async () => {});
-  test("Implant view filtering - success - no ACGs on implants", async () => {});
-  test("Implant view filtering - failure - exception", async () => {});
+  test("Implant view filtering - success - admin", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue([]);
+    adminService.isUserAdmin.mockResolvedValue(true);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(5);
+  });
+
+  test("Implant view filtering - success - read access to two implants", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["read1", "read2"]);
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(4); // 1, 2, 3, 5
+  });
+
+  test("Implant view filtering - success - operator access to one implant", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["operator1"]);
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(3); // 1, 3, and 5
+  });
+
+  test("Implant view filtering - success - operator access to some, read on others", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["read1", "operator2"]);
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(4); // 1, 2, 3, and 5
+  });
+
+  test("Implant view filtering - success - user has no groups, can view no-(read-)ACG implants", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue([]);
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(2); // 3 and 5
+  });
+
+  test("Implant view filtering - failure - exception", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+    adminService.isUserAdmin.mockRejectedValue(new TypeError("TEST"));
+
+    expect(
+      async () =>
+        await accessManager.filterImplantsForView(
+          implantSearchResults,
+          "userId"
+        )
+    ).rejects.toThrow(TypeError);
+  });
 
   test("Get user groups - success - DB Backed", async () => {});
   test("Get user groups - success - AD Backed", async () => {});
