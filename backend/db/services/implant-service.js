@@ -57,24 +57,11 @@ const filterImplants = (implants, userAcgs, userIsAdmin) => {
   return result;
 };
 
-// TODO Should this go in the accessManager?
-// TODO Make operation an enum
-const isPermittedForOperation = (userAcgs, implant, isAdmin, operation) => {
-  let allowed = false;
-  if (isAdmin) {
-    allowed = true;
-  } else {
-    if (operation === "READ") {
-    } else if (operation === "EDIT") {
-    }
-  }
-  return allowed;
-};
-
 /**
  * @param {string} id Implant to find. NOT the database ID; this is assigned by the implant itself when beaconing.
  * @returns The implant (or null)
  */
+// FIXME I'd like to not have to leak user info into this module - encapsulation issue
 const findImplantById = async (userAcgs, userIsAdmin, id) => {
   let implant = null;
   if (id && userIsAdmin) {

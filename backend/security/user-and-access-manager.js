@@ -328,6 +328,65 @@ const removeUser = async (userId) => {
   return errors;
 };
 
+// TODO Work on this
+// TODO operation should be an enum
+const isUserAuthorisedForOperation = async (userId, implantId, operation) => {
+  let isAuthorised = false;
+  const implant = await implantService.findImplantById(implantId);
+
+  if (implant) {
+    const isAdmin = await adminService.isUserAdmin(userId);
+
+    if (isAdmin) {
+      isAuthorised = true;
+    } else {
+      let acgs = implant.operatorACGs;
+
+      switch (operation) {
+        case accessType.READ:
+          acgs = acgs.concat(implant.readOnlyACGs);
+          break;
+        default:
+          break;
+      }
+
+      if (acgs) {
+        for (const acg of acgs) {
+          const res = await isUserInGroup(userId, acg);
+          if (res.isInGroup) {
+            isAuthorised = true;
+            break;
+          }
+        }
+      } else {
+        isAuthorised = true;
+      }
+    }
+  }
+
+  return isAuthorised;
+};
+
+/**
+ *
+ * @param {Array} implants
+ * @param {String} userId
+ * @returns
+ */
+const filterImplantsForView = async (implants, userId) => {
+  let filtered = [];
+  const isAdmin = await adminService.isUserAdmin(userId);
+
+  if (isAdmin) {
+    filtered = implants;
+  } else {
+    const user = await findUserById(userId);
+    filtered = implants.filter((implant) => {}); // TODO Need an efficient way to check if the intersection of the user and the implant ACGs has any elements
+  }
+
+  return filtered;
+};
+
 /**
  * @param {string} username
  * @returns
@@ -411,6 +470,7 @@ const findUserById = async (userId) => {
   };
 };
 
+// TODO Possibly take the user record itself as an arg rather than the ID. That'll optimise for array filtering.
 const isUserInGroup = async (userId, acgId) => {
   let errors = [];
   let isInGroup = false;
