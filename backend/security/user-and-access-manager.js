@@ -455,6 +455,7 @@ const isUserInGroup = async (userId, acgId) => {
 };
 
 /**
+ * TODO Should probably just allow the exception to throw out, rather than catching it here. Provides consistency with the other authz functions
  * @param {String} userId ID (either database ID, or UPN for active directory) of user
  * @returns Object: {errors, groups}
  */
@@ -589,4 +590,5 @@ module.exports = {
   findUserById,
   filterImplantsForView,
   isUserAuthorisedForOperation,
+  getGroupsForUser,
 };

@@ -941,8 +941,39 @@ describe("Access Manager tests", () => {
     ).rejects.toThrow(TypeError);
   });
 
-  test("Get user groups - success - DB Backed", async () => {});
-  test("Get user groups - success - AD Backed", async () => {});
-  test("Get user groups - failure - Fake auth method", async () => {});
-  test("Get user groups - failure - exception", async () => {});
+  test("Get user groups - success - DB Backed", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["read1", "operator2"]);
+
+    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+
+    expect(groups).toHaveLength(2);
+    expect(errors).toHaveLength(0);
+  });
+
+  test("Get user groups - success - AD Backed", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    adManager.getGroupsForUser.mockResolvedValue(["read1", "operator2"]);
+
+    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+
+    expect(groups).toHaveLength(2);
+    expect(errors).toHaveLength(0);
+  });
+
+  test("Get user groups - failure - Fake auth method", async () => {
+    securityConfig.authMethod = "FAKE";
+    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+
+    expect(groups).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+  });
+
+  test("Get user groups - failure - exception", async () => {
+    dbManager.getGroupsForUser.mockRejectedValue(new TypeError("TEST"));
+
+    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+
+    expect(groups).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+  });
 });
