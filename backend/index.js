@@ -35,7 +35,7 @@ if (process.env.NODE_ENV === "production") {
   log("index", "Connecting to db", levels.INFO);
   const db = require("./config/dbConfig").mongo_uri;
   mongoose
-    .connect(db, { useNewUrlParser: true })
+    .connect(db)
     .then(() => {
       log("index", "MongoDB connection successful", levels.INFO);
     })
