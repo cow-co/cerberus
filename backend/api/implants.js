@@ -13,7 +13,16 @@ router.get("", accessManager.verifyToken, async (req, res) => {
   };
   let status = statusCodes.OK;
   try {
-    responseJSON.implants = await implantService.getAllImplants();
+    const allImplants = await implantService.getAllImplants();
+    const { filtered, errors } = await accessManager.filterImplantsForView(
+      allImplants,
+      req.data.userId
+    );
+    if (errors.length > 0) {
+      responseJSON.errors = errors;
+    } else {
+      responseJSON.implants = filtered;
+    }
   } catch (err) {
     log("GET /implants/", err, levels.ERROR);
     responseJSON.errors = ["Internal Server Error"];

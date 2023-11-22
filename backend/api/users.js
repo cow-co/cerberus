@@ -100,4 +100,15 @@ router.get("/whoami", accessManager.verifyToken, async (req, res) => {
   res.status(status).json(response);
 });
 
+router.get(
+  "/user/:userId/groups",
+  accessManager.verifyToken,
+  async (req, res) => {
+    // If user is admin, they can check any user's groups
+    // else, they can only check their own groups
+    // TODO This info should go into a user's "profile" page (lists username, whether they are an admin, and what groups they have)
+    // TODO should also put this info onto a user in the admin page user-search.
+  }
+);
+
 module.exports = router;

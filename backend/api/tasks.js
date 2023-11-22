@@ -15,9 +15,25 @@ const accessManager = require("../security/user-and-access-manager");
  */
 router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
   const implantId = req.paramString("implantId");
+
   log(`GET /tasks/${implantId}`, "Getting tasks for implant...", levels.DEBUG);
+
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
+  const isAuthed = await accessManager.isUserAuthorisedForOperation(
+    req.data.userId,
+    implantId,
+    accessManager.operationType.READ
+  );
+
+  if (!isAuthed) {
+    returnStatus = statusCodes.FORBIDDEN;
+    responseJSON = {
+      errors: ["You are not allowed to view this implant!"],
+    };
+    res.status(returnStatus).json(responseJSON);
+    return;
+  }
 
   try {
     const includeSent = req.query.includeSent === "true";
@@ -35,7 +51,7 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
     };
   }
 
-  return res.status(returnStatus).json(responseJSON);
+  res.status(returnStatus).json(responseJSON); // TODO Standardise use of return res... versus just calling res...
 });
 
 router.get("/task-types", accessManager.verifyToken, async (req, res) => {
@@ -94,10 +110,26 @@ router.post(
   }
 );
 
+// TODO Verify user is permitted to do this
 router.post("/tasks", accessManager.verifyToken, async (req, res) => {
   log("POST /tasks", `Setting task ${JSON.stringify(req.body)}`, levels.DEBUG);
   let returnStatus = statusCodes.OK;
   let responseJSON = { errors: [] };
+
+  const isAuthed = await accessManager.isUserAuthorisedForOperation(
+    req.data.userId,
+    req.body.implantId,
+    accessManager.operationType.EDIT
+  );
+
+  if (!isAuthed) {
+    returnStatus = statusCodes.FORBIDDEN;
+    responseJSON.errors = [
+      "You are not permitted to assign tasks to this implant!",
+    ];
+    res.status(returnStatus).json(responseJSON);
+    return;
+  }
 
   const validationResult = await validateTask(req.body);
   if (validationResult.isValid) {
@@ -120,9 +152,10 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
     responseJSON.errors = validationResult.errors;
   }
 
-  return res.status(returnStatus).json(responseJSON);
+  res.status(returnStatus).json(responseJSON);
 });
 
+// TODO Verify user is permitted to do this
 router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
   const taskId = req.paramString("taskId");
   log(`DELETE /tasks/${taskId}`, `Deleting task ${taskId}`, levels.INFO);
@@ -134,6 +167,22 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
 
   try {
     const task = await tasksService.getTaskById(taskId);
+
+    const isAuthed = await accessManager.isUserAuthorisedForOperation(
+      req.data.userId,
+      task.implantId,
+      accessManager.operationType.EDIT
+    );
+
+    if (!isAuthed) {
+      returnStatus = statusCodes.FORBIDDEN;
+      responseJSON.errors = [
+        "You are not permitted to delete tasks from this implant!",
+      ];
+      res.status(returnStatus).json(responseJSON);
+      return;
+    }
+
     if (task) {
       if (task.sent) {
         returnStatus = statusCodes.BAD_REQUEST;
@@ -157,7 +206,7 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
     log(`DELETE /tasks/${taskId}`, err, levels.ERROR);
   }
 
-  return res.status(returnStatus).json(responseJSON);
+  res.status(returnStatus).json(responseJSON);
 });
 
 router.delete(
