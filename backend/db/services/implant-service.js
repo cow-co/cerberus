@@ -47,16 +47,6 @@ const updateImplant = async (details) => {
   sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, updatedEntity);
 };
 
-// TODO Have a think about how the filtering will actually work (edit vs read, etc)
-const filterImplants = (implants, userAcgs, userIsAdmin) => {
-  let result = [];
-  if (userIsAdmin) {
-    result = implants;
-  } else {
-  }
-  return result;
-};
-
 /**
  * @param {string} id Implant to find. NOT the database ID; this is assigned by the implant itself when beaconing.
  * @returns The implant (or null)

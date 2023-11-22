@@ -119,40 +119,38 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
   let returnStatus = statusCodes.OK;
   let responseJSON = { errors: [] };
 
-  const isAuthed = await accessManager.isUserAuthorisedForOperation(
-    req.data.userId,
-    req.body.implantId,
-    accessManager.operationType.EDIT
-  );
+  try {
+    const isAuthed = await accessManager.isUserAuthorisedForOperation(
+      req.data.userId,
+      req.bodyString("implantId"),
+      accessManager.operationType.EDIT
+    );
 
-  if (!isAuthed) {
-    returnStatus = statusCodes.FORBIDDEN;
-    responseJSON.errors = [
-      "You are not permitted to assign tasks to this implant!",
-    ];
-    res.status(returnStatus).json(responseJSON);
-    return;
-  }
-
-  const validationResult = await validateTask(req.body);
-  if (validationResult.isValid) {
-    try {
-      error = await tasksService.setTask(req.body);
-      if (error) {
-        log("POST /tasks", error, levels.WARN);
+    if (!isAuthed) {
+      returnStatus = statusCodes.FORBIDDEN;
+      responseJSON.errors = [
+        "You are not permitted to assign tasks to this implant!",
+      ];
+    } else {
+      const validationResult = await validateTask(req.body);
+      if (validationResult.isValid) {
+        error = await tasksService.setTask(req.body); // TODO May be worth recursively sanitising the body down to just strings/ints/bools and objects built from such.
+        if (error) {
+          log("POST /tasks", error, levels.WARN);
+          returnStatus = statusCodes.BAD_REQUEST;
+          responseJSON.errors = [error];
+        }
+      } else {
         returnStatus = statusCodes.BAD_REQUEST;
-        responseJSON.errors = [error];
+        responseJSON.errors = validationResult.errors;
       }
-    } catch (err) {
-      log("POST /tasks", err, levels.ERROR);
-      returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-      responseJSON = {
-        errors: ["Internal Server Error"],
-      };
     }
-  } else {
-    returnStatus = statusCodes.BAD_REQUEST;
-    responseJSON.errors = validationResult.errors;
+  } catch (err) {
+    log("POST /tasks", err, levels.ERROR);
+    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+    responseJSON = {
+      errors: ["Internal Server Error"],
+    };
   }
 
   res.status(returnStatus).json(responseJSON);
