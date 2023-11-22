@@ -3,6 +3,7 @@ info:
   title: CERBERUS API
   description: API definition for the CERBERUS implant-management API.
   version: 2.0.0
+# TODO Update with ACG stuff
 components:
   securitySchemes:
     jwt:
