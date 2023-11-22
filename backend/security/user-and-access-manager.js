@@ -418,43 +418,6 @@ const findUserById = async (userId) => {
 };
 
 /**
- * @param {String} userId ID (either database ID, or UPN for active directory) of user
- * @param {String} acgId Database ID of group to check
- * @returns true if user is in group, false otherwise
- */
-const isUserInGroup = async (userId, acgId) => {
-  let errors = [];
-  let isInGroup = false;
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        isInGroup = await dbUserManager.isUserInGroup(userId, acgId);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        // TODO Implement
-        break;
-
-      default:
-        log(
-          "user-and-access-manager/findUserById",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("user-and-access-manager/findUserById", err, levels.ERROR);
-    errors.push("Internal Server Error");
-  }
-
-  return {
-    isInGroup,
-    errors,
-  };
-};
-
-/**
  * TODO Should probably just allow the exception to throw out, rather than catching it here. Provides consistency with the other authz functions
  * @param {String} userId ID (either database ID, or UPN for active directory) of user
  * @returns Object: {errors, groups}
