@@ -108,7 +108,7 @@ const deleteUser = async (userId) => {
  * @returns null, if the user is not found
  */
 const findUserById = async (userId) => {
-  log("database-manager/findUserById", `Fidning user ${userId}`, levels.DEBUG);
+  log("database-manager/findUserById", `Finding user ${userId}`, levels.DEBUG);
   const user = await userService.findUserById(userId);
   if (!user) {
     return null;
@@ -155,7 +155,7 @@ const isUserInGroup = async (userId, acgId) => {
 const getGroupsForUser = async (userId) => {
   let acgs = [];
   const user = await findUserById(userId);
-  if (user) {
+  if (user && user.acgs) {
     acgs = user.acgs;
   }
   return acgs;

@@ -237,4 +237,42 @@ describe("Database user manager tests", () => {
 
     expect(isInGroup).toBe(false);
   });
+
+  test("Get groups - success - empty ACG array", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: [],
+    });
+
+    const acgs = await manager.getGroupsForUser("_id");
+
+    expect(acgs).toHaveLength(0);
+  });
+
+  test("Get groups - success - undefined array", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+    });
+
+    const acgs = await manager.getGroupsForUser("_id");
+
+    expect(acgs).toHaveLength(0);
+  });
+
+  test("Get groups - success - populated array", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: ["read", "operate"],
+    });
+
+    const acgs = await manager.getGroupsForUser("_id");
+
+    expect(acgs).toHaveLength(2);
+  });
 });
