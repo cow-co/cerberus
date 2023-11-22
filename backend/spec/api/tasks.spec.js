@@ -21,6 +21,7 @@ describe("Tasks API Tests", () => {
   });
 
   beforeEach(() => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
     tasksService.getTasksForImplant.mockImplementation(async (id, history) => {
       if (id === "id-1") {
         if (history) {
@@ -91,10 +92,16 @@ describe("Tasks API Tests", () => {
     });
 
     accessManager.verifyToken.mockImplementation((req, res, next) => {
+      req.data = {
+        userId: "id",
+      };
       next();
     });
 
     accessManager.checkAdmin.mockImplementation((req, res, next) => {
+      req.data = {
+        userId: "id",
+      };
       next();
     });
 
@@ -112,6 +119,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("should get all tasks for an implant (empty array)", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     const res = await agent.get("/api/tasks/id-3");
 
     expect(res.statusCode).toBe(200);
@@ -119,6 +128,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("should get all tasks for an implant (non-empty array)", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     const res = await agent.get("/api/tasks/id-1");
 
     expect(res.statusCode).toBe(200);
@@ -126,6 +137,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("should get all tasks for an implant (including sent)", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     const res = await agent.get("/api/tasks/id-1?includeSent=true");
 
     expect(res.statusCode).toBe(200);
@@ -133,6 +146,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("should get all tasks for an implant (explicitly excluding sent)", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     const res = await agent.get("/api/tasks/id-1?includeSent=false");
 
     expect(res.statusCode).toBe(200);
@@ -140,13 +155,25 @@ describe("Tasks API Tests", () => {
   });
 
   test("should get all tasks for a different implant", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     const res = await agent.get("/api/tasks/id-2");
 
     expect(res.statusCode).toBe(200);
     expect(res.body.tasks).toHaveLength(1);
   });
 
+  test("should fail get all tasks for an implant - unauthorised", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(false);
+
+    const res = await agent.get("/api/tasks/id-7");
+
+    expect(res.statusCode).toBe(403);
+  });
+
   test("should fail get all tasks for an implant - exception thrown", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     const res = await agent.get("/api/tasks/id-7");
 
     expect(res.statusCode).toBe(500);
@@ -178,7 +205,9 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).toBe(500);
   });
 
-  test("should create a task", async () => {
+  test("create task - success", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     tasksService.getTaskById.mockResolvedValue(null);
     tasksService.getTaskTypes.mockResolvedValue([
       {
@@ -207,7 +236,39 @@ describe("Tasks API Tests", () => {
     expect(tasksService.setTask).toHaveBeenCalledTimes(1);
   });
 
-  test("should fail to create a task - validation error", async () => {
+  test("create task - failure - unauthorised", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(false);
+    tasksService.getTaskById.mockResolvedValue(null);
+    tasksService.getTaskTypes.mockResolvedValue([
+      {
+        _id: "tasktypeid1",
+        name: "Name",
+        params: [],
+      },
+      {
+        _id: "tasktypeid2",
+        name: "Name 2",
+        params: ["param1", "param2"],
+      },
+    ]);
+    tasksService.setTask.mockResolvedValue(null);
+
+    const res = await agent.post("/api/tasks").send({
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      implantId: "id-1",
+      params: [],
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(tasksService.setTask).toHaveBeenCalledTimes(0);
+  });
+
+  test("create task - failure - validation error", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     validation.validateTask.mockResolvedValue({
       isValid: false,
       errors: ["error"],
@@ -225,6 +286,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("create task - failure - error", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     tasksService.getTaskById.mockResolvedValue(null);
     tasksService.getTaskTypes.mockResolvedValue([
       {
@@ -255,6 +318,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("create task - failure - exception", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     tasksService.getTaskById.mockResolvedValue(null);
     tasksService.getTaskTypes.mockResolvedValue([
       {
@@ -285,6 +350,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("should edit a task", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     tasksService.setTask.mockResolvedValue(null);
 
     const res = await agent.post("/api/tasks").send({
@@ -342,6 +409,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("delete task - success", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     tasksService.getTaskById.mockResolvedValue({
       _id: "some-mongo-id",
       order: 0,
@@ -356,7 +425,25 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).toBe(200);
   });
 
+  test("delete task - failure - unauthorised", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(false);
+    tasksService.getTaskById.mockResolvedValue({
+      _id: "some-mongo-id",
+      order: 0,
+      implantId: "id-1",
+      taskType: "Task",
+      params: ["param1"],
+      sent: false,
+    });
+
+    const res = await agent.delete("/api/tasks/some-mongo-id");
+
+    expect(res.statusCode).toBe(403);
+  });
+
   test("delete task - success - ID does not exist", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     tasksService.getTaskById.mockResolvedValue(null);
 
     const res = await agent.delete("/api/tasks/some-mongo-if");
@@ -365,6 +452,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("delete task - failure - task already sent", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     tasksService.getTaskById.mockResolvedValue({
       _id: "some-mongo-id",
       order: 0,
@@ -380,6 +469,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("delete task - failure - exception", async () => {
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     tasksService.getTaskById.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/tasks/some-mongo-id");

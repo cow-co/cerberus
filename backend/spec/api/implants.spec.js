@@ -20,6 +20,9 @@ describe("Implant API Tests", () => {
 
   beforeEach(() => {
     accessManager.verifyToken.mockImplementation((req, res, next) => {
+      req.data = {
+        userId: "id",
+      };
       next();
     });
     accessManager.checkAdmin.mockImplementation((req, res, next) => {
@@ -31,6 +34,10 @@ describe("Implant API Tests", () => {
 
   test("get all implants - success - empty array", async () => {
     implantService.getAllImplants.mockResolvedValue([]);
+    accessManager.filterImplantsForView.mockResolvedValue({
+      filtered: [],
+      errors: [],
+    });
 
     const res = await agent.get("/api/implants");
 
@@ -38,7 +45,7 @@ describe("Implant API Tests", () => {
     expect(res.body.implants).toHaveLength(0);
   });
 
-  test("get all implants - success - non-empty array", async () => {
+  test("get all implants - success - non-empty array, admin user", async () => {
     implantService.getAllImplants.mockResolvedValue([
       {
         _id: "some-mongo-id",
@@ -59,11 +66,76 @@ describe("Implant API Tests", () => {
         isActive: false,
       },
     ]);
+    accessManager.filterImplantsForView.mockResolvedValue({
+      filtered: [
+        {
+          _id: "some-mongo-id",
+          id: "some-uuid",
+          ip: "192.168.0.1",
+          os: "Windows",
+          beaconIntervalSeconds: 300,
+          lastCheckinTime: 0,
+          isActive: true,
+        },
+        {
+          _id: "some-mongo-id",
+          id: "some-uuid",
+          ip: "192.168.0.1",
+          os: "Windows",
+          beaconIntervalSeconds: 300,
+          lastCheckinTime: 0,
+          isActive: false,
+        },
+      ],
+      errors: [],
+    });
 
     const res = await agent.get("/api/implants");
 
     expect(res.statusCode).toBe(200);
     expect(res.body.implants).toHaveLength(2);
+  });
+
+  test("get all implants - success - non-empty array, some filtered", async () => {
+    implantService.getAllImplants.mockResolvedValue([
+      {
+        _id: "some-mongo-id",
+        id: "some-uuid",
+        ip: "192.168.0.1",
+        os: "Windows",
+        beaconIntervalSeconds: 300,
+        lastCheckinTime: 0,
+        isActive: true,
+      },
+      {
+        _id: "some-mongo-id",
+        id: "some-uuid",
+        ip: "192.168.0.1",
+        os: "Windows",
+        beaconIntervalSeconds: 300,
+        lastCheckinTime: 0,
+        isActive: false,
+      },
+    ]);
+    accessManager.filterImplantsForView.mockResolvedValue({
+      filtered: [
+        {
+          _id: "some-mongo-id",
+          id: "some-uuid",
+          ip: "192.168.0.1",
+          os: "Windows",
+          beaconIntervalSeconds: 300,
+          lastCheckinTime: 0,
+          isActive: true,
+        },
+      ],
+      errors: [],
+    });
+
+    const res = await agent.get("/api/implants");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.implants).toHaveLength(1);
   });
 
   test("get all implants - failure - exception thrown", async () => {
@@ -79,6 +151,7 @@ describe("Implant API Tests", () => {
       _id: "_id1",
       implantId: "id1",
     });
+    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
     const res = await agent.delete("/api/implants/id1");
 
     expect(res.statusCode).toBe(200);
@@ -90,6 +163,20 @@ describe("Implant API Tests", () => {
     const res = await agent.delete("/api/implants/id2");
 
     expect(res.statusCode).toBe(200);
+    expect(implantService.deleteImplant).toHaveBeenCalledTimes(0);
+  });
+
+  test("delete implant - failure - not permitted", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "_id1",
+      implantId: "id1",
+    });
+    accessManager.checkAdmin.mockImplementation((req, res, next) =>
+      res.status(403).json({ errors: ["You must be an admin!"] })
+    );
+    const res = await agent.delete("/api/implants/id1");
+
+    expect(res.statusCode).toBe(403);
     expect(implantService.deleteImplant).toHaveBeenCalledTimes(0);
   });
 
