@@ -5,6 +5,8 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
+// TODO Authz all up in here
+
 router.get("", accessManager.verifyToken, async (req, res) => {
   log("GET /implants/", "Request to get all implants", levels.DEBUG);
   let responseJSON = {
@@ -31,20 +33,25 @@ router.get("", accessManager.verifyToken, async (req, res) => {
   res.status(status).json(responseJSON);
 });
 
-router.delete(
-  "/:implantId",
-  accessManager.verifyToken,
-  accessManager.checkAdmin,
-  async (req, res) => {
-    const implantId = req.paramString("implantId");
-    log(`DELETE /implants/${implantId}`, `Implant ${implantId}`, levels.INFO);
+router.delete("/:implantId", accessManager.verifyToken, async (req, res) => {
+  const implantId = req.paramString("implantId");
+  log(`DELETE /implants/${implantId}`, `Implant ${implantId}`, levels.INFO);
 
-    let responseJSON = {
-      errors: [],
-    };
-    let returnStatus = statusCodes.OK;
+  let responseJSON = {
+    errors: [],
+  };
+  let returnStatus = statusCodes.OK;
 
-    try {
+  try {
+    const isAuthed = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
+      implantId,
+      accessManager.accessControlType.ADMIN,
+      req.data.userId
+    );
+
+    if (isAuthed) {
       const implant = await implantService.findImplantById(implantId);
       if (implant) {
         await implantService.deleteImplant(implantId);
@@ -55,14 +62,22 @@ router.delete(
           levels.WARN
         );
       }
-    } catch (err) {
-      returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-      responseJSON.errors.push("Internal Server Error");
-      log(`DELETE /implants/${implantId}`, err, levels.ERROR);
+    } else {
+      returnStatus = statusCodes.FORBIDDEN;
+      responseJSON.errors.push("Not authorised to delete implant");
+      log(
+        `DELETE /implants/${implantId}`,
+        `Non-admin user ${req.data.userId} attempted to delete an implant`,
+        levels.SECURITY
+      );
     }
-
-    return res.status(returnStatus).json(responseJSON);
+  } catch (err) {
+    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
+    responseJSON.errors.push("Internal Server Error");
+    log(`DELETE /implants/${implantId}`, err, levels.ERROR);
   }
-);
+
+  return res.status(returnStatus).json(responseJSON);
+});
 
 module.exports = router;

@@ -19,6 +19,17 @@ const operationType = {
   EDIT: "EDIT",
 };
 
+const accessControlType = {
+  READ: "READ",
+  EDIT: "EDIT",
+  ADMIN: "ADMIN",
+};
+
+const targetEntityType = {
+  IMPLANT: "IMPLANT",
+  USER: "USER",
+};
+
 /**
  * Basically checks the provided credentials
  * TODO Should probably neaten this up
@@ -499,50 +510,91 @@ const filterImplantsForView = async (implants, userId) => {
  * @param {'READ' | 'EDIT'} operation What sort of operation is being conducted?
  * @returns true if authorised, false otherwise
  */
-const isUserAuthorisedForOperation = async (userId, implantId, operation) => {
+const isUserAuthorisedForOperationOnImplant = async (
+  userId,
+  implantId,
+  operation
+) => {
   let isAuthorised = false;
   const implant = await implantService.findImplantById(implantId);
 
   if (implant) {
-    const isAdmin = await adminService.isUserAdmin(userId);
+    let acgs = implant.operatorACGs;
 
-    if (isAdmin) {
-      isAuthorised = true;
-    } else {
-      let acgs = implant.operatorACGs;
+    switch (operation) {
+      case operationType.READ:
+        acgs = acgs.concat(implant.readOnlyACGs);
+        break;
+      default:
+        break;
+    }
 
-      switch (operation) {
-        case operationType.READ:
-          acgs = acgs.concat(implant.readOnlyACGs);
-          break;
-        default:
-          break;
-      }
-
-      if (acgs && acgs.length > 0) {
-        const { groups, errors } = await getGroupsForUser(userId);
-        if (errors.length === 0) {
-          isAuthorised =
-            acgs.filter((group) => groups.includes(group)).length > 0;
-        }
-      } else {
-        // If we are trying to edit, then we check to ensure the readOnlyACGs list is empty;
-        // if it *isn't* (ie. read-only list is populated, but operator list is not) then operator is
-        // restricted to admins-only. This secures us against mistakes in ACG setup/cases where
-        // the read-only list is created before the operator list is populated.
+    if (acgs && acgs.length > 0) {
+      const { groups, errors } = await getGroupsForUser(userId);
+      if (errors.length === 0) {
         isAuthorised =
-          operation === operationType.READ ||
-          (operation === operationType.EDIT &&
-            implant.readOnlyACGs.length === 0);
+          acgs.filter((group) => groups.includes(group)).length > 0;
       }
+    } else {
+      // If we are trying to edit, then we check to ensure the readOnlyACGs list is empty;
+      // if it *isn't* (ie. read-only list is populated, but operator list is not) then operator is
+      // restricted to admins-only. This secures us against mistakes in ACG setup/cases where
+      // the read-only list is created before the operator list is populated.
+      isAuthorised =
+        operation === operationType.READ ||
+        (operation === operationType.EDIT && implant.readOnlyACGs.length === 0);
     }
   }
 
   return isAuthorised;
 };
 
+const isUserAuthorisedForOperationOnUser = async (
+  userId,
+  targetUserId,
+  operation
+) => {};
+
+// TODO Handle other access control types
+// TODO Neaten up the signature here
+const authZCheck = async (
+  operation,
+  targetEntity,
+  targetEntityId,
+  accessControl,
+  userId
+) => {
+  let permitted = false;
+  const isAdmin = await adminService.isUserAdmin(userId);
+  if (isAdmin) {
+    permitted = true;
+  } else if (accessControl !== accessControlType.ADMIN) {
+    switch (targetEntity) {
+      case targetEntityType.IMPLANT:
+        permitted = await isUserAuthorisedForOperationOnImplant(
+          userId,
+          targetEntityId,
+          operation
+        );
+        break;
+      case targetEntityType.USER:
+        permitted = await isUserAuthorisedForOperationOnUser(
+          userId,
+          targetEntityId,
+          operation
+        );
+        break;
+      default:
+        break;
+    }
+  }
+  return permitted;
+};
+
 module.exports = {
   operationType,
+  targetEntityType,
+  accessControlType,
   authenticate,
   verifyToken,
   logout,
@@ -552,6 +604,6 @@ module.exports = {
   findUserByName,
   findUserById,
   filterImplantsForView,
-  isUserAuthorisedForOperation,
   getGroupsForUser,
+  authZCheck,
 };

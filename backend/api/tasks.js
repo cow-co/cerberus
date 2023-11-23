@@ -23,10 +23,12 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
 
   try {
     if (implantId) {
-      const isAuthed = await accessManager.isUserAuthorisedForOperation(
-        req.data.userId,
+      const isAuthed = await accessManager.authZCheck(
+        accessManager.operationType.READ,
+        accessManager.targetEntityType.IMPLANT,
         implantId,
-        accessManager.operationType.READ
+        accessManager.accessControlType.READ,
+        req.data.userId
       );
 
       if (!isAuthed) {
@@ -86,18 +88,24 @@ router.get("/task-types", accessManager.verifyToken, async (req, res) => {
  * - `name` (string)
  * - `params` (array of *unique* strings)
  */
-router.post(
-  "/task-types",
-  accessManager.verifyToken,
-  accessManager.checkAdmin,
-  async (req, res) => {
-    log("POST /task-types", "Creating a task type...", levels.DEBUG);
-    let response = {
-      taskType: null,
-      errors: [],
-    };
-    let status = statusCodes.OK;
-    try {
+router.post("/task-types", accessManager.verifyToken, async (req, res) => {
+  log("POST /task-types", "Creating a task type...", levels.DEBUG);
+  let response = {
+    taskType: null,
+    errors: [],
+  };
+  let status = statusCodes.OK;
+
+  try {
+    const isAuthed = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      null,
+      null,
+      accessManager.accessControlType.ADMIN,
+      req.data.userId
+    );
+
+    if (isAuthed) {
       const validity = validateTaskType(req.body);
       if (validity.isValid) {
         response.taskType = await tasksService.createTaskType(req.body);
@@ -105,14 +113,15 @@ router.post(
         status = statusCodes.BAD_REQUEST;
         response.errors = validity.errors;
       }
-    } catch (err) {
-      log("POST /task-types", err, levels.ERROR);
-      response.errors = ["Internal Server Error"];
-      status = statusCodes.INTERNAL_SERVER_ERROR;
+    } else {
     }
-    res.status(status).json(response);
+  } catch (err) {
+    log("POST /task-types", err, levels.ERROR);
+    response.errors = ["Internal Server Error"];
+    status = statusCodes.INTERNAL_SERVER_ERROR;
   }
-);
+  res.status(status).json(response);
+});
 
 router.post("/tasks", accessManager.verifyToken, async (req, res) => {
   log("POST /tasks", `Setting task ${JSON.stringify(req.body)}`, levels.DEBUG);
@@ -120,18 +129,15 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
   let responseJSON = { errors: [] };
 
   try {
-    const isAuthed = await accessManager.isUserAuthorisedForOperation(
-      req.data.userId,
+    const isAuthed = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
       req.bodyString("implantId"),
-      accessManager.operationType.EDIT
+      accessManager.accessControlType.EDIT,
+      req.data.userId
     );
 
-    if (!isAuthed) {
-      returnStatus = statusCodes.FORBIDDEN;
-      responseJSON.errors = [
-        "You are not permitted to assign tasks to this implant!",
-      ];
-    } else {
+    if (isAuthed) {
       const validationResult = await validateTask(req.body);
       if (validationResult.isValid) {
         error = await tasksService.setTask(req.body); // TODO May be worth recursively sanitising the body down to just strings/ints/bools and objects built from such.
@@ -144,6 +150,11 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors = validationResult.errors;
       }
+    } else {
+      returnStatus = statusCodes.FORBIDDEN;
+      responseJSON.errors = [
+        "You are not permitted to assign tasks to this implant!",
+      ];
     }
   } catch (err) {
     log("POST /tasks", err, levels.ERROR);
@@ -166,28 +177,30 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
   let returnStatus = statusCodes.OK;
 
   try {
-    const task = await tasksService.getTaskById(taskId);
+    const task = await tasksService.getTaskById(taskId); // TODO Is there a security risk in exposing the fact that the task does/doesn't exist, to unauthorised people?
 
     if (task) {
-      const isAuthed = await accessManager.isUserAuthorisedForOperation(
-        req.data.userId,
-        task.implantId,
-        accessManager.operationType.EDIT
+      const isAuthed = await accessManager.authZCheck(
+        accessManager.operationType.EDIT,
+        accessManager.targetEntityType.IMPLANT,
+        req.bodyString("implantId"),
+        accessManager.accessControlType.EDIT,
+        req.data.userId
       );
 
-      if (!isAuthed) {
-        returnStatus = statusCodes.FORBIDDEN;
-        responseJSON.errors = [
-          "You are not permitted to delete tasks from this implant!",
-        ];
-      } else if (task.sent) {
+      if (isAuthed && !task.sent) {
+        await tasksService.deleteTask(taskId);
+      } else if (isAuthed && task.sent) {
         returnStatus = statusCodes.BAD_REQUEST;
         responseJSON.errors.push(
           "Cannot delete a task that has been sent to an implant."
         );
         log(`DELETE /tasks/${taskId}`, "Task already sent", levels.WARN);
       } else {
-        await tasksService.deleteTask(taskId);
+        returnStatus = statusCodes.FORBIDDEN;
+        responseJSON.errors = [
+          "You are not permitted to delete tasks from this implant!",
+        ];
       }
     } else {
       log(
@@ -208,7 +221,6 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
 router.delete(
   "/task-types/:taskTypeId",
   accessManager.verifyToken,
-  accessManager.checkAdmin,
   async (req, res) => {
     const taskTypeId = req.paramString("taskTypeId");
     log(
@@ -223,15 +235,27 @@ router.delete(
     let returnStatus = statusCodes.OK;
 
     try {
-      const taskType = await tasksService.getTaskTypeById(taskTypeId);
-      if (taskType) {
-        await tasksService.deleteTaskType(taskTypeId);
+      const isAuthed = await accessManager.authZCheck(
+        accessManager.operationType.EDIT,
+        null,
+        null,
+        accessManager.accessControlType.ADMIN,
+        req.data.userId
+      );
+      if (isAuthed) {
+        const taskType = await tasksService.getTaskTypeById(taskTypeId);
+        if (taskType) {
+          await tasksService.deleteTaskType(taskTypeId);
+        } else {
+          log(
+            `DELETE /task-types/${taskTypeId}`,
+            `Task type with ID ${taskTypeId} does not exist`,
+            levels.WARN
+          );
+        }
       } else {
-        log(
-          `DELETE /task-types/${taskTypeId}`,
-          `Task type with ID ${taskTypeId} does not exist`,
-          levels.WARN
-        );
+        returnStatus = statusCodes.FORBIDDEN;
+        responseJSON.errors = ["You are not permitted to delete task types!"];
       }
     } catch (err) {
       returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
