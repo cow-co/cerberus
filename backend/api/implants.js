@@ -5,8 +5,6 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
-// TODO Authz all up in here
-
 router.get("", accessManager.verifyToken, async (req, res) => {
   log("GET /implants/", "Request to get all implants", levels.DEBUG);
   let responseJSON = {

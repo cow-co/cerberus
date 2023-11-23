@@ -549,13 +549,16 @@ const isUserAuthorisedForOperationOnImplant = async (
   return isAuthorised;
 };
 
-const isUserAuthorisedForOperationOnUser = async (
-  userId,
-  targetUserId,
-  operation
-) => {};
+/**
+ * Non-admin users can only view/edit themselves
+ * @param {String} userId
+ * @param {String} targetUserId
+ * @returns true if permitted, false otherwise
+ */
+const isUserAuthorisedForOperationOnUser = async (userId, targetUserId) => {
+  return userId === targetUserId;
+};
 
-// TODO Handle other access control types
 // TODO Neaten up the signature here
 const authZCheck = async (
   operation,
@@ -580,8 +583,7 @@ const authZCheck = async (
       case targetEntityType.USER:
         permitted = await isUserAuthorisedForOperationOnUser(
           userId,
-          targetEntityId,
-          operation
+          targetEntityId
         );
         break;
       default:
