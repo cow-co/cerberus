@@ -5,6 +5,10 @@ const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
+// TODO Also perhaps a neatening-up pass on all the code throughout the backend, to get things a bit more shipshape
+// TODO AuthZ
+// TODO Need to add JSDocs to all functions
+
 /**
  * Expects request body to contain:
  * - username
@@ -103,31 +107,31 @@ router.delete(
  * - userId (string)
  * - makeAdmin (boolean)
  */
-router.put(
-  "/admin",
-  accessManager.verifyToken,
-  accessManager.checkAdmin,
-  async (req, res) => {
-    const userId = req.bodyString("userId");
-    log(
-      "PUT /access/admin",
-      `Changing admin status of ${userId} to ${req.body.makeAdmin}`,
-      levels.INFO
-    );
-    let status = statusCodes.OK;
-    let response = {
-      errors: [],
-    };
-    const chosenUser = userId.trim();
+router.put("/admin", accessManager.verifyToken, async (req, res) => {
+  const userId = req.bodyString("userId");
+  const makeAdmin = req.bodyBool("makeAdmin");
+  log(
+    "PUT /access/admin",
+    `Changing admin status of ${userId} to ${makeAdmin}`,
+    levels.INFO
+  );
+  let status = statusCodes.OK;
+  let response = {
+    errors: [],
+  };
 
-    try {
-      const result = await accessManager.findUserById(chosenUser);
+  try {
+    const permitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.USER,
+      userId,
+      accessManager.accessControlType.ADMIN,
+      req.data.userId
+    );
+    if (permitted) {
+      const result = await accessManager.findUserById(userId);
       if (result.user) {
-        if (Boolean(req.body.makeAdmin)) {
-          await adminService.addAdmin(result.user.id);
-        } else {
-          await adminService.removeAdmin(result.user.id);
-        }
+        await adminService.changeAdminStatus(userId, makeAdmin);
       } else {
         log(
           "PUT /access/admin",
@@ -137,14 +141,14 @@ router.put(
         status = statusCodes.BAD_REQUEST;
         response.errors.push("User not found");
       }
-    } catch (err) {
-      log("PUT /access/admin", err, levels.ERROR);
-      response.errors = ["Internal Server Error"];
-      status = statusCodes.INTERNAL_SERVER_ERROR;
     }
-
-    res.status(status).json(response);
+  } catch (err) {
+    log("PUT /access/admin", err, levels.ERROR);
+    response.errors = ["Internal Server Error"];
+    status = statusCodes.INTERNAL_SERVER_ERROR;
   }
-);
+
+  res.status(status).json(response);
+});
 
 module.exports = router;

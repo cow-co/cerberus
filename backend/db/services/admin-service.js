@@ -16,32 +16,17 @@ const isUserAdmin = async (userId) => {
   return res;
 };
 
-/**
- * This ensures the given user is an admin - if they are already, then it does nothing.
- * @param {string} userId The ID of the user to make into an admin (if using AD authentication, this will be the DN of the user)
- */
-const addAdmin = async (userId) => {
+const changeAdminStatus = async (userId, shouldBeAdmin) => {
   if (userId) {
-    const exists = await isUserAdmin(userId);
-    if (!exists) {
-      log("addAdmin", `Adding user ${userId} as admin`, levels.INFO);
+    const isAdmin = await isUserAdmin(userId);
+    if (shouldBeAdmin && !isAdmin) {
+      log("changeAdminStatus", `Adding user ${userId} as admin`, levels.INFO);
       await Admin.create({
         userId: userId,
       });
-    }
-  }
-};
-
-/**
- * This ensures the given user is not an admin - if they are not already, then it does nothing.
- * @param {string} userId ID of the user to remove from the admins list (if using AD authentication, this will be the DN of the user)
- */
-const removeAdmin = async (userId) => {
-  if (userId) {
-    const existingAdminRecord = await Admin.findOne({ userId: userId });
-    if (existingAdminRecord) {
+    } else if (!shouldBeAdmin && isAdmin) {
       log(
-        "removeAdmin",
+        "changeAdminStatus",
         `Deleting admin record for user ID ${userId}`,
         levels.INFO
       );
@@ -60,7 +45,6 @@ const numAdmins = async () => {
 
 module.exports = {
   isUserAdmin,
-  addAdmin,
-  removeAdmin,
+  changeAdminStatus,
   numAdmins,
 };
