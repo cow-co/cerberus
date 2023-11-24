@@ -5,6 +5,8 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
+// TODO create/edit endpoints need to have ACG fields
+
 /**
  * Retrieves all the implants that the user is authorised to view.
  */

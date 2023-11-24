@@ -23,7 +23,6 @@ module.exports = {
     password: `${process.env.CERBERUS_LDAP_BIND_PASS}`,
     adminGroup: "",
   },
-  // TODO We should ensure the seeding of initial admin works for AD auth too (ie creates the admin record, not the user)
   initialAdmin: {
     username: `${process.env.CERBERUS_INIT_ADMIN_USER}`,
     password: `${process.env.CERBERUS_INIT_ADMIN_PASS}`,

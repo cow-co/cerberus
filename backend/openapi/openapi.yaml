@@ -3,7 +3,7 @@ info:
   title: CERBERUS API
   description: API definition for the CERBERUS implant-management API.
   version: 2.0.0
-# TODO Update with ACG stuff
+# TODO Update with ACG stuff (update the implant endpoints to show that they return ACGs)
 components:
   securitySchemes:
     jwt:
@@ -984,6 +984,75 @@ paths:
               schema:
                 type: object
                 properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /users/user/{userId}/groups:
+    get:
+      security:
+        - jwt: [Read]
+      summary: Returns the list of the user's groups. Users may only see their own groups, unless they are an admin (in which case they can see all users' groups).
+      tags:
+        - Users
+        - Access
+      responses:
+        "200": # status code
+          description: The user's ACGs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: 
+                    type: array
+                    items:
+                      type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "401": # status code
+          description: User is not logged in.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: 
+                    type: array
+                    items:
+                      type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: Calling user is not permitted to view groups for the target user. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: 
+                    type: array
+                    items:
+                      type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: 
+                    type: array
+                    items:
+                      type: string
                   errors:
                     type: array
                     items:

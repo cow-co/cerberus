@@ -113,10 +113,12 @@ router.post("/task-types", accessManager.verifyToken, async (req, res) => {
         response.errors = validity.errors;
       }
     } else {
-      // TODO Fill this bit
+      response.errors = ["Not authorised"];
+      status = statusCodes.FORBIDDEN;
     }
   } catch (err) {
     log("POST /task-types", err, levels.ERROR);
+
     response.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }

@@ -122,14 +122,51 @@ router.get("/whoami", accessManager.verifyToken, async (req, res) => {
   res.status(status).json(response);
 });
 
+/**
+ * If user is admin, they can check any user's groups
+ * else, they can only check their own groups
+ */
 router.get(
   "/user/:userId/groups",
   accessManager.verifyToken,
   async (req, res) => {
-    // If user is admin, they can check any user's groups
-    // else, they can only check their own groups
-    // TODO This info should go into a user's "profile" page (lists username, whether they are an admin, and what groups they have)
-    // TODO should also put this info onto a user in the admin page user-search.
+    log(
+      "GET /users/user/:userId/groups",
+      "Checking user groups...",
+      levels.DEBUG
+    );
+
+    const userId = req.paramString("userId");
+    let response = {
+      groups: [],
+      errors: [],
+    };
+    let status = statusCodes.OK;
+
+    try {
+      const permitted = await accessManager.authZCheck(
+        accessManager.operationType.READ,
+        accessManager.targetEntityType.USER,
+        userId,
+        accessManager.accessControlType.READ,
+        req.data.userId
+      );
+
+      if (permitted) {
+        const { groups, errors } = await accessManager.getGroupsForUser(userId);
+        response.errors = errors;
+        response.groups = groups;
+      } else {
+        status = statusCodes.FORBIDDEN;
+        response.errors.push("Not permitted");
+      }
+    } catch (err) {
+      log("GET /users/user/:userId/groups", err, levels.ERROR);
+      status = statusCodes.INTERNAL_SERVER_ERROR;
+      response.errors = ["Internal Server Error"];
+    }
+
+    res.status(status).json(response);
   }
 );
 

@@ -30,6 +30,7 @@ const seedInitialAdmin = async () => {
         securityConfig.initialAdmin.password
       );
 
+      // FIXME This won't work with AD, since the register function chucks an error if you try to register with AD auth
       if (existing.errors.length === 0) {
         await adminService.changeAdminStatus(existing._id, true);
       } else {
