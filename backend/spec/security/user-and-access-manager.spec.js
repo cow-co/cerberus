@@ -396,7 +396,7 @@ describe("Access Manager tests", () => {
     const res = await accessManager.findUserByName("user");
 
     expect(res.errors).toHaveLength(1);
-    expect(res.user).toBe(null);
+    expect(res.user).toEqual({ id: "", name: "" });
   });
 
   test("find user by name - failure - exception", async () => {
@@ -437,7 +437,7 @@ describe("Access Manager tests", () => {
     const res = await accessManager.findUserById("userId");
 
     expect(res.errors).toHaveLength(1);
-    expect(res.user).toBe(null);
+    expect(res.user).toEqual({ id: "", name: "" });
   });
 
   test("find user by ID - failure - exception", async () => {
@@ -670,10 +670,12 @@ describe("Access Manager tests", () => {
     });
     adminService.isUserAdmin.mockResolvedValue(true);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.READ
+      accessManager.accessControlType.READ,
+      "id"
     );
 
     expect(isPermitted).toBe(true);
@@ -688,10 +690,12 @@ describe("Access Manager tests", () => {
     });
     adminService.isUserAdmin.mockResolvedValue(true);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.EDIT
+      accessManager.accessControlType.EDIT,
+      "id"
     );
 
     expect(isPermitted).toBe(true);
@@ -706,10 +710,12 @@ describe("Access Manager tests", () => {
     });
     adminService.isUserAdmin.mockResolvedValue(false);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.READ
+      accessManager.accessControlType.READ,
+      "id"
     );
 
     expect(isPermitted).toBe(true);
@@ -725,10 +731,12 @@ describe("Access Manager tests", () => {
     adminService.isUserAdmin.mockResolvedValue(false);
     dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.READ
+      accessManager.accessControlType.READ,
+      "id"
     );
 
     expect(isPermitted).toBe(true);
@@ -743,11 +751,12 @@ describe("Access Manager tests", () => {
     });
     adminService.isUserAdmin.mockResolvedValue(false);
     dbManager.getGroupsForUser.mockResolvedValue(["operator", "read2"]);
-
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.READ
+      accessManager.accessControlType.READ,
+      "id"
     );
 
     expect(isPermitted).toBe(true);
@@ -763,10 +772,12 @@ describe("Access Manager tests", () => {
     adminService.isUserAdmin.mockResolvedValue(false);
     dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.EDIT
+      accessManager.accessControlType.EDIT,
+      "id"
     );
 
     expect(isPermitted).toBe(true);
@@ -782,10 +793,12 @@ describe("Access Manager tests", () => {
     adminService.isUserAdmin.mockResolvedValue(false);
     dbManager.getGroupsForUser.mockResolvedValue(["read", "operator"]);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.EDIT
+      accessManager.accessControlType.EDIT,
+      "id"
     );
 
     expect(isPermitted).toBe(true);
@@ -801,10 +814,12 @@ describe("Access Manager tests", () => {
     adminService.isUserAdmin.mockResolvedValue(false);
     dbManager.getGroupsForUser.mockResolvedValue(["read2"]);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.READ
+      accessManager.accessControlType.READ,
+      "id"
     );
 
     expect(isPermitted).toBe(false);
@@ -821,10 +836,12 @@ describe("Access Manager tests", () => {
     adminService.isUserAdmin.mockResolvedValue(false);
     dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.EDIT
+      accessManager.accessControlType.EDIT,
+      "id"
     );
 
     expect(isPermitted).toBe(false);
@@ -840,10 +857,12 @@ describe("Access Manager tests", () => {
     adminService.isUserAdmin.mockResolvedValue(false);
     dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
 
-    const isPermitted = await accessManager.isUserAuthorisedForOperation(
-      "id",
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
       "implant",
-      accessManager.operationType.EDIT
+      accessManager.accessControlType.EDIT,
+      "id"
     );
 
     expect(isPermitted).toBe(false);
@@ -860,10 +879,12 @@ describe("Access Manager tests", () => {
 
     expect(
       async () =>
-        await accessManager.isUserAuthorisedForOperation(
-          "id",
+        await accessManager.authZCheck(
+          accessManager.operationType.EDIT,
+          accessManager.targetEntityType.IMPLANT,
           "implant",
-          accessManager.operationType.READ
+          accessManager.accessControlType.EDIT,
+          "id"
         )
     ).rejects.toThrow(TypeError);
   });

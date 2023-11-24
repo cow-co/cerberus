@@ -99,8 +99,10 @@ const logout = async (userId) => {
  */
 const deleteUser = async (userId) => {
   log("database-manager/deleteUser", `Deleting user ${userId}`, levels.DEBUG);
-  await userService.deleteUser(userId);
-  await adminService.removeAdmin(userId);
+  if (userId) {
+    await userService.deleteUser(userId);
+    await adminService.changeAdminStatus(userId, false);
+  }
 };
 
 /**
@@ -111,7 +113,11 @@ const findUserById = async (userId) => {
   log("database-manager/findUserById", `Finding user ${userId}`, levels.DEBUG);
   const user = await userService.findUserById(userId);
   if (!user) {
-    return null;
+    return {
+      id: "",
+      name: "",
+      acgs: [],
+    };
   } else {
     return {
       id: user._id,
@@ -123,7 +129,7 @@ const findUserById = async (userId) => {
 
 /**
  * @param {string} username
- * @returns null, if the user is not found
+ * @returns The user object, with ID, name, and ACG list. These are all *empty* if the user does not exist.
  */
 const findUserByName = async (username) => {
   log(
@@ -133,7 +139,11 @@ const findUserByName = async (username) => {
   );
   const user = await userService.findUserByName(username);
   if (!user) {
-    return null;
+    return {
+      id: "",
+      name: "",
+      acgs: [],
+    };
   } else {
     return {
       id: user._id,

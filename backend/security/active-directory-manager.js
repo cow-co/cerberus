@@ -39,12 +39,12 @@ const authenticate = async (username, password, usePKI) => {
  * @returns
  */
 const findUserById = async (userId) => {
-  return findUserByName(userId);
+  return await findUserByName(userId);
 };
 
 /**
  * @param {string} username
- * @returns
+ * @returns id and name of user (both empty if user not found)
  */
 const findUserByName = async (username) => {
   log(
@@ -63,7 +63,10 @@ const findUserByName = async (username) => {
       name: foundUser.sAMAccountName,
     };
   } else {
-    return null;
+    return {
+      id: "",
+      name: "",
+    };
   }
 };
 
@@ -74,7 +77,7 @@ const deleteUser = async (userId) => {
     levels.DEBUG
   );
   await userService.deleteUser(userId);
-  await adminService.removeAdmin(userId);
+  await adminService.changeAdminStatus(userId, false);
 };
 
 const logout = async (userId) => {

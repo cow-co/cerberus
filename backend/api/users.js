@@ -10,32 +10,33 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   log(`GET /users/user/${username}`, `Getting user ${username}`, levels.DEBUG);
   let status = statusCodes.OK;
   let response = {
-    user: null,
+    user: {
+      id: "",
+      name: "",
+    },
     errors: [],
   };
 
   const chosenUser = username.trim();
 
   try {
-    const result = await accessManager.findUserByName(chosenUser); // TODO Can neaten up the implementation if we return an *empty* rather than *null* object for the user if they are not found
-    if (result.user) {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.READ,
-        accessManager.targetEntityType.USER,
-        result.user.id,
-        accessManager.accessControlType.READ,
-        req.data.userId
-      );
+    const result = await accessManager.findUserByName(chosenUser);
+    const permitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.USER,
+      result.user.id,
+      accessManager.accessControlType.READ,
+      req.data.userId
+    );
 
-      if (permitted) {
-        response.user = {
-          id: result.user.id,
-          name: result.user.name,
-        };
-      } else {
-        response.errors.push("Not permitted");
-        status = statusCodes.FORBIDDEN;
-      }
+    if (permitted) {
+      response.user = {
+        id: result.user.id,
+        name: result.user.name,
+      };
+    } else {
+      response.errors.push("Not permitted");
+      status = statusCodes.FORBIDDEN;
     }
   } catch (err) {
     log("GET /user/:username", err, levels.ERROR);
@@ -53,12 +54,11 @@ router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
   let response = {
     errors: [],
   };
-  const chosenUser = userId.trim();
 
   try {
-    const result = await accessManager.findUserById(chosenUser);
+    const result = await accessManager.findUserById(userId);
 
-    if (!result.user) {
+    if (!result.user.id) {
       log(
         `DELETE /users/user/${userId}`,
         `User with ID ${userId} does not exist`,
@@ -69,13 +69,13 @@ router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
     const permitted = await accessManager.authZCheck(
       accessManager.operationType.READ,
       accessManager.targetEntityType.USER,
-      chosenUser,
+      userId,
       accessManager.accessControlType.ADMIN,
       req.data.userId
     );
 
     if (permitted) {
-      const errors = await accessManager.removeUser(chosenUser);
+      const errors = await accessManager.removeUser(userId);
       if (errors.length > 0) {
         response.errors = errors;
         status = statusCodes.INTERNAL_SERVER_ERROR;

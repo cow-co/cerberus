@@ -31,7 +31,7 @@ const seedInitialAdmin = async () => {
       );
 
       if (existing.errors.length === 0) {
-        await adminService.addAdmin(existing._id);
+        await adminService.changeAdminStatus(existing._id, true);
       } else {
         log(
           "seedInitialAdmin",
@@ -42,7 +42,7 @@ const seedInitialAdmin = async () => {
         );
       }
     } else {
-      await adminService.addAdmin(existing._id);
+      await adminService.changeAdminStatus(existing._id, true);
     }
   }
 };

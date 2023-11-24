@@ -11,7 +11,6 @@ const accessManager = require("../security/user-and-access-manager");
 
 /**
  * `implantId` must be the one assigned by the implant itself, NOT the database key.
- * Requires user to be logged in.
  */
 router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
   const implantId = req.paramString("implantId");
@@ -85,8 +84,8 @@ router.get("/task-types", accessManager.verifyToken, async (req, res) => {
 
 /**
  * Expects req.body to contain:
- * - `name` (string)
- * - `params` (array of *unique* strings)
+ * - name {String}
+ * - params {Array of params}
  */
 router.post("/task-types", accessManager.verifyToken, async (req, res) => {
   log("POST /task-types", "Creating a task type...", levels.DEBUG);

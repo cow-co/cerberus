@@ -28,10 +28,7 @@ describe("User tests", () => {
       };
       next();
     });
-
-    accessManager.checkAdmin.mockImplementation((req, res, next) => {
-      next();
-    });
+    accessManager.authZCheck.mockResolvedValue(true);
 
     server = require("../../index");
     agent = require("supertest").agent(server);
@@ -131,9 +128,14 @@ describe("User tests", () => {
 
   test("delete user - success - user does not exist", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: null,
+      user: {
+        id: "",
+        name: "",
+        acgs: [],
+      },
       errors: [],
     });
+    accessManager.removeUser.mockResolvedValue([]);
 
     const res = await agent.delete("/api/users/user/some-mongo-id3");
 
@@ -146,6 +148,7 @@ describe("User tests", () => {
       errors: [],
     });
     adminService.isUserAdmin.mockResolvedValue(false);
+
     const res = await agent.get("/api/users/whoami");
 
     expect(res.statusCode).toBe(200);
@@ -155,6 +158,7 @@ describe("User tests", () => {
 
   test("whoami - failure - exception", async () => {
     accessManager.findUserById.mockRejectedValue(new TypeError("TEST"));
+
     const res = await agent.get("/api/users/whoami");
 
     expect(res.statusCode).toBe(500);

@@ -5,6 +5,9 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
+/**
+ * Retrieves all the implants that the user is authorised to view.
+ */
 router.get("", accessManager.verifyToken, async (req, res) => {
   log("GET /implants/", "Request to get all implants", levels.DEBUG);
   let responseJSON = {

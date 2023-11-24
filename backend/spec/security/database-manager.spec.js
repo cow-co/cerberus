@@ -150,7 +150,7 @@ describe("Database user manager tests", () => {
 
     const user = await manager.findUserById("id");
 
-    expect(user).toBeNull();
+    expect(user).toEqual({ id: "", name: "", acgs: [] });
   });
 
   test("find user by name - success - user found", async () => {
@@ -168,7 +168,7 @@ describe("Database user manager tests", () => {
 
     const user = await manager.findUserByName("user");
 
-    expect(user).toBeNull();
+    expect(user).toEqual({ id: "", name: "", acgs: [] });
   });
 
   test("logout - success", async () => {
@@ -196,7 +196,7 @@ describe("Database user manager tests", () => {
     await manager.deleteUser("id");
 
     expect(userService.deleteUser).toHaveBeenCalledTimes(1);
-    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
   });
 
   test("check group membership - success", async () => {

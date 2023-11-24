@@ -28,7 +28,7 @@ describe("Seeding tests", () => {
 
     await seeding.seedInitialAdmin();
 
-    expect(adminService.addAdmin).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
     expect(accessManager.register).toHaveBeenCalledTimes(1);
   });
 
@@ -44,7 +44,7 @@ describe("Seeding tests", () => {
 
     await seeding.seedInitialAdmin();
 
-    expect(adminService.addAdmin).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
     expect(accessManager.register).toHaveBeenCalledTimes(0);
   });
 
@@ -53,7 +53,7 @@ describe("Seeding tests", () => {
 
     await seeding.seedInitialAdmin();
 
-    expect(adminService.addAdmin).toHaveBeenCalledTimes(0);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(0);
   });
 
   test("should not seed admin - error", async () => {
@@ -69,7 +69,7 @@ describe("Seeding tests", () => {
 
     await seeding.seedInitialAdmin();
 
-    expect(adminService.addAdmin).toHaveBeenCalledTimes(0);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(0);
   });
 
   test("should seed tasktypes", async () => {

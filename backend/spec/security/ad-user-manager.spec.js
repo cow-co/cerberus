@@ -73,14 +73,14 @@ describe("AD User Manager Tests", () => {
 
     const res = await adUserManager.findUserByName("user");
 
-    expect(res).toBe(null);
+    expect(res).toEqual({ id: "", name: "" });
   });
 
   test("delete user - success", async () => {
     await adUserManager.deleteUser("id");
 
     expect(userService.deleteUser).toHaveBeenCalledTimes(1);
-    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
   });
 
   test("logout - success - existing entry", async () => {

@@ -404,8 +404,7 @@ paths:
     get:
       security:
         - jwt: [Read]
-      # TODO It should filter implants based on ACGs
-      summary: Retrieves all implants.
+      summary: Retrieves all implants that the user is authorised to view.
       tags:
         - Implants
       responses:

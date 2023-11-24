@@ -25,9 +25,7 @@ describe("Implant API Tests", () => {
       };
       next();
     });
-    accessManager.checkAdmin.mockImplementation((req, res, next) => {
-      next();
-    });
+    accessManager.authZCheck.mockResolvedValue(true);
     server = require("../../index");
     agent = require("supertest").agent(server);
   });
@@ -151,7 +149,7 @@ describe("Implant API Tests", () => {
       _id: "_id1",
       implantId: "id1",
     });
-    accessManager.isUserAuthorisedForOperation.mockResolvedValue(true);
+
     const res = await agent.delete("/api/implants/id1");
 
     expect(res.statusCode).toBe(200);
@@ -160,6 +158,7 @@ describe("Implant API Tests", () => {
 
   test("delete implant - success - non-existent ID", async () => {
     implantService.findImplantById.mockResolvedValue(null);
+
     const res = await agent.delete("/api/implants/id2");
 
     expect(res.statusCode).toBe(200);
@@ -171,9 +170,8 @@ describe("Implant API Tests", () => {
       _id: "_id1",
       implantId: "id1",
     });
-    accessManager.checkAdmin.mockImplementation((req, res, next) =>
-      res.status(403).json({ errors: ["You must be an admin!"] })
-    );
+    accessManager.authZCheck.mockResolvedValue(false);
+
     const res = await agent.delete("/api/implants/id1");
 
     expect(res.statusCode).toBe(403);
@@ -186,6 +184,7 @@ describe("Implant API Tests", () => {
       implantId: "id3",
     });
     implantService.deleteImplant.mockRejectedValue(new TypeError("TEST"));
+
     const res = await agent.delete("/api/implants/id3");
 
     expect(res.statusCode).toBe(500);

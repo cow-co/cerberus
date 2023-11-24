@@ -18,13 +18,13 @@ const isUserAdmin = async (userId) => {
 
 const changeAdminStatus = async (userId, shouldBeAdmin) => {
   if (userId) {
-    const isAdmin = await isUserAdmin(userId);
-    if (shouldBeAdmin && !isAdmin) {
+    const existingAdminRecord = await Admin.findOne({ userId: userId });
+    if (shouldBeAdmin && !existingAdminRecord) {
       log("changeAdminStatus", `Adding user ${userId} as admin`, levels.INFO);
       await Admin.create({
         userId: userId,
       });
-    } else if (!shouldBeAdmin && isAdmin) {
+    } else if (!shouldBeAdmin && existingAdminRecord) {
       log(
         "changeAdminStatus",
         `Deleting admin record for user ID ${userId}`,

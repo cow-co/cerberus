@@ -52,7 +52,11 @@ const updateImplant = async (details) => {
  * @returns The implant (or null)
  */
 const findImplantById = async (id) => {
-  return await Implant.findOne({ id: id });
+  if (id) {
+    return await Implant.findOne({ id: id });
+  } else {
+    return null;
+  }
 };
 
 /**

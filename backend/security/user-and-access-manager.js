@@ -308,7 +308,6 @@ const checkAdmin = async (req, res, next) => {
  */
 const removeUser = async (userId) => {
   log("removeUser", `Removing user ${userId}`, levels.DEBUG);
-  userId = sanitizer.value(userId, "str");
   let errors = [];
 
   try {
@@ -357,7 +356,7 @@ const findUserByName = async (username) => {
   );
   userId = sanitizer.value(username, "str");
   let errors = [];
-  let user = null;
+  let user = { id: "", name: "" };
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
@@ -398,7 +397,10 @@ const findUserById = async (userId) => {
     levels.DEBUG
   );
   let errors = [];
-  let user = null;
+  let user = {
+    id: "",
+    name: "",
+  };
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
@@ -414,13 +416,16 @@ const findUserById = async (userId) => {
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
+        console.log(JSON.stringify(user));
         errors.push("Internal Server Error");
         break;
     }
   } catch (err) {
+    console.log(JSON.stringify(user));
     log("user-and-access-manager/findUserById", err, levels.ERROR);
     errors.push("Internal Server Error");
   }
+  console.log(JSON.stringify(user));
 
   return {
     user,
@@ -480,7 +485,6 @@ const filterImplantsForView = async (implants, userId) => {
   } else {
     const groupsResult = await getGroupsForUser(userId);
 
-    // TODO Maybe put this into a separate function
     if (groupsResult.errors.length === 0) {
       filtered = implants.filter((implant) => {
         const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
