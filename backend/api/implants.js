@@ -31,6 +31,7 @@ router.get("", accessManager.verifyToken, async (req, res) => {
     responseJSON.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }
+
   res.status(status).json(responseJSON);
 });
 
@@ -78,7 +79,7 @@ router.delete("/:implantId", accessManager.verifyToken, async (req, res) => {
     log(`DELETE /implants/${implantId}`, err, levels.ERROR);
   }
 
-  return res.status(returnStatus).json(responseJSON);
+  res.status(returnStatus).json(responseJSON);
 });
 
 module.exports = router;

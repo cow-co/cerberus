@@ -43,6 +43,7 @@ const authenticate = async (req, res, next) => {
     "Authenticating...",
     levels.DEBUG
   );
+
   let username = null;
   let password = null;
   let errors = [];
@@ -83,12 +84,14 @@ const authenticate = async (req, res, next) => {
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
+
         errors.push("Internal Server Error");
         status = statusCodes.INTERNAL_SERVER_ERROR;
         break;
     }
   } catch (err) {
     log("user-and-access-manager/authenticate", err, levels.ERROR);
+
     errors.push("Internal Server Error");
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }
@@ -99,8 +102,10 @@ const authenticate = async (req, res, next) => {
       `User ${username} failed login due to incorrect credentials`,
       levels.SECURITY
     );
+
     status = statusCodes.UNAUTHENTICATED;
     errors.push("Incorrect login credentials");
+
     res.status(status).json({ errors });
   } else if (errors.length > 0) {
     log(
@@ -110,6 +115,7 @@ const authenticate = async (req, res, next) => {
       )}`,
       levels.SECURITY
     );
+
     res.status(status).json({ errors });
   } else {
     req.data = {};
@@ -146,8 +152,9 @@ const authenticate = async (req, res, next) => {
  * @param {function} next
  */
 const verifyToken = async (req, res, next) => {
-  const authHeader = req.headerString("authorization");
   log("verifyToken", "Verifying Token...", levels.DEBUG);
+
+  const authHeader = req.headerString("authorization");
 
   if (!authHeader && !securityConfig.usePKI) {
     res.status(statusCodes.FORBIDDEN).json({ errors: ["No token"] });
@@ -168,6 +175,7 @@ const verifyToken = async (req, res, next) => {
         req.data.userId = payload.userId;
         req.data.username = payload.username;
         req.data.isAdmin = Boolean(payload.isAdmin);
+
         next();
       } else {
         log(
@@ -175,6 +183,7 @@ const verifyToken = async (req, res, next) => {
           "User provided an invalid token. Potential token stealing/token re-use attack!",
           levels.SECURITY
         );
+
         res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
       }
     } catch (err) {
@@ -184,9 +193,11 @@ const verifyToken = async (req, res, next) => {
         err.name === "NotBeforeError"
       ) {
         log("verifyToken", err, levels.SECURITY);
+
         res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid Token"] });
       } else {
         log("verifyToken", err, levels.ERROR);
+
         res
           .status(statusCodes.INTERNAL_SERVER_ERROR)
           .json({ errors: ["Internal Server Error"] });
@@ -230,10 +241,9 @@ const register = async (username, password) => {
     `Registering user ${username}`,
     levels.DEBUG
   );
-  username = sanitizer.value(username, "str");
+
   username = username.trim();
   const { user } = await findUserByName(username);
-  password = sanitizer.value(password, "str");
 
   let response = {
     _id: null,
@@ -257,6 +267,7 @@ const register = async (username, password) => {
       `Cannot register users from CERBERUS when using the ${securityConfig.authMethod} auth method`,
       levels.WARN
     );
+
     response.errors.push(
       "Registering is not supported for the configured auth method; please ask your administrator to add you."
     );
@@ -266,40 +277,11 @@ const register = async (username, password) => {
       "A user already exists with that name",
       levels.WARN
     );
+
     response.errors.push("A user already exists with that name");
   }
 
   return response;
-};
-
-/**
- * @param {import("express").Request} req
- * @param {import("express").Response} res
- * @param {function} next
- */
-const checkAdmin = async (req, res, next) => {
-  log("checkAdmin", "Checking if user is admin", levels.DEBUG);
-  let userId = req.data.userId;
-  userId = sanitizer.value(userId, "str");
-  let isAdmin = false;
-
-  // This ensures we call this method after logging in
-  if (userId) {
-    isAdmin = await adminService.isUserAdmin(userId);
-    if (isAdmin) {
-      next();
-    } else {
-      log("checkAdmin", `User ${userId} is not an admin`, levels.SECURITY);
-      res
-        .status(statusCodes.FORBIDDEN)
-        .json({ errors: ["You must be an admin to do this"] });
-    }
-  } else {
-    log("checkAdmin", "User is not logged in", levels.SECURITY);
-    res
-      .status(statusCodes.FORBIDDEN)
-      .json({ errors: ["You must be logged in to do this"] });
-  }
 };
 
 /**
@@ -308,6 +290,7 @@ const checkAdmin = async (req, res, next) => {
  */
 const removeUser = async (userId) => {
   log("removeUser", `Removing user ${userId}`, levels.DEBUG);
+
   let errors = [];
 
   try {
@@ -321,6 +304,7 @@ const removeUser = async (userId) => {
           "Cannot remove a user when backed by Active Directory. However, the user will be removed from the admins list, if they are on it.",
           levels.WARN
         );
+
         adUserManager.deleteUser(userId);
         errors.push(
           "You cannot entirely remove users provided by Active Directory, but the user has been removed as admin."
@@ -333,11 +317,13 @@ const removeUser = async (userId) => {
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
+
         errors.push("Internal Server Error");
         break;
     }
   } catch (err) {
     log("removeUser", err, levels.ERROR);
+
     errors.push("Internal Server Error");
   }
 
@@ -354,9 +340,10 @@ const findUserByName = async (username) => {
     `Finding user ${username}`,
     levels.DEBUG
   );
-  userId = sanitizer.value(username, "str");
+
   let errors = [];
   let user = { id: "", name: "" };
+
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
@@ -372,11 +359,13 @@ const findUserByName = async (username) => {
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
+
         errors.push("Internal Server Error");
         break;
     }
   } catch (err) {
     log("user-and-access-manager/findUserByName", err, levels.ERROR);
+
     errors.push("Internal Server Error");
   }
 
@@ -396,11 +385,13 @@ const findUserById = async (userId) => {
     `Finding user ${userId}`,
     levels.DEBUG
   );
+
   let errors = [];
   let user = {
     id: "",
     name: "",
   };
+
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
@@ -416,16 +407,16 @@ const findUserById = async (userId) => {
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
+
         console.log(JSON.stringify(user));
         errors.push("Internal Server Error");
         break;
     }
   } catch (err) {
-    console.log(JSON.stringify(user));
     log("user-and-access-manager/findUserById", err, levels.ERROR);
+
     errors.push("Internal Server Error");
   }
-  console.log(JSON.stringify(user));
 
   return {
     user,
@@ -441,6 +432,7 @@ const findUserById = async (userId) => {
 const getGroupsForUser = async (userId) => {
   let errors = [];
   let groups = [];
+
   try {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
@@ -456,11 +448,13 @@ const getGroupsForUser = async (userId) => {
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
+
         errors.push("Internal Server Error");
         break;
     }
   } catch (err) {
     log("user-and-access-manager/getGroupsForUser", err, levels.ERROR);
+
     errors.push("Internal Server Error");
   }
 
@@ -478,6 +472,7 @@ const getGroupsForUser = async (userId) => {
 const filterImplantsForView = async (implants, userId) => {
   let filtered = [];
   let errors = [];
+
   const isAdmin = await adminService.isUserAdmin(userId);
 
   if (isAdmin) {
@@ -520,6 +515,7 @@ const isUserAuthorisedForOperationOnImplant = async (
   operation
 ) => {
   let isAuthorised = false;
+
   const implant = await implantService.findImplantById(implantId);
 
   if (implant) {
@@ -572,7 +568,9 @@ const authZCheck = async (
   userId
 ) => {
   let permitted = false;
+
   const isAdmin = await adminService.isUserAdmin(userId);
+
   if (isAdmin) {
     permitted = true;
   } else if (accessControl !== accessControlType.ADMIN) {

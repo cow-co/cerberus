@@ -56,7 +56,7 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
     };
   }
 
-  res.status(returnStatus).json(responseJSON); // TODO Standardise use of return res... versus just calling res...
+  res.status(returnStatus).json(responseJSON);
 });
 
 router.get("/task-types", accessManager.verifyToken, async (req, res) => {
@@ -79,7 +79,7 @@ router.get("/task-types", accessManager.verifyToken, async (req, res) => {
     };
   }
 
-  return res.status(returnStatus).json(responseJSON);
+  res.status(returnStatus).json(responseJSON);
 });
 
 /**
@@ -113,12 +113,14 @@ router.post("/task-types", accessManager.verifyToken, async (req, res) => {
         response.errors = validity.errors;
       }
     } else {
+      // TODO Fill this bit
     }
   } catch (err) {
     log("POST /task-types", err, levels.ERROR);
     response.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }
+
   res.status(status).json(response);
 });
 
