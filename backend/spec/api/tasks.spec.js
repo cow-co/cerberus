@@ -98,13 +98,6 @@ describe("Tasks API Tests", () => {
       next();
     });
 
-    accessManager.checkAdmin.mockImplementation((req, res, next) => {
-      req.data = {
-        userId: "id",
-      };
-      next();
-    });
-
     validation.validateTask.mockResolvedValue({
       isValid: true,
       errors: [],

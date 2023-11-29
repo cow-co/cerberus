@@ -603,7 +603,6 @@ module.exports = {
   verifyToken,
   logout,
   register,
-  checkAdmin,
   removeUser,
   findUserByName,
   findUserById,

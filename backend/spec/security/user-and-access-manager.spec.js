@@ -239,102 +239,6 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  test("check admin - success", async () => {
-    dbManager.findUserByName.mockResolvedValue({
-      id: "id",
-      name: "user",
-    });
-    adminService.isUserAdmin.mockResolvedValue(true);
-    let calledNext = false;
-
-    await accessManager.checkAdmin(
-      {
-        data: { userId: "id" },
-      },
-      null,
-      () => {
-        calledNext = true;
-      }
-    );
-
-    expect(calledNext).toBe(true);
-  });
-
-  test("check admin - failure - logged in user does not exist", async () => {
-    dbManager.findUserByName.mockResolvedValue(null);
-    adminService.isUserAdmin.mockResolvedValue(true);
-    let resStatus = 500;
-    let calledNext = false;
-    let res = {};
-
-    await accessManager.checkAdmin(
-      {
-        data: { username: "user" },
-      },
-      {
-        status: (status) => {
-          resStatus = status;
-          return { json: (data) => (res = data) };
-        },
-      },
-      () => {
-        calledNext = true;
-      }
-    );
-
-    expect(resStatus).toBe(403);
-    expect(calledNext).toBe(false);
-    expect(res.errors).toHaveLength(1);
-  });
-
-  test("check admin - failure - user is not admin", async () => {
-    dbManager.findUserByName.mockResolvedValue({
-      id: "id",
-      name: "user",
-    });
-    adminService.isUserAdmin.mockResolvedValue(false);
-    let resStatus = 500;
-    let calledNext = false;
-    let res = {};
-
-    await accessManager.checkAdmin(
-      {
-        data: { userId: "id" },
-      },
-      {
-        status: (status) => {
-          resStatus = status;
-          return { json: (data) => (res = data) };
-        },
-      },
-      () => {
-        calledNext = true;
-      }
-    );
-
-    expect(resStatus).toBe(403);
-    expect(calledNext).toBe(false);
-    expect(res.errors).toHaveLength(1);
-  });
-
-  test("check admin - failure - user not logged in", async () => {
-    let resStatus = 200;
-    let res = {};
-    await accessManager.checkAdmin(
-      { data: {} },
-      {
-        status: (status) => {
-          resStatus = status;
-          return { json: (data) => (res = data) };
-        },
-      },
-      () => {}
-    );
-
-    expect(resStatus).toBe(403);
-    expect(res.errors).toHaveLength(1);
-  });
-
   test("remove user - success", async () => {
     const errors = await accessManager.removeUser("userId");
 
@@ -825,7 +729,6 @@ describe("Access Manager tests", () => {
     expect(isPermitted).toBe(false);
   });
 
-  // TODO Note in docs that if readOnlyACGs.length > 0 but operatorACGs.length === 0, then only admins can operate
   test("User authorisation - failure - edit, only read-only ACGs", async () => {
     implantService.findImplantById.mockResolvedValue({
       _id: "implant_id",
