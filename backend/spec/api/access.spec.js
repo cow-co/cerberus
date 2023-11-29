@@ -29,6 +29,7 @@ describe("Access tests", () => {
       req.data.isAdmin = false;
       next();
     });
+    accessManager.authZCheck.mockResolvedValue(true);
     server = require("../../index");
     agent = require("supertest").agent(server);
   });
@@ -96,7 +97,7 @@ describe("Access tests", () => {
   });
 
   test("create user - failure - exception thrown", async () => {
-    accessManager.register.mockRejectedValue(new Error("TypeError"));
+    accessManager.register.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent
       .post("/api/access/register")
@@ -135,14 +136,20 @@ describe("Access tests", () => {
 
   test("logout - success", async () => {
     const res = await agent.delete("/api/access/logout/id");
-    console.log(JSON.stringify(res));
 
     expect(res.statusCode).toBe(200);
     expect(accessManager.logout).toHaveBeenCalledTimes(1);
   });
 
+  test("logout - failure - logging a different user out", async () => {
+    const res = await agent.delete("/api/access/logout/id2");
+
+    expect(res.statusCode).toBe(403);
+    expect(accessManager.logout).toHaveBeenCalledTimes(0);
+  });
+
   test("logout - failure - exception thrown", async () => {
-    accessManager.logout.mockRejectedValue(new Error("TypeError"));
+    accessManager.logout.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/access/logout/id");
 
@@ -150,16 +157,10 @@ describe("Access tests", () => {
   });
 
   test("add admin - success", async () => {
-    accessManager.checkAdmin.mockImplementation((req, res, next) => {
-      next();
-    });
     accessManager.findUserById.mockResolvedValue({
       user: {
         id: "650a3a2a7dcd3241ecee2d70",
       },
-    });
-    adminService.addAdmin.mockResolvedValue({
-      userId: "650a3a2a7dcd3241ecee2d70",
     });
 
     const res = await agent
@@ -167,7 +168,7 @@ describe("Access tests", () => {
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
 
     expect(res.statusCode).toBe(200);
-    expect(adminService.addAdmin).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
   });
 
   test("remove admin - success", async () => {
@@ -182,7 +183,7 @@ describe("Access tests", () => {
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: false });
 
     expect(res.statusCode).toBe(200);
-    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
   });
 
   test("add admin - failure - user does not exist", async () => {
@@ -200,12 +201,7 @@ describe("Access tests", () => {
   });
 
   test("add admin - failure - exception thrown", async () => {
-    accessManager.findUserById.mockResolvedValue({
-      user: {
-        id: "650a3a2a7dcd3241ecee2d70",
-      },
-    });
-    adminService.addAdmin.mockRejectedValue(new Error("TypeError"));
+    accessManager.findUserById.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent
       .put("/api/access/admin")

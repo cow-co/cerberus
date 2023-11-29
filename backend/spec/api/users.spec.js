@@ -28,16 +28,13 @@ describe("User tests", () => {
       };
       next();
     });
-
-    accessManager.checkAdmin.mockImplementation((req, res, next) => {
-      next();
-    });
+    accessManager.authZCheck.mockResolvedValue(true);
 
     server = require("../../index");
     agent = require("supertest").agent(server);
   });
 
-  test("find user - success", async () => {
+  test("get user - success", async () => {
     accessManager.findUserByName.mockResolvedValue({
       user: {
         _id: "some-mongo-id3",
@@ -53,8 +50,16 @@ describe("User tests", () => {
     expect(res.body.user.name).toBe("username");
   });
 
-  test("find user - failure - exception", async () => {
-    accessManager.findUserByName.mockRejectedValue(new Error("TypeError"));
+  test("get user - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.get("/api/users/user/username");
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  test("get user - failure - exception", async () => {
+    accessManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.get("/api/users/user/username");
 
@@ -62,7 +67,7 @@ describe("User tests", () => {
     expect(res.body.errors).toHaveLength(1);
   });
 
-  test("get user - does not include password hash", async () => {
+  test("get user - success - does not include password hash", async () => {
     accessManager.findUserByName.mockResolvedValue({
       user: {
         _id: "some-mongo-id3",
@@ -95,6 +100,15 @@ describe("User tests", () => {
     expect(accessManager.removeUser).toHaveBeenCalledTimes(1);
   });
 
+  test("delete user - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.delete("/api/users/user/some-mongo-id3");
+
+    expect(res.statusCode).toBe(403);
+    expect(accessManager.removeUser).toHaveBeenCalledTimes(0);
+  });
+
   test("delete user - failure - error", async () => {
     accessManager.findUserById.mockResolvedValue({
       user: {
@@ -121,7 +135,7 @@ describe("User tests", () => {
       },
       errors: [],
     });
-    accessManager.removeUser.mockRejectedValue(new Error("TypeError"));
+    accessManager.removeUser.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/users/user/some-mongo-id3");
 
@@ -131,9 +145,14 @@ describe("User tests", () => {
 
   test("delete user - success - user does not exist", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: null,
+      user: {
+        id: "",
+        name: "",
+        acgs: [],
+      },
       errors: [],
     });
+    accessManager.removeUser.mockResolvedValue([]);
 
     const res = await agent.delete("/api/users/user/some-mongo-id3");
 
@@ -146,6 +165,7 @@ describe("User tests", () => {
       errors: [],
     });
     adminService.isUserAdmin.mockResolvedValue(false);
+
     const res = await agent.get("/api/users/whoami");
 
     expect(res.statusCode).toBe(200);
@@ -154,10 +174,44 @@ describe("User tests", () => {
   });
 
   test("whoami - failure - exception", async () => {
-    accessManager.findUserById.mockRejectedValue(new Error("TypeError"));
+    accessManager.findUserById.mockRejectedValue(new TypeError("TEST"));
+
     const res = await agent.get("/api/users/whoami");
 
     expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("get user's groups - success", async () => {
+    accessManager.getGroupsForUser.mockResolvedValue({
+      groups: ["group 1", "group 2"],
+      errors: [],
+    });
+
+    const res = await agent.get("/api/users/user/id/groups");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.groups).toHaveLength(2);
+    expect(res.body.errors).toHaveLength(0);
+  });
+
+  test("get user's groups - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.get("/api/users/user/id/groups");
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.groups).toHaveLength(0);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("get user's groups - failure - exception", async () => {
+    accessManager.getGroupsForUser.mockRejectedValue(new TypeError("TEST"));
+
+    const res = await agent.get("/api/users/user/id/groups");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.groups).toHaveLength(0);
     expect(res.body.errors).toHaveLength(1);
   });
 });

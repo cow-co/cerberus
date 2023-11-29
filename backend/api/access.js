@@ -5,10 +5,12 @@ const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
+// TODO Also perhaps a neatening-up pass on all the code throughout the backend, to get things a bit more shipshape
+
 /**
  * Expects request body to contain:
- * - username
- * - password
+ * - username {String}
+ * - password {String}
  */
 router.post("/register", async (req, res) => {
   log(
@@ -47,8 +49,8 @@ router.post("/register", async (req, res) => {
 
 /**
  * Expects request body to contain:
- * - username
- * - password
+ * - username {String}
+ * - password {String}
  */
 router.post("/login", accessManager.authenticate, (req, res) => {
   log(
@@ -72,7 +74,12 @@ router.delete(
   accessManager.verifyToken,
   async (req, res) => {
     const userId = req.paramString("userId");
+
     log("DELETE /access/logout", `Logging out user ${userId}`, levels.DEBUG);
+
+    let status = statusCodes.OK;
+    let errors = [];
+
     try {
       if (req.data.userId !== userId) {
         log(
@@ -80,71 +87,78 @@ router.delete(
           `User ${req.data.userId} attempted to log someone else out (${userId})!`,
           levels.SECURITY
         );
-        res
-          .status(statusCodes.FORBIDDEN)
-          .json({ errors: ["You cannot log another user out!"] });
+
+        status = statusCodes.FORBIDDEN;
+        errors.push("You cannot log another user out!");
       } else {
         await accessManager.logout(userId);
-        res.status(statusCodes.OK).json({ errors: [] });
+        status = statusCodes.OK;
+
         log("DELETE /access/logout", `User ${userId} logged out`, levels.DEBUG);
       }
     } catch (err) {
       log("DELETE /access/logout", err, levels.ERROR);
-      res
-        .status(statusCodes.INTERNAL_SERVER_ERROR)
-        .json({ errors: ["Internal Server Error"] });
+
+      status = statusCodes.INTERNAL_SERVER_ERROR;
+      errors.push("Internal Server Error");
     }
+
+    res.status(status).json({ errors });
   }
 );
 
 /**
  * Changes admin status of the user.
  * Expects request body to contain:
- * - userId (string)
- * - makeAdmin (boolean)
+ * - userId {String}
+ * - makeAdmin {Boolean}
  */
-router.put(
-  "/admin",
-  accessManager.verifyToken,
-  accessManager.checkAdmin,
-  async (req, res) => {
-    const userId = req.bodyString("userId");
-    log(
-      "PUT /access/admin",
-      `Changing admin status of ${userId} to ${req.body.makeAdmin}`,
-      levels.INFO
-    );
-    let status = statusCodes.OK;
-    let response = {
-      errors: [],
-    };
-    const chosenUser = userId.trim();
+router.put("/admin", accessManager.verifyToken, async (req, res) => {
+  const userId = req.bodyString("userId");
+  const makeAdmin = Boolean(req.body.makeAdmin);
 
-    try {
-      const result = await accessManager.findUserById(chosenUser);
+  log(
+    "PUT /access/admin",
+    `Changing admin status of ${userId} to ${makeAdmin}`,
+    levels.INFO
+  );
+
+  let status = statusCodes.OK;
+  let response = {
+    errors: [],
+  };
+
+  try {
+    const permitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.USER,
+      userId,
+      accessManager.accessControlType.ADMIN,
+      req.data.userId
+    );
+    if (permitted) {
+      const result = await accessManager.findUserById(userId);
       if (result.user) {
-        if (Boolean(req.body.makeAdmin)) {
-          await adminService.addAdmin(result.user.id);
-        } else {
-          await adminService.removeAdmin(result.user.id);
-        }
+        await adminService.changeAdminStatus(userId, makeAdmin);
       } else {
         log(
           "PUT /access/admin",
           "Tried to make a non-existent user into an admin",
           levels.WARN
         );
+
         status = statusCodes.BAD_REQUEST;
         response.errors.push("User not found");
       }
-    } catch (err) {
-      log("PUT /access/admin", err, levels.ERROR);
-      response.errors = ["Internal Server Error"];
-      status = statusCodes.INTERNAL_SERVER_ERROR;
     }
+  } catch (err) {
+    log("PUT /access/admin", err, levels.ERROR);
 
-    res.status(status).json(response);
+    response.errors = ["Internal Server Error"];
+    status = statusCodes.INTERNAL_SERVER_ERROR;
   }
-);
+
+  res.status(status).json(response);
+});
 
 module.exports = router;

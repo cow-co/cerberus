@@ -19,6 +19,9 @@ const implantSchema = new Schema({
     min: 1,
   },
   isActive: Boolean,
+  // ACGs are referenced via their DB ID (for database auth) or active directory ID (for AD auth)
+  readOnlyACGs: [String],
+  operatorACGs: [String],
 });
 
 module.exports = Implant = mongoose.model("Implant", implantSchema);

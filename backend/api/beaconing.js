@@ -5,18 +5,24 @@ const { levels, log } = require("../utils/logger");
 const { validateBeacon } = require("../validation/request-validation");
 const implantService = require("../db/services/implant-service");
 const tasksService = require("../db/services/tasks-service");
+const sanitize = require("sanitize");
 
+const bodySanitiser = sanitize();
+
+/**
+ * Receives and processes a beacon from an implant.
+ * Sets the implant to active (and creates the implant record if necessary) in the DB
+ */
 router.post("", async (req, res) => {
-  log(
-    "POST /beacon",
-    `Received beacon: ${JSON.stringify(req.body)}`,
-    levels.DEBUG
-  );
+  const body = bodySanitiser.primitives(req.body);
+
+  log("POST /beacon", `Received beacon: ${JSON.stringify(body)}`, levels.DEBUG);
+
   let returnStatus = statusCodes.OK;
   let responseJSON = {};
 
   try {
-    const validationResult = validateBeacon(req.body);
+    const validationResult = validateBeacon(body);
     if (validationResult.isValid) {
       const beacon = {
         id: req.bodyString("id"),
@@ -46,11 +52,13 @@ router.post("", async (req, res) => {
         tasks: [],
         errors: validationResult.errors,
       };
+
       log(
         "POST /beacon",
         `Invalid beacon: ${JSON.stringify(validationResult.errors)}`,
         levels.WARN
       );
+
       returnStatus = statusCodes.BAD_REQUEST;
     }
   } catch (err) {
@@ -59,10 +67,11 @@ router.post("", async (req, res) => {
       tasks: [],
       errors: ["Internal Server Error"],
     };
+
     log("POST /beacon", err, levels.ERROR);
   }
 
-  return res.status(returnStatus).json(responseJSON);
+  res.status(returnStatus).json(responseJSON);
 });
 
 module.exports = router;

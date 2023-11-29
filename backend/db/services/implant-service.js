@@ -52,20 +52,18 @@ const updateImplant = async (details) => {
  * @returns The implant (or null)
  */
 const findImplantById = async (id) => {
-  let implant = null;
   if (id) {
-    implant = await Implant.findOne({ id: id });
+    return await Implant.findOne({ id: id });
+  } else {
+    return null;
   }
-  return implant;
 };
 
 /**
- * @returns All the implant records
+ * @returns All the implant records that the user is permitted to view
  */
 const getAllImplants = async () => {
-  let implants = [];
-  implants = await Implant.find();
-  return implants;
+  return await Implant.find();
 };
 
 const checkActivity = async () => {

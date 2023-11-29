@@ -39,12 +39,12 @@ const authenticate = async (username, password, usePKI) => {
  * @returns
  */
 const findUserById = async (userId) => {
-  return findUserByName(userId);
+  return await findUserByName(userId);
 };
 
 /**
  * @param {string} username
- * @returns
+ * @returns id and name of user (both empty if user not found)
  */
 const findUserByName = async (username) => {
   log(
@@ -59,11 +59,14 @@ const findUserByName = async (username) => {
 
   if (foundUser !== null) {
     return {
-      id: foundUser.sn,
+      id: foundUser.userPrincipalName,
       name: foundUser.sAMAccountName,
     };
   } else {
-    return null;
+    return {
+      id: "",
+      name: "",
+    };
   }
 };
 
@@ -74,7 +77,7 @@ const deleteUser = async (userId) => {
     levels.DEBUG
   );
   await userService.deleteUser(userId);
-  await adminService.removeAdmin(userId);
+  await adminService.changeAdminStatus(userId, false);
 };
 
 const logout = async (userId) => {
@@ -95,10 +98,23 @@ const logout = async (userId) => {
   }
 };
 
+const getGroupsForUser = (userId) => {
+  let groups = [];
+  ad.getGroupMembershipForUser(userId, (err, adGroups) => {
+    if (!err) {
+      groups = adGroups;
+    } else {
+      log("active-directory-manager/getGroupsForUser", err, levels.WARN);
+    }
+  });
+  return groups;
+};
+
 module.exports = {
   authenticate,
   findUserById,
   findUserByName,
   deleteUser,
   logout,
+  getGroupsForUser,
 };

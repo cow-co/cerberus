@@ -58,7 +58,7 @@ describe("AD User Manager Tests", () => {
   test("find user - success", async () => {
     ActiveDirectory.prototype.findUser.mockImplementation(
       (username, callback) =>
-        callback(null, { sn: "123", sAMAccountName: "user" })
+        callback(null, { userPrincipalName: "123", sAMAccountName: "user" })
     );
 
     const res = await adUserManager.findUserByName("user");
@@ -73,14 +73,14 @@ describe("AD User Manager Tests", () => {
 
     const res = await adUserManager.findUserByName("user");
 
-    expect(res).toBe(null);
+    expect(res).toEqual({ id: "", name: "" });
   });
 
   test("delete user - success", async () => {
     await adUserManager.deleteUser("id");
 
     expect(userService.deleteUser).toHaveBeenCalledTimes(1);
-    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
   });
 
   test("logout - success - existing entry", async () => {
@@ -104,5 +104,17 @@ describe("AD User Manager Tests", () => {
     await adUserManager.logout("id");
 
     expect(TokenValidity.create).toHaveBeenCalledTimes(1);
+  });
+
+  test("get groups - success", () => {
+    ActiveDirectory.prototype.getGroupMembershipForUser.mockImplementation(
+      (username, callback) => {
+        callback(null, ["group 1", "group 2"]);
+      }
+    );
+
+    const groups = adUserManager.getGroupsForUser("id");
+
+    expect(groups).toHaveLength(2);
   });
 });

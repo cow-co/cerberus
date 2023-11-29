@@ -4,6 +4,7 @@ const pki = require("../../security/pki");
 const dbManager = require("../../security/database-manager");
 const adManager = require("../../security/active-directory-manager");
 const adminService = require("../../db/services/admin-service");
+const implantService = require("../../db/services/implant-service");
 const userService = require("../../db/services/user-service");
 const jwt = require("jsonwebtoken");
 let accessManager;
@@ -12,8 +13,42 @@ jest.mock("../../security/pki");
 jest.mock("../../security/database-manager");
 jest.mock("../../security/active-directory-manager");
 jest.mock("../../db/services/admin-service");
+jest.mock("../../db/services/implant-service");
 jest.mock("../../db/services/user-service");
 jest.mock("jsonwebtoken");
+
+const implantSearchResults = [
+  {
+    _id: "id1",
+    id: "implant1",
+    readOnlyACGs: ["read1"],
+    operatorACGs: ["operator1"],
+  },
+  {
+    _id: "id2",
+    id: "implant2",
+    readOnlyACGs: ["read1", "read2"],
+    operatorACGs: ["operator2"],
+  },
+  {
+    _id: "id3",
+    id: "implant3",
+    readOnlyACGs: [],
+    operatorACGs: [],
+  },
+  {
+    _id: "id4",
+    id: "implant4",
+    readOnlyACGs: ["read4"],
+    operatorACGs: [],
+  },
+  {
+    _id: "id5",
+    id: "implant5",
+    readOnlyACGs: [],
+    operatorACGs: ["operator5"],
+  },
+];
 
 describe("Access Manager tests", () => {
   afterAll(() => {
@@ -82,7 +117,7 @@ describe("Access Manager tests", () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
     dbManager.authenticate.mockResolvedValue(true);
-    dbManager.findUserByName.mockRejectedValue(new Error("TypeError"));
+    dbManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
 
     let called = false;
     await accessManager.authenticate(
@@ -106,7 +141,7 @@ describe("Access Manager tests", () => {
   });
 
   test("authenticate - failure - exception", async () => {
-    dbManager.authenticate.mockRejectedValue(new Error("TypeError"));
+    dbManager.authenticate.mockRejectedValue(new TypeError("TEST"));
 
     let called = false;
     let resStatus = 200;
@@ -204,102 +239,6 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  test("check admin - success", async () => {
-    dbManager.findUserByName.mockResolvedValue({
-      id: "id",
-      name: "user",
-    });
-    adminService.isUserAdmin.mockResolvedValue(true);
-    let calledNext = false;
-
-    await accessManager.checkAdmin(
-      {
-        data: { userId: "id" },
-      },
-      null,
-      () => {
-        calledNext = true;
-      }
-    );
-
-    expect(calledNext).toBe(true);
-  });
-
-  test("check admin - failure - logged in user does not exist", async () => {
-    dbManager.findUserByName.mockResolvedValue(null);
-    adminService.isUserAdmin.mockResolvedValue(true);
-    let resStatus = 500;
-    let calledNext = false;
-    let res = {};
-
-    await accessManager.checkAdmin(
-      {
-        data: { username: "user" },
-      },
-      {
-        status: (status) => {
-          resStatus = status;
-          return { json: (data) => (res = data) };
-        },
-      },
-      () => {
-        calledNext = true;
-      }
-    );
-
-    expect(resStatus).toBe(403);
-    expect(calledNext).toBe(false);
-    expect(res.errors).toHaveLength(1);
-  });
-
-  test("check admin - failure - user is not admin", async () => {
-    dbManager.findUserByName.mockResolvedValue({
-      id: "id",
-      name: "user",
-    });
-    adminService.isUserAdmin.mockResolvedValue(false);
-    let resStatus = 500;
-    let calledNext = false;
-    let res = {};
-
-    await accessManager.checkAdmin(
-      {
-        data: { userId: "id" },
-      },
-      {
-        status: (status) => {
-          resStatus = status;
-          return { json: (data) => (res = data) };
-        },
-      },
-      () => {
-        calledNext = true;
-      }
-    );
-
-    expect(resStatus).toBe(403);
-    expect(calledNext).toBe(false);
-    expect(res.errors).toHaveLength(1);
-  });
-
-  test("check admin - failure - user not logged in", async () => {
-    let resStatus = 200;
-    let res = {};
-    await accessManager.checkAdmin(
-      { data: {} },
-      {
-        status: (status) => {
-          resStatus = status;
-          return { json: (data) => (res = data) };
-        },
-      },
-      () => {}
-    );
-
-    expect(resStatus).toBe(403);
-    expect(res.errors).toHaveLength(1);
-  });
-
   test("remove user - success", async () => {
     const errors = await accessManager.removeUser("userId");
 
@@ -324,7 +263,7 @@ describe("Access Manager tests", () => {
   });
 
   test("remove user - failure - exception", async () => {
-    dbManager.deleteUser.mockRejectedValue(new Error("TypeError"));
+    dbManager.deleteUser.mockRejectedValue(new TypeError("TEST"));
 
     const errors = await accessManager.removeUser("userId");
 
@@ -361,11 +300,11 @@ describe("Access Manager tests", () => {
     const res = await accessManager.findUserByName("user");
 
     expect(res.errors).toHaveLength(1);
-    expect(res.user).toBe(null);
+    expect(res.user).toEqual({ id: "", name: "" });
   });
 
   test("find user by name - failure - exception", async () => {
-    dbManager.findUserByName.mockRejectedValue(new Error("TypeError"));
+    dbManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
 
     const res = await accessManager.findUserByName("user");
 
@@ -402,11 +341,11 @@ describe("Access Manager tests", () => {
     const res = await accessManager.findUserById("userId");
 
     expect(res.errors).toHaveLength(1);
-    expect(res.user).toBe(null);
+    expect(res.user).toEqual({ id: "", name: "" });
   });
 
   test("find user by ID - failure - exception", async () => {
-    dbManager.findUserById.mockRejectedValue(new Error("TypeError"));
+    dbManager.findUserById.mockRejectedValue(new TypeError("TEST"));
 
     const res = await accessManager.findUserById("userId");
 
@@ -479,7 +418,7 @@ describe("Access Manager tests", () => {
   test("verify token - failure - exception", async () => {
     let called = false;
     let httpStatus = 200;
-    userService.getMinTokenTimestamp.mockRejectedValue(new Error("TypeError"));
+    userService.getMinTokenTimestamp.mockRejectedValue(new TypeError("TEST"));
     jwt.verify.mockReturnValue({ userId: "id", iat: Date.now() });
 
     await accessManager.verifyToken(
@@ -624,5 +563,355 @@ describe("Access Manager tests", () => {
 
     expect(response._id).toBe(null);
     expect(response.errors).toHaveLength(1);
+  });
+
+  test("User authorisation - success - read, admin", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(true);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.READ,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - edit, admin", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(true);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.EDIT,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - read, no ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: [],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.READ,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - read, read-only ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.READ,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - read, operator (no read-only) ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: [],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["operator", "read2"]);
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.READ,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - edit, no ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: [],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.EDIT,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - success - edit, operator ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: [],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "operator"]);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.EDIT,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("User authorisation - failure - read, read-only ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read2"]);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.READ,
+      "id"
+    );
+
+    expect(isPermitted).toBe(false);
+  });
+
+  test("User authorisation - failure - edit, only read-only ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.EDIT,
+      "id"
+    );
+
+    expect(isPermitted).toBe(false);
+  });
+
+  test("User authorisation - failure - edit, operator ACGs", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: ["operator"],
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
+      "implant",
+      accessManager.accessControlType.EDIT,
+      "id"
+    );
+
+    expect(isPermitted).toBe(false);
+  });
+
+  test("User authorisation - failure - throws exception out", async () => {
+    implantService.findImplantById.mockResolvedValue({
+      _id: "implant_id",
+      id: "implant",
+      readOnlyACGs: ["read"],
+      operatorACGs: [],
+    });
+    adminService.isUserAdmin.mockRejectedValue(new TypeError("TEST"));
+
+    expect(
+      async () =>
+        await accessManager.authZCheck(
+          accessManager.operationType.EDIT,
+          accessManager.targetEntityType.IMPLANT,
+          "implant",
+          accessManager.accessControlType.EDIT,
+          "id"
+        )
+    ).rejects.toThrow(TypeError);
+  });
+
+  test("User authorisation - success - operation is on a user entity", async () => {
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.USER,
+      "id",
+      accessManager.accessControlType.EDIT,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
+  test("Implant view filtering - success - admin", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue([]);
+    adminService.isUserAdmin.mockResolvedValue(true);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(5);
+  });
+
+  test("Implant view filtering - success - read access to two implants", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["read1", "read2"]);
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(4); // 1, 2, 3, 5
+  });
+
+  test("Implant view filtering - success - operator access to one implant", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["operator1"]);
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(3); // 1, 3, and 5
+  });
+
+  test("Implant view filtering - success - operator access to some, read on others", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["read1", "operator2"]);
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(4); // 1, 2, 3, and 5
+  });
+
+  test("Implant view filtering - success - user has no groups, can view no-(read-)ACG implants", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue([]);
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(2); // 3 and 5
+  });
+
+  test("Implant view filtering - failure - exception", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["read", "read2"]);
+    adminService.isUserAdmin.mockRejectedValue(new TypeError("TEST"));
+
+    expect(
+      async () =>
+        await accessManager.filterImplantsForView(
+          implantSearchResults,
+          "userId"
+        )
+    ).rejects.toThrow(TypeError);
+  });
+
+  test("Get user groups - success - DB Backed", async () => {
+    dbManager.getGroupsForUser.mockResolvedValue(["read1", "operator2"]);
+
+    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+
+    expect(groups).toHaveLength(2);
+    expect(errors).toHaveLength(0);
+  });
+
+  test("Get user groups - success - AD Backed", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    adManager.getGroupsForUser.mockResolvedValue(["read1", "operator2"]);
+
+    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+
+    expect(groups).toHaveLength(2);
+    expect(errors).toHaveLength(0);
+  });
+
+  test("Get user groups - failure - Fake auth method", async () => {
+    securityConfig.authMethod = "FAKE";
+    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+
+    expect(groups).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+  });
+
+  test("Get user groups - failure - exception", async () => {
+    dbManager.getGroupsForUser.mockRejectedValue(new TypeError("TEST"));
+
+    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+
+    expect(groups).toHaveLength(0);
+    expect(errors).toHaveLength(1);
   });
 });

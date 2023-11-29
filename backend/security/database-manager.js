@@ -99,8 +99,10 @@ const logout = async (userId) => {
  */
 const deleteUser = async (userId) => {
   log("database-manager/deleteUser", `Deleting user ${userId}`, levels.DEBUG);
-  await userService.deleteUser(userId);
-  await adminService.removeAdmin(userId);
+  if (userId) {
+    await userService.deleteUser(userId);
+    await adminService.changeAdminStatus(userId, false);
+  }
 };
 
 /**
@@ -108,21 +110,26 @@ const deleteUser = async (userId) => {
  * @returns null, if the user is not found
  */
 const findUserById = async (userId) => {
-  log("database-manager/findUserById", `Fidning user ${userId}`, levels.DEBUG);
+  log("database-manager/findUserById", `Finding user ${userId}`, levels.DEBUG);
   const user = await userService.findUserById(userId);
   if (!user) {
-    return null;
+    return {
+      id: "",
+      name: "",
+      acgs: [],
+    };
   } else {
     return {
       id: user._id,
       name: user.name,
+      acgs: user.acgs,
     };
   }
 };
 
 /**
  * @param {string} username
- * @returns null, if the user is not found
+ * @returns The user object, with ID, name, and ACG list. These are all *empty* if the user does not exist.
  */
 const findUserByName = async (username) => {
   log(
@@ -132,13 +139,36 @@ const findUserByName = async (username) => {
   );
   const user = await userService.findUserByName(username);
   if (!user) {
-    return null;
+    return {
+      id: "",
+      name: "",
+      acgs: [],
+    };
   } else {
     return {
       id: user._id,
       name: user.name,
+      acgs: user.acgs,
     };
   }
+};
+
+const isUserInGroup = async (userId, acgId) => {
+  let isInGroup = false;
+  const user = await findUserById(userId);
+  if (user) {
+    isInGroup = user.acgs.find((id) => id === acgId) !== undefined;
+  }
+  return isInGroup;
+};
+
+const getGroupsForUser = async (userId) => {
+  let acgs = [];
+  const user = await findUserById(userId);
+  if (user && user.acgs) {
+    acgs = user.acgs;
+  }
+  return acgs;
 };
 
 module.exports = {
@@ -148,4 +178,6 @@ module.exports = {
   deleteUser,
   findUserById,
   findUserByName,
+  isUserInGroup,
+  getGroupsForUser,
 };

@@ -150,7 +150,7 @@ describe("Database user manager tests", () => {
 
     const user = await manager.findUserById("id");
 
-    expect(user).toBeNull();
+    expect(user).toEqual({ id: "", name: "", acgs: [] });
   });
 
   test("find user by name - success - user found", async () => {
@@ -168,7 +168,7 @@ describe("Database user manager tests", () => {
 
     const user = await manager.findUserByName("user");
 
-    expect(user).toBeNull();
+    expect(user).toEqual({ id: "", name: "", acgs: [] });
   });
 
   test("logout - success", async () => {
@@ -177,10 +177,102 @@ describe("Database user manager tests", () => {
     expect(TokenValidity.create).toHaveBeenCalledTimes(1);
   });
 
+  test("logout - success - validity entry exists", async () => {
+    let newTimestamp = 0;
+    TokenValidity.findOne.mockResolvedValue({
+      minTokenValidity: 100,
+      save: async function () {
+        newTimestamp = this.minTokenValidity;
+      },
+    });
+
+    await manager.logout("id");
+
+    expect(TokenValidity.create).toHaveBeenCalledTimes(0);
+    expect(newTimestamp).toBeGreaterThan(100);
+  });
+
   test("delete user - success", async () => {
     await manager.deleteUser("id");
 
     expect(userService.deleteUser).toHaveBeenCalledTimes(1);
-    expect(adminService.removeAdmin).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
+  });
+
+  test("check group membership - success", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: ["acg1"],
+    });
+
+    const isInGroup = await manager.isUserInGroup("id", "acg1");
+
+    expect(isInGroup).toBe(true);
+  });
+
+  test("check group membership - success - multiple groups on user", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: ["acg1", "acg2", "acg3"],
+    });
+
+    const isInGroup = await manager.isUserInGroup("id", "acg2");
+
+    expect(isInGroup).toBe(true);
+  });
+
+  test("check group membership - failure", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: ["acg1"],
+    });
+
+    const isInGroup = await manager.isUserInGroup("id", "acg2");
+
+    expect(isInGroup).toBe(false);
+  });
+
+  test("Get groups - success - empty ACG array", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: [],
+    });
+
+    const acgs = await manager.getGroupsForUser("_id");
+
+    expect(acgs).toHaveLength(0);
+  });
+
+  test("Get groups - success - undefined array", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+    });
+
+    const acgs = await manager.getGroupsForUser("_id");
+
+    expect(acgs).toHaveLength(0);
+  });
+
+  test("Get groups - success - populated array", async () => {
+    userService.findUserById.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "hashId",
+      acgs: ["read", "operate"],
+    });
+
+    const acgs = await manager.getGroupsForUser("_id");
+
+    expect(acgs).toHaveLength(2);
   });
 });
