@@ -141,6 +141,13 @@ describe("Access tests", () => {
     expect(accessManager.logout).toHaveBeenCalledTimes(1);
   });
 
+  test("logout - failure - logging a different user out", async () => {
+    const res = await agent.delete("/api/access/logout/id2");
+
+    expect(res.statusCode).toBe(403);
+    expect(accessManager.logout).toHaveBeenCalledTimes(0);
+  });
+
   test("logout - failure - exception thrown", async () => {
     accessManager.logout.mockRejectedValue(new TypeError("TEST"));
 

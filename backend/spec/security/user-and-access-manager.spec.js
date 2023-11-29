@@ -792,6 +792,20 @@ describe("Access Manager tests", () => {
     ).rejects.toThrow(TypeError);
   });
 
+  test("User authorisation - success - operation is on a user entity", async () => {
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.USER,
+      "id",
+      accessManager.accessControlType.EDIT,
+      "id"
+    );
+
+    expect(isPermitted).toBe(true);
+  });
+
   test("Implant view filtering - success - admin", async () => {
     dbManager.getGroupsForUser.mockResolvedValue([]);
     adminService.isUserAdmin.mockResolvedValue(true);

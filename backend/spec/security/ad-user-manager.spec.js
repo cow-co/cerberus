@@ -105,4 +105,16 @@ describe("AD User Manager Tests", () => {
 
     expect(TokenValidity.create).toHaveBeenCalledTimes(1);
   });
+
+  test("get groups - success", () => {
+    ActiveDirectory.prototype.getGroupMembershipForUser.mockImplementation(
+      (username, callback) => {
+        callback(null, ["group 1", "group 2"]);
+      }
+    );
+
+    const groups = adUserManager.getGroupsForUser("id");
+
+    expect(groups).toHaveLength(2);
+  });
 });
