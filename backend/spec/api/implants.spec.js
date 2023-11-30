@@ -144,6 +144,19 @@ describe("Implant API Tests", () => {
     expect(res.statusCode).toBe(500);
   });
 
+  test("get all implants - failure - errors returned", async () => {
+    accessManager.filterImplantsForView.mockResolvedValue({
+      groups: [],
+      errors: ["error"],
+    });
+
+    const res = await agent.get("/api/implants");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.implants).toHaveLength(0);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
   test("delete implant - success", async () => {
     implantService.findImplantById.mockResolvedValue({
       _id: "_id1",

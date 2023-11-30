@@ -424,6 +424,7 @@ const getGroupsForUser = async (userId) => {
       groups = await adUserManager.getGroupsForUser(userId);
       break;
 
+    // TODO Perhaps make this into an exception instead (something like BadConfigError) and throw instead of returning error array
     default:
       log(
         "user-and-access-manager/getGroupsForUser",

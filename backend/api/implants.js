@@ -6,6 +6,7 @@ const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
 // TODO decide how we will handle adding/removing ACGs to/from implants in the UI
+// TODO Standardise naming on the variables like responses/statuses that we use in every endpoint
 
 /**
  * Retrieves all the implants that the user is authorised to view.
@@ -13,7 +14,7 @@ const { log, levels } = require("../utils/logger");
 router.get("", accessManager.verifyToken, async (req, res) => {
   log("GET /implants/", "Request to get all implants", levels.DEBUG);
   let responseJSON = {
-    implants: null,
+    implants: [],
     errors: [],
   };
   let status = statusCodes.OK;

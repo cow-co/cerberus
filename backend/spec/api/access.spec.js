@@ -200,6 +200,19 @@ describe("Access tests", () => {
 
     expect(res.statusCode).toBe(400);
     expect(accessManager.findUserById).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(0);
+  });
+
+  test("add admin - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent
+      .put("/api/access/admin")
+      .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
+
+    expect(res.statusCode).toBe(403);
+    expect(accessManager.findUserById).toHaveBeenCalledTimes(0);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(0);
   });
 
   test("add admin - failure - exception thrown", async () => {
@@ -227,6 +240,17 @@ describe("Access tests", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.implant.readOnlyACGs).toHaveLength(1);
     expect(res.body.implant.operatorACGs).toHaveLength(1);
+  });
+
+  test("update implant ACGs - failure - not found", async () => {
+    implantService.updateACGs.mockResolvedValue(null);
+
+    const res = await agent
+      .post("/api/access/implants/implantId/acgs")
+      .send({ readOnlyACGs: ["group1"], operatorACGs: ["group2"] });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.errors).toHaveLength(1);
   });
 
   test("update implant ACGs - failure - unauthorised", async () => {
