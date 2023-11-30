@@ -149,6 +149,15 @@ router.put("/admin", accessManager.verifyToken, async (req, res) => {
         status = statusCodes.BAD_REQUEST;
         response.errors.push("User not found");
       }
+    } else {
+      status = statusCodes.FORBIDDEN;
+      response.errors.push("Not authorised to change admin status");
+
+      log(
+        "PUT /access/admin",
+        `Non-admin user ${req.data.userId} attempted to change admin status`,
+        levels.SECURITY
+      );
     }
   } catch (err) {
     log("PUT /access/admin", err, levels.ERROR);
@@ -204,6 +213,15 @@ router.post(
           status = statusCodes.BAD_REQUEST;
           response.errors.push("Could not find implant");
         }
+      } else {
+        status = statusCodes.FORBIDDEN;
+        response.errors.push("Not authorised to update ACGs");
+
+        log(
+          `POST /access/implants/${implantId}/acgs`,
+          `Non-admin user ${req.data.userId} attempted to change ACGs`,
+          levels.SECURITY
+        );
       }
     } catch (err) {
       log(`POST /access/implants/${implantId}/acgs`, err, levels.ERROR);

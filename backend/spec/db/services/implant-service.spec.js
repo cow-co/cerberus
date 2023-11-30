@@ -132,4 +132,28 @@ describe("Implant service tests", () => {
     expect(updates.id2).toBe(false);
     expect(updates.id3).toBe(false);
   });
+
+  test("Update ACGs", async () => {
+    let called = false;
+    Implant.findOne.mockResolvedValue({
+      _id: "id",
+      id: "implantId",
+      readOnlyACGs: ["group 1"],
+      operatorACGs: ["group 2"],
+      save: async function () {
+        called = true;
+      },
+    });
+
+    const result = await implantService.updateACGs(
+      "implantId",
+      ["group 3"],
+      ["group 2", "group 4"]
+    );
+
+    expect(result.readOnlyACGs).toHaveLength(1);
+    expect(result.operatorACGs).toHaveLength(2);
+    expect(result.readOnlyACGs[0]).toBe("group 3");
+    expect(called).toBe(true);
+  });
 });
