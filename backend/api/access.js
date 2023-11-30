@@ -5,8 +5,6 @@ const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
-// TODO Also perhaps a neatening-up pass on all the code throughout the backend, to get things a bit more shipshape
-
 /**
  * Expects request body to contain:
  * - username {String}

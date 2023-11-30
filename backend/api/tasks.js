@@ -143,7 +143,7 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
     if (isAuthed) {
       const validationResult = await validateTask(req.body);
       if (validationResult.isValid) {
-        error = await tasksService.setTask(req.body); // TODO May be worth recursively sanitising the body down to just strings/ints/bools and objects built from such.
+        error = await tasksService.setTask(req.body);
         if (error) {
           log("POST /tasks", error, levels.WARN);
           returnStatus = statusCodes.BAD_REQUEST;
@@ -180,7 +180,7 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
   let returnStatus = statusCodes.OK;
 
   try {
-    const task = await tasksService.getTaskById(taskId); // TODO Is there a security risk in exposing the fact that the task does/doesn't exist, to unauthorised people?
+    const task = await tasksService.getTaskById(taskId);
 
     if (task) {
       const isAuthed = await accessManager.authZCheck(

@@ -116,14 +116,15 @@ describe("Access Manager tests", () => {
   test("authenticate - failure - PKI, user does not exist", async () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
-    dbManager.authenticate.mockResolvedValue(true);
-    dbManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
+    dbManager.authenticate.mockResolvedValue(false);
 
     let called = false;
+    let stat = 200;
     await accessManager.authenticate(
       {},
       {
         status: (status) => {
+          stat = status;
           return {
             json: (data) => {
               called = true;
@@ -135,6 +136,7 @@ describe("Access Manager tests", () => {
     );
 
     expect(called).toBe(true);
+    expect(stat).toBe(401);
     expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
     expect(dbManager.authenticate).toHaveBeenCalledTimes(1);
     expect(jwt.sign).toHaveBeenCalledTimes(0);
@@ -265,9 +267,9 @@ describe("Access Manager tests", () => {
   test("remove user - failure - exception", async () => {
     dbManager.deleteUser.mockRejectedValue(new TypeError("TEST"));
 
-    const errors = await accessManager.removeUser("userId");
-
-    expect(errors).toHaveLength(1);
+    expect(
+      async () => await accessManager.removeUser("userId")
+    ).rejects.toThrow(TypeError);
   });
 
   test("find user by name - success - DB", async () => {
@@ -306,9 +308,9 @@ describe("Access Manager tests", () => {
   test("find user by name - failure - exception", async () => {
     dbManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
 
-    const res = await accessManager.findUserByName("user");
-
-    expect(res.errors).toHaveLength(1);
+    expect(
+      async () => await accessManager.findUserByName("user")
+    ).rejects.toThrow(TypeError);
   });
 
   test("find user by ID - success - DB", async () => {
@@ -347,9 +349,9 @@ describe("Access Manager tests", () => {
   test("find user by ID - failure - exception", async () => {
     dbManager.findUserById.mockRejectedValue(new TypeError("TEST"));
 
-    const res = await accessManager.findUserById("userId");
-
-    expect(res.errors).toHaveLength(1);
+    expect(
+      async () => await accessManager.findUserById("userId")
+    ).rejects.toThrow(TypeError);
   });
 
   test("verify token - success - no PKI", async () => {
@@ -909,9 +911,8 @@ describe("Access Manager tests", () => {
   test("Get user groups - failure - exception", async () => {
     dbManager.getGroupsForUser.mockRejectedValue(new TypeError("TEST"));
 
-    const { groups, errors } = await accessManager.getGroupsForUser("userId");
-
-    expect(groups).toHaveLength(0);
-    expect(errors).toHaveLength(1);
+    expect(
+      async () => await accessManager.getGroupsForUser("userId")
+    ).rejects.toThrow(TypeError);
   });
 });

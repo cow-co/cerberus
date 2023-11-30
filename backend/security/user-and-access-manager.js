@@ -32,7 +32,6 @@ const targetEntityType = {
 
 /**
  * Basically checks the provided credentials
- * TODO Should probably neaten this up
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @param {function} next
@@ -96,6 +95,7 @@ const authenticate = async (req, res, next) => {
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }
 
+  // TODO Possibly split this block and the section above into separate functions, called from authenticate()
   if (!authenticated && errors.length === 0) {
     log(
       "user-and-access-manager/authenticate",
@@ -293,38 +293,32 @@ const removeUser = async (userId) => {
 
   let errors = [];
 
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        await dbUserManager.deleteUser(userId);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        log(
-          "removeUser",
-          "Cannot remove a user when backed by Active Directory. However, the user will be removed from the admins list, if they are on it.",
-          levels.WARN
-        );
+  switch (securityConfig.authMethod) {
+    case securityConfig.availableAuthMethods.DB:
+      await dbUserManager.deleteUser(userId);
+      break;
+    case securityConfig.availableAuthMethods.AD:
+      log(
+        "removeUser",
+        "Cannot remove a user when backed by Active Directory. However, the user will be removed from the admins list, if they are on it.",
+        levels.WARN
+      );
 
-        adUserManager.deleteUser(userId);
-        errors.push(
-          "You cannot entirely remove users provided by Active Directory, but the user has been removed as admin."
-        );
-        break;
+      adUserManager.deleteUser(userId);
+      errors.push(
+        "You cannot entirely remove users provided by Active Directory, but the user has been removed as admin."
+      );
+      break;
 
-      default:
-        log(
-          "removeUser",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
+    default:
+      log(
+        "removeUser",
+        `Auth method ${securityConfig.authMethod} not supported`,
+        levels.ERROR
+      );
 
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("removeUser", err, levels.ERROR);
-
-    errors.push("Internal Server Error");
+      errors.push("Internal Server Error");
+      break;
   }
 
   return errors;
@@ -344,29 +338,23 @@ const findUserByName = async (username) => {
   let errors = [];
   let user = { id: "", name: "" };
 
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        user = await dbUserManager.findUserByName(username);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        user = await adUserManager.findUserByName(username);
-        break;
+  switch (securityConfig.authMethod) {
+    case securityConfig.availableAuthMethods.DB:
+      user = await dbUserManager.findUserByName(username);
+      break;
+    case securityConfig.availableAuthMethods.AD:
+      user = await adUserManager.findUserByName(username);
+      break;
 
-      default:
-        log(
-          "user-and-access-manager/findUserByName",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
+    default:
+      log(
+        "user-and-access-manager/findUserByName",
+        `Auth method ${securityConfig.authMethod} not supported`,
+        levels.ERROR
+      );
 
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("user-and-access-manager/findUserByName", err, levels.ERROR);
-
-    errors.push("Internal Server Error");
+      errors.push("Internal Server Error");
+      break;
   }
 
   return {
@@ -392,30 +380,24 @@ const findUserById = async (userId) => {
     name: "",
   };
 
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        user = await dbUserManager.findUserById(userId);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        user = await adUserManager.findUserById(userId);
-        break;
+  switch (securityConfig.authMethod) {
+    case securityConfig.availableAuthMethods.DB:
+      user = await dbUserManager.findUserById(userId);
+      break;
+    case securityConfig.availableAuthMethods.AD:
+      user = await adUserManager.findUserById(userId);
+      break;
 
-      default:
-        log(
-          "user-and-access-manager/findUserById",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
+    default:
+      log(
+        "user-and-access-manager/findUserById",
+        `Auth method ${securityConfig.authMethod} not supported`,
+        levels.ERROR
+      );
 
-        console.log(JSON.stringify(user));
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("user-and-access-manager/findUserById", err, levels.ERROR);
-
-    errors.push("Internal Server Error");
+      console.log(JSON.stringify(user));
+      errors.push("Internal Server Error");
+      break;
   }
 
   return {
@@ -424,8 +406,9 @@ const findUserById = async (userId) => {
   };
 };
 
+// TODO Standardise dealing with exceptions (catch them high up in the chain (eg in the API functions) to retain the information of where the calls came from)
+
 /**
- * TODO Should probably just allow the exception to throw out, rather than catching it here. Provides consistency with the other authz functions
  * @param {String} userId ID (either database ID, or UPN for active directory) of user
  * @returns Object: {errors, groups}
  */
@@ -433,29 +416,23 @@ const getGroupsForUser = async (userId) => {
   let errors = [];
   let groups = [];
 
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        groups = await dbUserManager.getGroupsForUser(userId);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        groups = await adUserManager.getGroupsForUser(userId);
-        break;
+  switch (securityConfig.authMethod) {
+    case securityConfig.availableAuthMethods.DB:
+      groups = await dbUserManager.getGroupsForUser(userId);
+      break;
+    case securityConfig.availableAuthMethods.AD:
+      groups = await adUserManager.getGroupsForUser(userId);
+      break;
 
-      default:
-        log(
-          "user-and-access-manager/getGroupsForUser",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
+    default:
+      log(
+        "user-and-access-manager/getGroupsForUser",
+        `Auth method ${securityConfig.authMethod} not supported`,
+        levels.ERROR
+      );
 
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("user-and-access-manager/getGroupsForUser", err, levels.ERROR);
-
-    errors.push("Internal Server Error");
+      errors.push("Internal Server Error");
+      break;
   }
 
   return {
