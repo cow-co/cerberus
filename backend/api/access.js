@@ -4,6 +4,7 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
+const implantService = require("../db/services/implant-service");
 
 /**
  * Expects request body to contain:
@@ -158,5 +159,61 @@ router.put("/admin", accessManager.verifyToken, async (req, res) => {
 
   res.status(status).json(response);
 });
+
+router.post(
+  "/implants/:implantId/acgs",
+  accessManager.verifyToken,
+  async (req, res) => {
+    const implantId = req.paramString("implantId");
+
+    log(
+      `POST /access/implants/${implantId}/acgs`,
+      `Updating the ACGs for implant ${implantId}`,
+      levels.INFO
+    );
+
+    let status = statusCodes.OK;
+    let response = {
+      implant: {},
+      errors: [],
+    };
+
+    try {
+      const permitted = await accessManager.authZCheck(
+        accessManager.operationType.EDIT,
+        accessManager.targetEntityType.IMPLANT,
+        implantId,
+        accessManager.accessControlType.ADMIN,
+        req.data.userId
+      );
+      if (permitted) {
+        const updated = await implantService.updateACGs(
+          implantId,
+          req.body.readOnlyACGs,
+          req.body.operatorACGs
+        );
+        if (updated) {
+          response.implant = updated;
+        } else {
+          log(
+            `POST /access/implants/${implantId}/acgs`,
+            `Implant ${implantId} not found`,
+            levels.WARN
+          );
+
+          status = statusCodes.BAD_REQUEST;
+          response.errors.push("Could not find implant");
+        }
+      }
+    } catch (err) {
+      log(`POST /access/implants/${implantId}/acgs`, err, levels.ERROR);
+
+      response.errors = ["Internal Server Error"];
+      status = statusCodes.INTERNAL_SERVER_ERROR;
+    }
+
+    res.status(status).json(response);
+  }
+);
 
 module.exports = router;
