@@ -55,6 +55,12 @@ describe("Implant service tests", () => {
     expect(imp.lastCheckinTime).toBe(1);
   });
 
+  test("find implant - failure - no ID provided", async () => {
+    const imp = await implantService.findImplantById("");
+
+    expect(imp).toBe(null);
+  });
+
   test("get all implants - success", async () => {
     Implant.find.mockResolvedValue([
       {

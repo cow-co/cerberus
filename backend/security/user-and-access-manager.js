@@ -119,6 +119,8 @@ const authenticate = async (req, res, next) => {
     res.status(status).json({ errors });
   } else {
     req.data = {};
+    // TODO Perhaps call this at the top of the function, and kick out early if user does not exist
+    //  Perhaps the user details should be returned from the AD/DB auth functions, since those will need to check user-existence at least, anyway.
     const result = await findUserByName(username);
     if (result.errors.length > 0) {
       res.status(status).json({ errors });
@@ -130,7 +132,7 @@ const authenticate = async (req, res, next) => {
       const token = jwt.sign(
         {
           userId: req.data.id,
-          username: req.data.username,
+          username: req.data.username, // TODO Are these (name and isAdmin) ever actually used from the token? isAdmin shouldn't be!
           isAdmin: req.data.isAdmin,
           iat: Date.now(), // Default IAT is in seconds, which not match with the timestamps we use elsewhere
         },
@@ -187,6 +189,7 @@ const verifyToken = async (req, res, next) => {
         res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
       }
     } catch (err) {
+      console.log(JSON.stringify(err));
       if (
         err.name === "TokenExpiredError" ||
         err.name === "JsonWebTokenError" ||
@@ -223,6 +226,7 @@ const logout = async (userId) => {
     case securityConfig.availableAuthMethods.AD:
       await adUserManager.logout(userId); // Actually is the user ID
       break;
+    // TODO fill this out (throw an exception, or maybe delegate to the db manager as a default?)
     default:
       break;
   }
@@ -406,8 +410,6 @@ const findUserById = async (userId) => {
   };
 };
 
-// TODO Standardise dealing with exceptions (catch them high up in the chain (eg in the API functions) to retain the information of where the calls came from)
-
 /**
  * @param {String} userId ID (either database ID, or UPN for active directory) of user
  * @returns Object: {errors, groups}
@@ -425,6 +427,7 @@ const getGroupsForUser = async (userId) => {
       break;
 
     // TODO Perhaps make this into an exception instead (something like BadConfigError) and throw instead of returning error array
+    //  That will make things more consistent in terms of server errors being raised as exceptions and user errors being returned in error arrays
     default:
       log(
         "user-and-access-manager/getGroupsForUser",
@@ -471,7 +474,7 @@ const filterImplantsForView = async (implants, userId) => {
         }
       });
     } else {
-      errors = groupsResult.errors;
+      errors = groupsResult.errors; // TODO Test this
     }
   }
 
@@ -566,6 +569,7 @@ const authZCheck = async (
           targetEntityId
         );
         break;
+      // TODO Test; to ensure that misconfigured calls to this function will return false (fail secure)
       default:
         break;
     }

@@ -23,3 +23,9 @@ These represent database-backed resources.
 ### Data Transfer Objects (DTOs)
 
 These are the forms of object that will be sent around over the network. These may often differ from their equivalent entity, by addition or omission of certain fields, formatting of certain fields, or simply because there is no corresponding entity (in the case of the `beacon` for example).
+
+## Testing
+
+Tests will be written to cover the backend. These tests will aim to cover everything that is non-trivial and of consequence (excpetion paths, error paths, happy paths). Coverage will not be used as a thresholding metric, but will be used as an indicator for where to focus attention on.
+
+Frontend tests will not be written, since I do not think the tradeoff of time vs benefit is worth it.

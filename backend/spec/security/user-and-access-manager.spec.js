@@ -113,6 +113,34 @@ describe("Access Manager tests", () => {
     expect(jwt.sign).toHaveBeenCalledTimes(1);
   });
 
+  test("authenticate - failure - user somehow deleted between creds check and ", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    adManager.authenticate.mockResolvedValue(true);
+    adManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    let called = false;
+    await accessManager.authenticate(
+      {
+        body: {
+          username: "user",
+          password: "pass",
+        },
+      },
+      null,
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBe(true);
+    expect(adManager.authenticate).toHaveBeenCalledTimes(1);
+    expect(jwt.sign).toHaveBeenCalledTimes(1);
+  });
+
   test("authenticate - failure - PKI, user does not exist", async () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
@@ -452,6 +480,46 @@ describe("Access Manager tests", () => {
     expect(jwt.verify).toHaveBeenCalledTimes(1);
     expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(1);
     expect(httpStatus).toBe(500);
+  });
+
+  test("verify token - failure - JWT exception", async () => {
+    let called = false;
+    let httpStatus = 200;
+    jwt.verify.mockImplementation((token, secret) => {
+      let error = new Error("TEST");
+      error.name = "JsonWebTokenError";
+      throw error;
+    });
+
+    await accessManager.verifyToken(
+      {
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer aaabbbccc",
+        },
+        headerString: function (header) {
+          return this.headers[header];
+        },
+      },
+      {
+        status: (statusCode) => {
+          httpStatus = statusCode;
+          return {
+            json: (data) => {
+              called = true;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBe(true);
+    expect(jwt.verify).toHaveBeenCalledTimes(1);
+    expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(0);
+    expect(httpStatus).toBe(403);
   });
 
   test("verify token - failure", async () => {
