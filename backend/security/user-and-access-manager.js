@@ -36,6 +36,7 @@ const targetEntityType = {
  * @param {import("express").Response} res
  * @param {function} next
  */
+// TODO We must ensure that the existing token is removed, if it exists!
 const authenticate = async (req, res, next) => {
   log(
     "user-and-access-manager/authenticate",
@@ -131,7 +132,7 @@ const authenticate = async (req, res, next) => {
 
       const token = jwt.sign(
         {
-          userId: req.data.id,
+          userId: req.data.userId,
           username: req.data.username, // TODO Are these (name and isAdmin) ever actually used from the token? isAdmin shouldn't be!
           isAdmin: req.data.isAdmin,
           iat: Date.now(), // Default IAT is in seconds, which not match with the timestamps we use elsewhere
@@ -173,6 +174,7 @@ const verifyToken = async (req, res, next) => {
       );
 
       if (minTimestamp < payload.iat) {
+        console.log(`Payload ${JSON.stringify(payload)}`)
         req.data = {};
         req.data.userId = payload.userId;
         req.data.username = payload.username;
@@ -255,7 +257,7 @@ const register = async (username, password) => {
   };
 
   if (
-    !user &&
+    !user.id &&
     securityConfig.authMethod === securityConfig.availableAuthMethods.DB
   ) {
     const createdUser = await dbUserManager.register(
@@ -265,7 +267,7 @@ const register = async (username, password) => {
     );
     response._id = createdUser.userId;
     response.errors = createdUser.errors;
-  } else if (!user) {
+  } else if (!user.id) {
     log(
       "user-and-access-manager/register",
       `Cannot register users from CERBERUS when using the ${securityConfig.authMethod} auth method`,

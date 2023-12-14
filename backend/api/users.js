@@ -97,10 +97,13 @@ router.get("/whoami", accessManager.verifyToken, async (req, res) => {
   log("GET /users/whoami", "Checking user status...", levels.DEBUG);
   let response = {};
   let status = statusCodes.OK;
+  console.log(JSON.stringify(req.data))
 
   try {
     const { user } = await accessManager.findUserById(req.data.userId);
     const isAdmin = await adminService.isUserAdmin(req.data.userId);
+
+    console.log(JSON.stringify(user));
 
     status = statusCodes.OK;
     response = {

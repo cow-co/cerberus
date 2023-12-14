@@ -1,8 +1,7 @@
 import { AppBar, Toolbar, Button, Typography, Link } from "@mui/material";
-import { checkSessionCookie, logout } from "../../common/apiCalls";
-import { setIsAdmin, setUsername } from "../../common/redux/users-slice";
+import { checkToken, logout } from "../../common/apiCalls";
+import { setIsAdmin, setUsername, setToken } from "../../common/redux/users-slice";
 import { useDispatch, useSelector } from "react-redux";
-import Cookies from "js-cookie";
 import { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
@@ -15,12 +14,12 @@ const HeaderBar = (props) => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const res = await checkSessionCookie();
+      const res = await checkToken();
       if (res.errors.length > 0) {
         createErrorAlert(res.errors);
       } else {
-        dispatch(setUsername(res.username));
-        dispatch(setIsAdmin(res.isAdmin));
+        dispatch(setUsername(res.user.name));
+        dispatch(setIsAdmin(res.user.isAdmin));
       }      
     }
     checkSession();
@@ -35,8 +34,9 @@ const HeaderBar = (props) => {
       createSuccessAlert("Successfully logged out");
       dispatch(setUsername(""));
       dispatch(setIsAdmin(false));
+      dispatch(setToken(""));
       dispatch(setImplants([]));
-      Cookies.remove("connect.sid");
+      localStorage.removeItem("token");
     }
   }
 
