@@ -174,7 +174,6 @@ const verifyToken = async (req, res, next) => {
       );
 
       if (minTimestamp < payload.iat) {
-        console.log(`Payload ${JSON.stringify(payload)}`)
         req.data = {};
         req.data.userId = payload.userId;
         req.data.username = payload.username;
@@ -191,7 +190,6 @@ const verifyToken = async (req, res, next) => {
         res.status(statusCodes.FORBIDDEN).json({ errors: ["Invalid token"] });
       }
     } catch (err) {
-      console.log(JSON.stringify(err));
       if (
         err.name === "TokenExpiredError" ||
         err.name === "JsonWebTokenError" ||
@@ -401,7 +399,6 @@ const findUserById = async (userId) => {
         levels.ERROR
       );
 
-      console.log(JSON.stringify(user));
       errors.push("Internal Server Error");
       break;
   }

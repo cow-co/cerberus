@@ -601,7 +601,7 @@ describe("Access Manager tests", () => {
   });
 
   test("register - success", async () => {
-    dbManager.findUserByName.mockResolvedValue(null);
+    dbManager.findUserByName.mockResolvedValue({id: "", name: ""});
     dbManager.register.mockResolvedValue({
       userId: "id",
       errors: [],
@@ -615,7 +615,7 @@ describe("Access Manager tests", () => {
 
   test("register - failure - AD", async () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.findUserByName.mockResolvedValue(null);
+    adManager.findUserByName.mockResolvedValue({id: "", name: ""});
 
     const response = await accessManager.register("user", "pass");
 
@@ -625,8 +625,9 @@ describe("Access Manager tests", () => {
 
   test("register - failure - user exists", async () => {
     dbManager.findUserByName.mockResolvedValue({
-      _id: "id",
+      id: "id",
       name: "user",
+      acgs: []
     });
 
     const response = await accessManager.register("user", "pass");
