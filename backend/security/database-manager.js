@@ -177,6 +177,10 @@ const getAllGroups = async () => {
   return acgs;
 }
 
+const createGroup = async (name) => {
+  await acgService.createACG(name);
+}
+
 module.exports = {
   register,
   authenticate,
@@ -187,4 +191,5 @@ module.exports = {
   isUserInGroup,
   getGroupsForUser,
   getAllGroups,
+  createGroup,
 };

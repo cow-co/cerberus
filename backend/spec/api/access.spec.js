@@ -274,4 +274,70 @@ describe("Access tests", () => {
     expect(res.statusCode).toBe(500);
     expect(res.body.errors).toHaveLength(1);
   });
+
+  test("create ACG - success", async () => {
+    accessManager.createGroup.mockResolvedValue([]);
+
+    const res = await agent
+      .put("/api/access/acgs")
+      .send({ name: "acg" });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.errors).toHaveLength(0);
+  });
+
+  test("create ACG - failure - ACG creation error", async () => {
+    accessManager.createGroup.mockResolvedValue(["Test error"]);
+
+    const res = await agent
+      .put("/api/access/acgs")
+      .send({ name: "acg" });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("create ACG - failure - exception", async () => {
+    accessManager.createGroup.mockRejectedValue(new TypeError("TEST"))
+
+    const res = await agent
+      .put("/api/access/acgs")
+      .send({ name: "acg" });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("get all ACGs - success", async () => {
+    accessManager.getAllGroups.mockResolvedValue({errors: [], groups: ["group"]});
+
+    const res = await agent
+      .get("/api/access/acgs");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.errors).toHaveLength(0);
+    expect(res.body.groups).toHaveLength(1);
+  });
+
+  test("get all ACGs - failure - query errors", async () => {
+    accessManager.getAllGroups.mockResolvedValue({errors: ["Test Error"], groups: []});
+
+    const res = await agent
+      .get("/api/access/acgs");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+    expect(res.body.groups).toHaveLength(0);
+  });
+
+  test("get all ACGs - failure - exception", async () => {
+    accessManager.getAllGroups.mockRejectedValue(new TypeError("TEST"));
+
+    const res = await agent
+      .get("/api/access/acgs");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+    expect(res.body.groups).toHaveLength(0);
+  });
 });

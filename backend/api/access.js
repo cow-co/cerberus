@@ -256,7 +256,17 @@ router.put("/acgs", accessManager.verifyToken, async (req, res) => {
     );
 
     if (permitted) {
-      // TODO THIS
+      response.errors = await accessManager.createGroup(req.bodyString("name"));
+
+      if (response.errors.length > 0) {
+        log(
+          "PUT /acgs",
+          JSON.stringify(response.errors),
+          levels.WARN
+        );
+
+        status = statusCodes.INTERNAL_SERVER_ERROR;
+      }
     } else {
       status = statusCodes.FORBIDDEN;
       response.errors.push("Not authorised to update ACGs");
@@ -301,6 +311,15 @@ router.get("/acgs", accessManager.verifyToken, async (req, res) => {
 
     if (permitted) {
       response = await accessManager.getAllGroups();
+      if (response.errors.length > 0) {
+        log(
+          "GET /acgs",
+          JSON.stringify(response.errors),
+          levels.WARN
+        );
+
+        status = statusCodes.INTERNAL_SERVER_ERROR;
+      }
     } else {
       status = statusCodes.FORBIDDEN;
       response.errors.push("Not authorised to list ACGs");
@@ -320,5 +339,50 @@ router.get("/acgs", accessManager.verifyToken, async (req, res) => {
 
   res.status(status).json(response);
 });
+
+router.delete("/acgs/:acgId", accessManager.verifyToken, async (req, res) => {
+  const acgId = req.paramString("acgId");
+  log(
+    "DELETE /acgs",
+    `Deleting ACG ${acgId}`,
+    levels.DEBUG
+  );
+
+  let response = {
+    groups: [],
+    errors: []
+  };
+  let status = statusCodes.OK;
+
+  try {
+    const permitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.USER,
+      null,
+      accessManager.accessControlType.ADMIN,
+      req.data.userId
+    );
+
+    if (permitted) {
+
+    } else {
+      status = statusCodes.FORBIDDEN;
+      response.errors.push("Not authorised to delete ACGs");
+
+      log(
+        "DELETE /acgs",
+        `Non-admin user ${req.data.userId} attempted to delete an ACG`,
+        levels.SECURITY
+      );
+    }
+  } catch (err) {
+    log("DELETE /acgs", err, levels.ERROR);
+
+    response.errors = ["Internal Server Error"];
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+  }
+})
+
+// TODO Delete-ACG endpoint
 
 module.exports = router;

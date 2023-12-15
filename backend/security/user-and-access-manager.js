@@ -479,6 +479,41 @@ const getAllGroups = async () => {
   };
 }
 
+const createGroup = async (acgName) => {
+
+  // TODO return an error if acg with that name already exists
+
+  let errors = [];
+  if (acgName) {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        await dbUserManager.createGroup(acgName);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        log(
+          "user-and-access-manager/createGroup",
+          `Auth method ${securityConfig.authMethod} does not support creation of groups`,
+          levels.ERROR
+        );
+  
+        errors.push("Cannot create a group via CERBERUS - please cnotact your system administrator.");
+        break;
+      default:
+        log(
+          "user-and-access-manager/createGroup",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+  
+        errors.push("Internal Server Error");
+        break;
+    }
+  } else {
+    errors.push("Must provide a name for the ACG");
+  }
+  return errors;
+}
+
 /**
  * @param {Array} implants
  * @param {String} userId
@@ -625,5 +660,6 @@ module.exports = {
   filterImplantsForView,
   getGroupsForUser,
   getAllGroups,
+  createGroup,
   authZCheck,
 };
