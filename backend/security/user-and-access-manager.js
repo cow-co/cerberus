@@ -444,6 +444,41 @@ const getGroupsForUser = async (userId) => {
   };
 };
 
+const getAllGroups = async () => {
+  let errors = [];
+  let groups = [];
+  let acgs = null;
+
+  switch (securityConfig.authMethod) {
+    case securityConfig.availableAuthMethods.DB:
+      acgs = await dbUserManager.getAllGroups();
+      break;
+    case securityConfig.availableAuthMethods.AD:
+      acgs = adUserManager.getAllGroups();
+      break;
+    default:
+      log(
+        "user-and-access-manager/getAllGroups",
+        `Auth method ${securityConfig.authMethod} not supported`,
+        levels.ERROR
+      );
+
+      errors.push("Internal Server Error");
+      break;
+  }
+
+  if (acgs) {
+    groups = acgs;
+  }  else {
+    errors = ["Query for all ACGs failed"];
+  }
+
+  return {
+    errors,
+    groups
+  };
+}
+
 /**
  * @param {Array} implants
  * @param {String} userId
@@ -589,5 +624,6 @@ module.exports = {
   findUserById,
   filterImplantsForView,
   getGroupsForUser,
+  getAllGroups,
   authZCheck,
 };

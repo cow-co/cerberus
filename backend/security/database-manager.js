@@ -1,5 +1,6 @@
 const userService = require("../db/services/user-service");
 const adminService = require("../db/services/admin-service");
+const acgService = require("../db/services/acg-service");
 const argon2 = require("argon2");
 const { levels, log } = require("../utils/logger");
 const {
@@ -171,6 +172,11 @@ const getGroupsForUser = async (userId) => {
   return acgs;
 };
 
+const getAllGroups = async () => {
+  const acgs = await acgService.getAllACGs();
+  return acgs;
+}
+
 module.exports = {
   register,
   authenticate,
@@ -180,4 +186,5 @@ module.exports = {
   findUserByName,
   isUserInGroup,
   getGroupsForUser,
+  getAllGroups,
 };

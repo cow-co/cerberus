@@ -234,4 +234,91 @@ router.post(
   }
 );
 
+router.put("/acgs", accessManager.verifyToken, async (req, res) => {
+  log(
+    "PUT /acgs",
+    "Creating a new ACG...",
+    levels.INFO
+  );
+
+  let response = {
+    errors: []
+  };
+  let status = statusCodes.OK;
+
+  try {
+    const permitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.USER,
+      null,
+      accessManager.accessControlType.ADMIN,
+      req.data.userId
+    );
+
+    if (permitted) {
+      // TODO THIS
+    } else {
+      status = statusCodes.FORBIDDEN;
+      response.errors.push("Not authorised to update ACGs");
+
+      log(
+        "PUT /acgs",
+        `Non-admin user ${req.data.userId} attempted to add an ACG`,
+        levels.SECURITY
+      );
+    }
+  } catch (err) {
+    log("PUT /acgs", err, levels.ERROR);
+
+    response.errors = ["Internal Server Error"];
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+  }
+
+  res.status(status).json(response);
+});
+
+router.get("/acgs", accessManager.verifyToken, async (req, res) => {
+  log(
+    "GET /acgs",
+    "Getting ACGs...",
+    levels.DEBUG
+  );
+
+  let response = {
+    groups: [],
+    errors: []
+  };
+  let status = statusCodes.OK;
+
+  try {
+    const permitted = await accessManager.authZCheck(
+      accessManager.operationType.READ,
+      accessManager.targetEntityType.USER,
+      null,
+      accessManager.accessControlType.ADMIN,
+      req.data.userId
+    );
+
+    if (permitted) {
+      response = await accessManager.getAllGroups();
+    } else {
+      status = statusCodes.FORBIDDEN;
+      response.errors.push("Not authorised to list ACGs");
+
+      log(
+        "GET /acgs",
+        `Non-admin user ${req.data.userId} attempted to get the ACGs list`,
+        levels.SECURITY
+      );
+    }
+  } catch (err) {
+    log("GET /acgs", err, levels.ERROR);
+
+    response.errors = ["Internal Server Error"];
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+  }
+
+  res.status(status).json(response);
+});
+
 module.exports = router;

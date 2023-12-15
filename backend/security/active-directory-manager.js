@@ -110,6 +110,18 @@ const getGroupsForUser = (userId) => {
   return groups;
 };
 
+const getAllGroups = () => {
+  let groups = null;
+  ad.findGroups((err, adGroups) => {
+    if (!err) {
+      groups = adGroups;
+    } else {
+      log("active-directory-manager/getAllGroups", err, levels.WARN);
+    }
+  });
+  return groups;
+}
+
 module.exports = {
   authenticate,
   findUserById,
@@ -117,4 +129,5 @@ module.exports = {
   deleteUser,
   logout,
   getGroupsForUser,
+  getAllGroups,
 };

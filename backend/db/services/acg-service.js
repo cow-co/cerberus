@@ -20,8 +20,14 @@ const findACG = async (name) => {
   return acg;
 };
 
+const getAllACGs = async () => {
+  let acgs = await ACG.find();
+  return acgs;
+}
+
 module.exports = {
   createACG,
   deleteACG,
   findACG,
+  getAllACGs
 };
