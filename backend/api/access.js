@@ -21,7 +21,7 @@ router.post("/register", async (req, res) => {
   const password = req.bodyString("password");
 
   let responseStatus = statusCodes.OK;
-  let responseJSON = {
+  let response = {
     errors: [],
   };
 
@@ -34,16 +34,16 @@ router.post("/register", async (req, res) => {
         `Errors: ${JSON.stringify(result.errors)}`,
         levels.DEBUG
       );
-      responseJSON.errors = result.errors;
+      response.errors = result.errors;
       responseStatus = statusCodes.BAD_REQUEST;
     }
   } catch (err) {
     log("POST /register", err, levels.ERROR);
-    responseJSON.errors = ["Internal Server Error"];
+    response.errors = ["Internal Server Error"];
     responseStatus = statusCodes.INTERNAL_SERVER_ERROR;
   }
 
-  res.status(responseStatus).json(responseJSON);
+  res.status(responseStatus).json(response);
 });
 
 /**
@@ -62,7 +62,7 @@ router.post("/login", accessManager.authenticate, (req, res) => {
     user: {
       id: req.data.userId,
       name: req.data.username,
-      isAdmin: req.data.isAdmin,
+      isAdmin: req.data.isAdmin, // This is only used on the client side so it's ok; any calls are re-checked against the auth store
     },
     errors: [],
   });

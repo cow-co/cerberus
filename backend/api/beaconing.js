@@ -18,8 +18,8 @@ router.post("", async (req, res) => {
 
   log("POST /beacon", `Received beacon: ${JSON.stringify(body)}`, levels.DEBUG);
 
-  let returnStatus = statusCodes.OK;
-  let responseJSON = {};
+  let status = statusCodes.OK;
+  let response = {};
 
   try {
     const validationResult = validateBeacon(body);
@@ -39,7 +39,7 @@ router.post("", async (req, res) => {
       }
 
       const tasks = await tasksService.getTasksForImplant(beacon.id, false);
-      responseJSON = {
+      response = {
         tasks,
         errors: [],
       };
@@ -48,7 +48,7 @@ router.post("", async (req, res) => {
         await tasksService.taskSent(task._id);
       });
     } else {
-      responseJSON = {
+      response = {
         tasks: [],
         errors: validationResult.errors,
       };
@@ -59,11 +59,11 @@ router.post("", async (req, res) => {
         levels.WARN
       );
 
-      returnStatus = statusCodes.BAD_REQUEST;
+      status = statusCodes.BAD_REQUEST;
     }
   } catch (err) {
-    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON = {
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response = {
       tasks: [],
       errors: ["Internal Server Error"],
     };
@@ -71,7 +71,7 @@ router.post("", async (req, res) => {
     log("POST /beacon", err, levels.ERROR);
   }
 
-  res.status(returnStatus).json(responseJSON);
+  res.status(status).json(response);
 });
 
 module.exports = router;

@@ -177,7 +177,6 @@ const verifyToken = async (req, res, next) => {
         req.data = {};
         req.data.userId = payload.userId;
         req.data.username = payload.username;
-        req.data.isAdmin = Boolean(payload.isAdmin);
 
         next();
       } else {
@@ -427,6 +426,8 @@ const getGroupsForUser = async (userId) => {
 
     // TODO Perhaps make this into an exception instead (something like BadConfigError) and throw instead of returning error array
     //  That will make things more consistent in terms of server errors being raised as exceptions and user errors being returned in error arrays
+    //  Or perhaps simply remove these checks (at least, remove them as returned errors), and do the check at boot-time (some kinda config-validation function)
+    //  and from then on, can reasonably safely assume we're good - node caches the module so runtime updates to the config files won't take effect
     default:
       log(
         "user-and-access-manager/getGroupsForUser",
@@ -469,18 +470,17 @@ const getAllGroups = async () => {
 
   if (acgs) {
     groups = acgs;
-  }  else {
+  } else {
     errors = ["Query for all ACGs failed"];
   }
 
   return {
     errors,
-    groups
+    groups,
   };
-}
+};
 
 const createGroup = async (acgName) => {
-
   // TODO return an error if acg with that name already exists
 
   let errors = [];
@@ -495,8 +495,10 @@ const createGroup = async (acgName) => {
           `Auth method ${securityConfig.authMethod} does not support creation of groups`,
           levels.ERROR
         );
-  
-        errors.push("Cannot create a group via CERBERUS - please cnotact your system administrator.");
+
+        errors.push(
+          "Cannot create a group via CERBERUS - please cnotact your system administrator."
+        );
         break;
       default:
         log(
@@ -504,7 +506,7 @@ const createGroup = async (acgName) => {
           `Auth method ${securityConfig.authMethod} not supported`,
           levels.ERROR
         );
-  
+
         errors.push("Internal Server Error");
         break;
     }
@@ -512,7 +514,7 @@ const createGroup = async (acgName) => {
     errors.push("Must provide a name for the ACG");
   }
   return errors;
-}
+};
 
 /**
  * @param {Array} implants
@@ -530,6 +532,9 @@ const filterImplantsForView = async (implants, userId) => {
   } else {
     const groupsResult = await getGroupsForUser(userId);
 
+    // TODO Perhaps don't return an errors array - if errors occur simply log it, return an empty groups
+    //  Only issue is that this will make errors invisible to users - who may be confused if they are seeing fewer implants than they expect
+    // TODO think about the exception vs error design we should go for
     if (groupsResult.errors.length === 0) {
       filtered = implants.filter((implant) => {
         const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
@@ -543,7 +548,7 @@ const filterImplantsForView = async (implants, userId) => {
         }
       });
     } else {
-      errors = groupsResult.errors; // TODO Test this
+      errors = groupsResult.errors;
     }
   }
 
@@ -638,7 +643,6 @@ const authZCheck = async (
           targetEntityId
         );
         break;
-      // TODO Test; to ensure that misconfigured calls to this function will return false (fail secure)
       default:
         break;
     }

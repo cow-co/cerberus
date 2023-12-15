@@ -877,6 +877,20 @@ describe("Access Manager tests", () => {
     expect(isPermitted).toBe(true);
   });
 
+  test("User authorisation - failure - invalid entity type", async () => {
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const isPermitted = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      "FAKE",
+      "id",
+      accessManager.accessControlType.EDIT,
+      "id"
+    );
+
+    expect(isPermitted).toBe(false);
+  });
+
   test("Implant view filtering - success - admin", async () => {
     dbManager.getGroupsForUser.mockResolvedValue([]);
     adminService.isUserAdmin.mockResolvedValue(true);
@@ -948,6 +962,19 @@ describe("Access Manager tests", () => {
           "userId"
         )
     ).rejects.toThrow(TypeError);
+  });
+
+  test("Implant view filtering - failure - errors in the get groups function", async () => {
+    securityConfig.authMethod = "FAKE";
+    adminService.isUserAdmin.mockResolvedValue(false);
+
+    const { filtered, errors } = await accessManager.filterImplantsForView(
+      implantSearchResults,
+      "userId"
+    );
+
+    expect(filtered).toHaveLength(0);
+    expect(errors).toHaveLength(1);
   });
 
   test("Get user groups - success - DB Backed", async () => {
