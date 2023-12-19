@@ -41,8 +41,7 @@ const changeAdminStatus = async (userId, shouldBeAdmin) => {
  * @returns Count of all admin users
  */
 const numAdmins = async () => {
-  const allAdmins = await Admin.countDocuments({});
-  return allAdmins;
+  return await Admin.countDocuments({});
 };
 
 module.exports = {

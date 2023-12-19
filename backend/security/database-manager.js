@@ -175,11 +175,15 @@ const getGroupsForUser = async (userId) => {
 const getAllGroups = async () => {
   const acgs = await acgService.getAllACGs();
   return acgs;
-}
+};
 
 const createGroup = async (name) => {
   await acgService.createACG(name);
-}
+};
+
+const deleteGroup = async (id) => {
+  return await acgService.deleteACG(id);
+};
 
 module.exports = {
   register,
@@ -192,4 +196,5 @@ module.exports = {
   getGroupsForUser,
   getAllGroups,
   createGroup,
+  deleteGroup,
 };

@@ -497,7 +497,7 @@ const createGroup = async (acgName) => {
         );
 
         errors.push(
-          "Cannot create a group via CERBERUS - please cnotact your system administrator."
+          "Cannot create a group via CERBERUS - please contact your system administrator."
         );
         break;
       default:
@@ -514,6 +514,49 @@ const createGroup = async (acgName) => {
     errors.push("Must provide a name for the ACG");
   }
   return errors;
+};
+
+/**
+ *
+ * @param {string} acgId
+ * @returns
+ */
+const deleteGroup = async (acgId) => {
+  let errors = [];
+  let deletedEntity = null;
+  if (acgId) {
+    switch (securityConfig.authMethod) {
+      case securityConfig.availableAuthMethods.DB:
+        deletedEntity = await dbUserManager.deleteGroup(acgId);
+        break;
+      case securityConfig.availableAuthMethods.AD:
+        log(
+          "user-and-access-manager/deleteGroup",
+          `Auth method ${securityConfig.authMethod} does not support deletion of groups`,
+          levels.ERROR
+        );
+
+        errors.push(
+          "Cannot delete a group via CERBERUS - please contact your system administrator."
+        );
+        break;
+      default:
+        log(
+          "user-and-access-manager/deleteGroup",
+          `Auth method ${securityConfig.authMethod} not supported`,
+          levels.ERROR
+        );
+
+        errors.push("Internal Server Error");
+        break;
+    }
+  } else {
+    errors.push("Must provide an ID for the ACG");
+  }
+  return {
+    deletedEntity,
+    errors,
+  };
 };
 
 /**
@@ -665,5 +708,6 @@ module.exports = {
   getGroupsForUser,
   getAllGroups,
   createGroup,
+  deleteGroup,
   authZCheck,
 };
