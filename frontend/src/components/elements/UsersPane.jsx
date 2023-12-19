@@ -6,7 +6,7 @@ import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormContr
 import { changeAdminStatus, deleteUser, findUserByName } from '../../common/apiCalls';
 import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 
-const AdminPane = () => {
+const UsersPane = () => {
   const [user, setUser] = useState({id: "", name: ""});
   const [searchError, setSearchError] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
@@ -81,4 +81,4 @@ const AdminPane = () => {
   );
 }
 
-export default AdminPane;
+export default UsersPane;
