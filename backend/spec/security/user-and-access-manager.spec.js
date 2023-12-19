@@ -601,7 +601,7 @@ describe("Access Manager tests", () => {
   });
 
   test("register - success", async () => {
-    dbManager.findUserByName.mockResolvedValue({id: "", name: ""});
+    dbManager.findUserByName.mockResolvedValue({ id: "", name: "" });
     dbManager.register.mockResolvedValue({
       userId: "id",
       errors: [],
@@ -615,7 +615,7 @@ describe("Access Manager tests", () => {
 
   test("register - failure - AD", async () => {
     securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.findUserByName.mockResolvedValue({id: "", name: ""});
+    adManager.findUserByName.mockResolvedValue({ id: "", name: "" });
 
     const response = await accessManager.register("user", "pass");
 
@@ -627,7 +627,7 @@ describe("Access Manager tests", () => {
     dbManager.findUserByName.mockResolvedValue({
       id: "id",
       name: "user",
-      acgs: []
+      acgs: [],
     });
 
     const response = await accessManager.register("user", "pass");
@@ -1011,4 +1011,93 @@ describe("Access Manager tests", () => {
       async () => await accessManager.getGroupsForUser("userId")
     ).rejects.toThrow(TypeError);
   });
+
+  test("Delete group - success", async () => {
+    dbManager.deleteGroup.mockResolvedValue({ _id: "id", name: "name" });
+
+    const { deletedEntity, errors } = await accessManager.deleteGroup("id");
+
+    expect(deletedEntity.name).toBe("name");
+    expect(errors).toHaveLength(0);
+  });
+
+  test("Delete group - success - group did not exist", async () => {
+    dbManager.deleteGroup.mockResolvedValue(null);
+
+    const { deletedEntity, errors } = await accessManager.deleteGroup("id");
+
+    expect(deletedEntity).toBe(null);
+    expect(errors).toHaveLength(0);
+  });
+
+  test("Delete group - failure - no ID provided", async () => {
+    const { deletedEntity, errors } = await accessManager.deleteGroup("");
+
+    expect(deletedEntity).toBe(null);
+    expect(errors).toHaveLength(1);
+  });
+
+  test("Delete group - failure - AD auth", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    const { deletedEntity, errors } = await accessManager.deleteGroup("id");
+
+    expect(deletedEntity).toBe(null);
+    expect(errors).toHaveLength(1);
+  });
+
+  test("Delete group - failure - fake auth method", async () => {
+    securityConfig.authMethod = "FAKE";
+    const { deletedEntity, errors } = await accessManager.deleteGroup("id");
+
+    expect(deletedEntity).toBe(null);
+    expect(errors).toHaveLength(1);
+  });
+
+  test("Delete group - failure - exception", async () => {
+    dbManager.deleteGroup.mockRejectedValue(new TypeError("TEST"));
+
+    expect(async () => await accessManager.deleteGroup("id")).rejects.toThrow(
+      TypeError
+    );
+  });
+
+  test("create group - success", async () => {
+    dbManager.createGroup.mockResolvedValue([]);
+
+    const errors = await accessManager.createGroup("name");
+
+    expect(errors).toHaveLength(0);
+  });
+
+  test("create group - failure - no name provided", async () => {
+    const errors = await accessManager.createGroup("");
+
+    expect(errors).toHaveLength(1);
+  });
+
+  test("create group - failure - AD auth", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+
+    const errors = await accessManager.createGroup("name");
+
+    expect(errors).toHaveLength(1);
+  });
+
+  test("create group - failure - fake auth method", async () => {
+    securityConfig.authMethod = "FAKE";
+
+    const errors = await accessManager.createGroup("name");
+
+    expect(errors).toHaveLength(1);
+  });
+
+  test("create group - failure - exception gets thrown out", async () => {
+    dbManager.createGroup.mockRejectedValue(new TypeError("TEST"));
+
+    expect(async () => await accessManager.createGroup("name")).rejects.toThrow(
+      TypeError
+    );
+  });
+
+  // TODO Tests for getAllGroups
 });
