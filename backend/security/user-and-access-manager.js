@@ -137,7 +137,6 @@ const authenticate = async (req, res, next) => {
           userId: req.data.userId,
           username: req.data.username, // TODO Are these (name and isAdmin) ever actually used from the token? isAdmin shouldn't be!
           isAdmin: req.data.isAdmin,
-          //iat: Date.now(), // Default IAT is in seconds, which not match with the timestamps we use elsewhere
         },
         securityConfig.jwtSecret,
         { expiresIn: "1h" }
@@ -176,7 +175,7 @@ const verifyToken = async (req, res, next) => {
         payload.userId
       );
 
-      if (minTimestamp < payload.iat) {
+      if (minTimestamp < payload.iat * 1000) {
         req.data = {};
         req.data.userId = payload.userId;
         req.data.username = payload.username;

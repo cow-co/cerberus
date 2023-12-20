@@ -81,7 +81,7 @@ router.delete(
       await accessManager.logout(req.data.userId);
       status = statusCodes.OK;
 
-      log("DELETE /access/logout", `User ${userId} logged out`, levels.DEBUG);
+      log("DELETE /access/logout", `User ${req.data.userId} logged out`, levels.DEBUG);
     } catch (err) {
       log("DELETE /access/logout", err, levels.ERROR);
 

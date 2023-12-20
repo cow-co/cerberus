@@ -60,10 +60,9 @@ const UsersPane = () => {
     }
   }  
 
-  // FIXME not working when the user is non-existent (clears the form field, reports that the user was found)
   return (
     <Container fixed>
-      <Typography align="center" variant="h3">Administrator Interface</Typography>
+      <Typography align="center" variant="h3">Manage Users</Typography>
       <FormGroup>
         <TextField className="text-input" variant="outlined" value={user.name} label="User to find" type="search" onChange={handleChange} error={searchError} helperText={helpText} />
         <FormControlLabel control={<Checkbox checked={makeAdmin} onClick={() => setMakeAdmin(!makeAdmin)} />} label="Make User Admin" />
