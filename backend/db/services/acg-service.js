@@ -1,4 +1,9 @@
 const ACG = require("../models/ACG");
+const {
+  entityTypes,
+  eventTypes,
+  sendMessage,
+} = require("../../utils/web-sockets");
 
 // Very shallow interface here, but I think it makes sense, just to logically
 // keep the handling of ACGs in line with the handling of other database entities.
@@ -10,12 +15,17 @@ const createACG = async (name) => {
     result = await ACG.create({
       name: name,
     });
+    sendMessage(entityTypes.GROUPS, eventTypes.CREATE, result);
   }
   return result;
 };
 
 const deleteACG = async (id) => {
-  return await ACG.findByIdAndDelete(id);
+  let result = await ACG.findByIdAndDelete(id);
+  if (result._id) {
+    sendMessage(entityTypes.GROUPS, eventTypes.DELETE, result);
+  }
+  return result;
 };
 
 const findACG = async (name) => {

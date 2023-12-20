@@ -325,6 +325,63 @@ const getParamTypes = async () => {
   return json;
 };
 
+const getGroups = async () => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/acgs`,
+    {
+      headers: {
+        "Authorization": `Bearer ${getToken()}`
+      }
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      groups: [],
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+}
+
+const deleteGroup = async (groupId) => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/acgs/${groupId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${getToken()}`
+      }
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+}
+
+const createGroup = async (acg) => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/acgs`, {
+      method: "POST",
+      headers: new Headers({ "content-type": "application/json", "authorization": `Bearer ${getToken()}` }),
+      body: JSON.stringify(acg),
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
 export {
   fetchImplants,
   deleteImplant,
@@ -342,4 +399,7 @@ export {
   deleteUser,
   checkToken,
   getParamTypes,
+  getGroups,
+  createGroup,
+  deleteGroup,
 };

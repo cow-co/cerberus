@@ -255,7 +255,7 @@ router.put("/acgs", accessManager.verifyToken, async (req, res) => {
       response.errors = await accessManager.createGroup(req.bodyString("name"));
 
       if (response.errors.length > 0) {
-        log("PUT /acgs", JSON.stringify(response.errors), levels.WARN);
+        log("PUT /access/acgs", JSON.stringify(response.errors), levels.WARN);
 
         status = statusCodes.INTERNAL_SERVER_ERROR;
       }
@@ -264,13 +264,13 @@ router.put("/acgs", accessManager.verifyToken, async (req, res) => {
       response.errors.push("Not authorised to update ACGs");
 
       log(
-        "PUT /acgs",
+        "PUT /access/acgs",
         `Non-admin user ${req.data.userId} attempted to add an ACG`,
         levels.SECURITY
       );
     }
   } catch (err) {
-    log("PUT /acgs", err, levels.ERROR);
+    log("PUT /access/acgs", err, levels.ERROR);
 
     response.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;
@@ -280,7 +280,7 @@ router.put("/acgs", accessManager.verifyToken, async (req, res) => {
 });
 
 router.get("/acgs", accessManager.verifyToken, async (req, res) => {
-  log("GET /acgs", "Getting ACGs...", levels.DEBUG);
+  log("GET /access/acgs", "Getting ACGs...", levels.DEBUG);
 
   let response = {
     groups: [],
@@ -300,7 +300,7 @@ router.get("/acgs", accessManager.verifyToken, async (req, res) => {
     if (permitted) {
       response = await accessManager.getAllGroups();
       if (response.errors.length > 0) {
-        log("GET /acgs", JSON.stringify(response.errors), levels.WARN);
+        log("GET /access/acgs", JSON.stringify(response.errors), levels.WARN);
 
         status = statusCodes.INTERNAL_SERVER_ERROR;
       }
@@ -309,13 +309,13 @@ router.get("/acgs", accessManager.verifyToken, async (req, res) => {
       response.errors.push("Not authorised to list ACGs");
 
       log(
-        "GET /acgs",
+        "GET /access/acgs",
         `Non-admin user ${req.data.userId} attempted to get the ACGs list`,
         levels.SECURITY
       );
     }
   } catch (err) {
-    log("GET /acgs", err, levels.ERROR);
+    log("GET /access/acgs", err, levels.ERROR);
 
     response.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;
@@ -326,7 +326,7 @@ router.get("/acgs", accessManager.verifyToken, async (req, res) => {
 
 router.delete("/acgs/:acgId", accessManager.verifyToken, async (req, res) => {
   const acgId = req.paramString("acgId");
-  log("DELETE /acgs", `Deleting ACG ${acgId}`, levels.DEBUG);
+  log("DELETE /access/acgs", `Deleting ACG ${acgId}`, levels.DEBUG);
 
   let response = {
     deletedEntity: null,
@@ -346,12 +346,12 @@ router.delete("/acgs/:acgId", accessManager.verifyToken, async (req, res) => {
     if (permitted) {
       response = await accessManager.deleteGroup(acgId);
       if (response.errors.length > 0) {
-        log("DELETE /acgs", JSON.stringify(response.errors), levels.WARN);
+        log("DELETE /access/acgs", JSON.stringify(response.errors), levels.WARN);
 
         status = statusCodes.BAD_REQUEST;
       } else if (!response.deletedEntity) {
         log(
-          "DELETE /acgs",
+          "DELETE /access/acgs",
           `Attempted to delete non-existent ACG with ID ${acgId}`,
           levels.WARN
         );
@@ -361,13 +361,13 @@ router.delete("/acgs/:acgId", accessManager.verifyToken, async (req, res) => {
       response.errors.push("Not authorised to delete ACGs");
 
       log(
-        "DELETE /acgs",
+        "DELETE /access/acgs",
         `Non-admin user ${req.data.userId} attempted to delete an ACG`,
         levels.SECURITY
       );
     }
   } catch (err) {
-    log("DELETE /acgs", err, levels.ERROR);
+    log("DELETE /access/acgs", err, levels.ERROR);
 
     response.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;

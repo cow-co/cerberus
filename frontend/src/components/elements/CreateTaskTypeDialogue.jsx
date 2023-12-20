@@ -4,7 +4,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 import { getParamTypes } from '../../common/apiCalls';
 
-const CreateTaskDialogue = (props) => {
+const CreateTaskTypeDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
   // Each param will have structure
   // - name
@@ -136,4 +136,4 @@ const CreateTaskDialogue = (props) => {
   );
 }
 
-export default CreateTaskDialogue;
+export default CreateTaskTypeDialogue;
