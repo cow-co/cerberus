@@ -49,7 +49,7 @@ const UsersPane = () => {
       createErrorAlert(response.errors);
       setSearchError(true);
       setHelpText("Could not find user");
-    } else if (response.user !== null) {
+    } else if (response.user.id) {
       createSuccessAlert("Successfully found");
       setUser({id: response.user.id, name: response.user.name});
       setSearchError(false);
@@ -60,6 +60,7 @@ const UsersPane = () => {
     }
   }  
 
+  // FIXME not working when the user is non-existent (clears the form field, reports that the user was found)
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Administrator Interface</Typography>

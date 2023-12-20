@@ -278,7 +278,7 @@ describe("Access tests", () => {
   test("create ACG - success", async () => {
     accessManager.createGroup.mockResolvedValue([]);
 
-    const res = await agent.put("/api/access/acgs").send({ name: "acg" });
+    const res = await agent.post("/api/access/acgs").send({ name: "acg" });
 
     expect(res.statusCode).toBe(200);
     expect(res.body.errors).toHaveLength(0);
@@ -287,7 +287,7 @@ describe("Access tests", () => {
   test("create ACG - failure - ACG creation error", async () => {
     accessManager.createGroup.mockResolvedValue(["Test error"]);
 
-    const res = await agent.put("/api/access/acgs").send({ name: "acg" });
+    const res = await agent.post("/api/access/acgs").send({ name: "acg" });
 
     expect(res.statusCode).toBe(500);
     expect(res.body.errors).toHaveLength(1);
@@ -296,7 +296,7 @@ describe("Access tests", () => {
   test("create ACG - failure - unauthorised", async () => {
     accessManager.authZCheck.mockResolvedValue(false);
 
-    const res = await agent.put("/api/access/acgs").send({ name: "acg" });
+    const res = await agent.post("/api/access/acgs").send({ name: "acg" });
 
     expect(res.statusCode).toBe(403);
     expect(res.body.errors).toHaveLength(1);
@@ -305,7 +305,7 @@ describe("Access tests", () => {
   test("create ACG - failure - exception", async () => {
     accessManager.createGroup.mockRejectedValue(new TypeError("TEST"));
 
-    const res = await agent.put("/api/access/acgs").send({ name: "acg" });
+    const res = await agent.post("/api/access/acgs").send({ name: "acg" });
 
     expect(res.statusCode).toBe(500);
     expect(res.body.errors).toHaveLength(1);

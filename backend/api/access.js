@@ -69,32 +69,19 @@ router.post("/login", accessManager.authenticate, (req, res) => {
 });
 
 router.delete(
-  "/logout/:userId",
+  "/logout",
   accessManager.verifyToken,
   async (req, res) => {
-    const userId = req.paramString("userId");
-
-    log("DELETE /access/logout", `Logging out user ${userId}`, levels.DEBUG);
+    log("DELETE /access/logout", `Logging out user ${req.data.userId}`, levels.DEBUG);
 
     let status = statusCodes.OK;
     let errors = [];
 
     try {
-      if (req.data.userId !== userId) {
-        log(
-          "DELETE /access/logout",
-          `User ${req.data.userId} attempted to log someone else out (${userId})!`,
-          levels.SECURITY
-        );
+      await accessManager.logout(req.data.userId);
+      status = statusCodes.OK;
 
-        status = statusCodes.FORBIDDEN;
-        errors.push("You cannot log another user out!");
-      } else {
-        await accessManager.logout(userId);
-        status = statusCodes.OK;
-
-        log("DELETE /access/logout", `User ${userId} logged out`, levels.DEBUG);
-      }
+      log("DELETE /access/logout", `User ${userId} logged out`, levels.DEBUG);
     } catch (err) {
       log("DELETE /access/logout", err, levels.ERROR);
 
@@ -234,8 +221,8 @@ router.post(
   }
 );
 
-router.put("/acgs", accessManager.verifyToken, async (req, res) => {
-  log("PUT /acgs", "Creating a new ACG...", levels.INFO);
+router.post("/acgs", accessManager.verifyToken, async (req, res) => {
+  log("POST /acgs", "Creating a new ACG...", levels.INFO);
 
   let response = {
     errors: [],
@@ -255,7 +242,7 @@ router.put("/acgs", accessManager.verifyToken, async (req, res) => {
       response.errors = await accessManager.createGroup(req.bodyString("name"));
 
       if (response.errors.length > 0) {
-        log("PUT /access/acgs", JSON.stringify(response.errors), levels.WARN);
+        log("POST /access/acgs", JSON.stringify(response.errors), levels.WARN);
 
         status = statusCodes.INTERNAL_SERVER_ERROR;
       }
@@ -264,7 +251,7 @@ router.put("/acgs", accessManager.verifyToken, async (req, res) => {
       response.errors.push("Not authorised to update ACGs");
 
       log(
-        "PUT /access/acgs",
+        "POST /access/acgs",
         `Non-admin user ${req.data.userId} attempted to add an ACG`,
         levels.SECURITY
       );

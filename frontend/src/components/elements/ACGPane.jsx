@@ -36,7 +36,7 @@ function ACGPane() {
       if (json.errors.length > 0) {
         dispatch(setGroups(json.groups));
       } else {
-        createErrorAlert(response.errors);
+        createErrorAlert(json.errors);
       }
     }
     callFetcher()

@@ -14,6 +14,8 @@ const sanitize = require("sanitize");
 
 const sanitizer = sanitize();
 
+// TODO Ensure that the tokens expire properly - ie. verify the expiresAt attribute is checked and set correctly
+
 const operationType = {
   READ: "READ",
   EDIT: "EDIT",
@@ -135,7 +137,7 @@ const authenticate = async (req, res, next) => {
           userId: req.data.userId,
           username: req.data.username, // TODO Are these (name and isAdmin) ever actually used from the token? isAdmin shouldn't be!
           isAdmin: req.data.isAdmin,
-          iat: Date.now(), // Default IAT is in seconds, which not match with the timestamps we use elsewhere
+          //iat: Date.now(), // Default IAT is in seconds, which not match with the timestamps we use elsewhere
         },
         securityConfig.jwtSecret,
         { expiresIn: "1h" }
@@ -168,6 +170,7 @@ const verifyToken = async (req, res, next) => {
 
     try {
       let payload = jwt.verify(token, securityConfig.jwtSecret);
+      console.log(JSON.stringify(payload));
       payload = sanitizer.primitives(payload); // This ensures all the keys are at least only Booleans, Integers, or Strings. Sufficient for our purposes.
       const minTimestamp = await userService.getMinTokenTimestamp(
         payload.userId
