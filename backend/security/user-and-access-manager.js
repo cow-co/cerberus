@@ -169,7 +169,6 @@ const verifyToken = async (req, res, next) => {
 
     try {
       let payload = jwt.verify(token, securityConfig.jwtSecret);
-      console.log(JSON.stringify(payload));
       payload = sanitizer.primitives(payload); // This ensures all the keys are at least only Booleans, Integers, or Strings. Sufficient for our purposes.
       const minTimestamp = await userService.getMinTokenTimestamp(
         payload.userId
