@@ -14,8 +14,6 @@ const sanitize = require("sanitize");
 
 const sanitizer = sanitize();
 
-// TODO Ensure that the tokens expire properly - ie. verify the expiresAt attribute is checked and set correctly
-
 const operationType = {
   READ: "READ",
   EDIT: "EDIT",
@@ -38,7 +36,6 @@ const targetEntityType = {
  * @param {import("express").Response} res
  * @param {function} next
  */
-// TODO We must ensure that the existing token is removed, if it exists!
 const authenticate = async (req, res, next) => {
   log(
     "user-and-access-manager/authenticate",

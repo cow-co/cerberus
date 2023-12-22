@@ -9,7 +9,7 @@ describe("Beacon validation tests", () => {
     purgeCache();
   });
 
-  test("should be valid (IPv4)", () => {
+  test("Beacon validation - success - IPv4", () => {
     const beacon = {
       id: "someid",
       ip: "127.0.0.1",
@@ -19,7 +19,7 @@ describe("Beacon validation tests", () => {
     expect(validation.validateBeacon(beacon).isValid).toBe(true);
   });
 
-  test("should be valid (IPv6)", () => {
+  test("Beacon validation - success - IPv6", () => {
     const beacon = {
       id: "someid",
       ip: "::1",
@@ -29,7 +29,7 @@ describe("Beacon validation tests", () => {
     expect(validation.validateBeacon(beacon).isValid).toBe(true);
   });
 
-  test("should be valid (no IP)", () => {
+  test("Beacon validation - success - no IP", () => {
     const beacon = {
       id: "someid",
       beaconIntervalSeconds: 500,
@@ -38,7 +38,7 @@ describe("Beacon validation tests", () => {
     expect(validation.validateBeacon(beacon).isValid).toBe(true);
   });
 
-  test("should be invalid - no ID", () => {
+  test("Beacon validation - failure - no ID", () => {
     const beacon = {
       ip: "127.0.0.1",
       beaconIntervalSeconds: 500,
@@ -47,7 +47,7 @@ describe("Beacon validation tests", () => {
     expect(validation.validateBeacon(beacon).isValid).toBe(false);
   });
 
-  test("should be invalid - invalid IPv4", () => {
+  test("Beacon validation - failure - IPv4", () => {
     const beacon = {
       id: "someid",
       ip: "127.0.0",
@@ -57,7 +57,7 @@ describe("Beacon validation tests", () => {
     expect(validation.validateBeacon(beacon).isValid).toBe(false);
   });
 
-  test("should be invalid - invalid IPv6", () => {
+  test("Beacon validation - failure - IPv6", () => {
     const beacon = {
       id: "someid",
       ip: ":z:1",
@@ -67,7 +67,7 @@ describe("Beacon validation tests", () => {
     expect(validation.validateBeacon(beacon).isValid).toBe(false);
   });
 
-  test("should be invalid - no interval", () => {
+  test("Beacon validation - failure - no interval", () => {
     const beacon = {
       id: "someid",
       ip: "127.0.0.1",
@@ -76,7 +76,7 @@ describe("Beacon validation tests", () => {
     expect(validation.validateBeacon(beacon).isValid).toBe(false);
   });
 
-  test("should be invalid - negative interval", () => {
+  test("Beacon validation - failure - negative interval", () => {
     const beacon = {
       id: "someid",
       ip: "127.0.0.1",
@@ -86,7 +86,7 @@ describe("Beacon validation tests", () => {
     expect(validation.validateBeacon(beacon).isValid).toBe(false);
   });
 
-  test("should be invalid - zero interval", () => {
+  test("Beacon validation - failure - zero interval", () => {
     const beacon = {
       id: "someid",
       ip: "127.0.0.1",
@@ -98,7 +98,7 @@ describe("Beacon validation tests", () => {
 });
 
 describe("Task validation tests", () => {
-  test("should be valid - no params", async () => {
+  test("validate task - success - no params", async () => {
     tasksService.getTaskTypeById.mockResolvedValue({
       id: "id",
       name: "task type",
@@ -117,7 +117,7 @@ describe("Task validation tests", () => {
     expect(res.isValid).toBe(true);
   });
 
-  test("should be valid - some params", async () => {
+  test("validate task - success - some params", async () => {
     tasksService.getTaskTypeById.mockResolvedValue({
       id: "id",
       name: "task type",
@@ -275,7 +275,7 @@ describe("Task validation tests", () => {
     expect(res.isValid).toBe(true);
   });
 
-  test("should be invalid - no type", async () => {
+  test("validate task - failure - no type", async () => {
     const task = {
       params: [
         {
@@ -293,7 +293,7 @@ describe("Task validation tests", () => {
     expect(res.isValid).toBe(false);
   });
 
-  test("should be invalid - no type id", async () => {
+  test("validate task - faiure - no type id", async () => {
     const task = {
       taskType: {
         name: "task type",
@@ -315,7 +315,7 @@ describe("Task validation tests", () => {
     expect(res.isValid).toBe(false);
   });
 
-  test("should be invalid - no type name", async () => {
+  test("validate task - failure - no type name", async () => {
     const task = {
       taskType: {
         id: "id",
@@ -337,7 +337,7 @@ describe("Task validation tests", () => {
     expect(res.isValid).toBe(false);
   });
 
-  test("should be valid - no matching task type", async () => {
+  test("validate task - failure - no matching task type", async () => {
     tasksService.getTaskTypeById.mockResolvedValue(null);
 
     const task = {
@@ -362,7 +362,7 @@ describe("Task validation tests", () => {
     expect(res.isValid).toBe(false);
   });
 
-  test("should be valid - wrong param count", async () => {
+  test("validate task - failure - wrong param count", async () => {
     tasksService.getTaskTypeById.mockResolvedValue({
       id: "id",
       name: "task type",
@@ -387,7 +387,7 @@ describe("Task validation tests", () => {
     expect(res.isValid).toBe(false);
   });
 
-  test("should be invalid - no implant ID", async () => {
+  test("validate task - failure - no implant ID", async () => {
     tasksService.getTaskTypeById.mockResolvedValue({
       id: "id",
       name: "task type",
@@ -408,7 +408,7 @@ describe("Task validation tests", () => {
 });
 
 describe("Task type validation tests", () => {
-  test("should be valid - empty params", () => {
+  test("Validate task type - success - empty params", () => {
     const taskType = {
       name: "type",
       params: [],
@@ -417,7 +417,7 @@ describe("Task type validation tests", () => {
     expect(validation.validateTaskType(taskType).isValid).toBe(true);
   });
 
-  test("should be valid - some params", () => {
+  test("Validate task type - success - some params", () => {
     const taskType = {
       name: "type",
       params: ["param 1", "param 2"],
@@ -426,7 +426,7 @@ describe("Task type validation tests", () => {
     expect(validation.validateTaskType(taskType).isValid).toBe(true);
   });
 
-  test("should be invalid - no params list", () => {
+  test("Validate task type - failure - no params list", () => {
     const taskType = {
       name: "type",
     };
@@ -434,7 +434,7 @@ describe("Task type validation tests", () => {
     expect(validation.validateTaskType(taskType).isValid).toBe(false);
   });
 
-  test("should be invalid - no name", () => {
+  test("Validate task type - failure - no name", () => {
     const taskType = {
       params: [],
     };
@@ -442,7 +442,7 @@ describe("Task type validation tests", () => {
     expect(validation.validateTaskType(taskType).isValid).toBe(false);
   });
 
-  test("should be invalid - repeated params", () => {
+  test("Validate task type - failure - repeated params", () => {
     const taskType = {
       name: "type",
       params: ["param 1", "param 2", "param 1"],
