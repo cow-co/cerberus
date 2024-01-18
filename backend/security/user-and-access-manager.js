@@ -485,7 +485,7 @@ const createGroup = async (acgName) => {
   if (acgName) {
     switch (securityConfig.authMethod) {
       case securityConfig.availableAuthMethods.DB:
-        await dbUserManager.createGroup(acgName);
+        errors = await dbUserManager.createGroup(acgName);
         break;
       case securityConfig.availableAuthMethods.AD:
         log(
