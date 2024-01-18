@@ -41,6 +41,3 @@
   - A reverse proxy (OPTIONAL)
     - NGinx or Apache or similar
     - Due to [Advisory GHSA-xfrc-qpp5-93fc](https://github.com/cow-co/cerberus/security/advisories/GHSA-xfrc-qpp5-93fc), I suggest using the reverse proxy to rate-limit requests, at least until said advisory is resolved (and probably even after that, too).
-  - An Active Directory domain (OPTIONAL)
-    - This will make user management much easier
-    - Since your organisation probably already has one anyway, this will also allow you to hook into existing business processes for access control.

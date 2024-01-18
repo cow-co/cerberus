@@ -23,7 +23,7 @@ const implantService = require("./db/services/implant-service");
 const { handleConnect } = require("./utils/web-sockets");
 const { levels, log } = require("./utils/logger");
 const securityConfig = require("./config/security-config");
-const {validateSecurityConfig} = require("./validation/config-validation");
+const { validateSecurityConfig } = require("./validation/config-validation");
 
 const swaggerDoc = YAML.load("openapi/openapi.yaml");
 
@@ -32,8 +32,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitize.middleware);
 
-const {isValid, errors} = validateSecurityConfig(securityConfig);
-console.log(JSON.stringify(securityConfig));
+const { isValid, errors } = validateSecurityConfig(securityConfig);
 if (!isValid) {
   log("index", JSON.stringify(errors), levels.FATAL);
   throw new Error("Bad Configuration! See log messages for details.");

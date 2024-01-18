@@ -4,7 +4,6 @@ const securityConfig = require("../config/security-config");
 const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
 const dbUserManager = require("./database-manager");
-const adUserManager = require("./active-directory-manager");
 const pki = require("./pki");
 const adminService = require("../db/services/admin-service");
 const implantService = require("../db/services/implant-service");

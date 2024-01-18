@@ -2,7 +2,7 @@ module.exports = {
   // If true, then mutual TLS will be enforced. The DN from the client cert
   // will be used instead of a username/password (the login functionality will simply be pass-through)
   usePKI: false,
-  jwtSecret: process.env.CERBERUS_JWT_SECRET,
+  jwtSecret: process.env.CERBERUS_JWT_SECRET || "FORGOODNESSSAKECHANGEME",
   passwordRequirements: {
     requireUppercase: true,
     requireLowercase: true,
@@ -10,8 +10,9 @@ module.exports = {
     minLength: 15,
   },
   initialAdmin: {
-    username: process.env.CERBERUS_INIT_ADMIN_USER,
-    password: process.env.CERBERUS_INIT_ADMIN_PASS,
+    username: process.env.CERBERUS_INIT_ADMIN_USER || "GenericAdmin",
+    password:
+      process.env.CERBERUS_INIT_ADMIN_PASS || "CHANGEMETOOFORCRYINGINTHESINK",
   },
   certType: "PEM",
   certFile: "./cerberus-cert.pem",

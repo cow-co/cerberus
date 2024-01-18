@@ -2,7 +2,6 @@ const securityConfig = require("../../config/security-config");
 const { purgeCache } = require("../utils");
 const pki = require("../../security/pki");
 const dbManager = require("../../security/database-manager");
-const adManager = require("../../security/active-directory-manager");
 const adminService = require("../../db/services/admin-service");
 const implantService = require("../../db/services/implant-service");
 const userService = require("../../db/services/user-service");
@@ -11,7 +10,6 @@ let accessManager;
 
 jest.mock("../../security/pki");
 jest.mock("../../security/database-manager");
-jest.mock("../../security/active-directory-manager");
 jest.mock("../../db/services/admin-service");
 jest.mock("../../db/services/implant-service");
 jest.mock("../../db/services/user-service");
@@ -60,7 +58,6 @@ describe("Access Manager tests", () => {
   });
 
   beforeEach(() => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.DB;
     securityConfig.usePKI = false;
   });
 
