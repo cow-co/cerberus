@@ -17,6 +17,9 @@ const HeaderBar = (props) => {
       const res = await checkToken();
       if (res.errors.length > 0) {
         createErrorAlert(res.errors);
+        dispatch(setUsername(""));
+        dispatch(setIsAdmin(false));
+        dispatch(setToken(""));
       } else {
         dispatch(setUsername(res.user.name));
         dispatch(setIsAdmin(res.user.isAdmin));

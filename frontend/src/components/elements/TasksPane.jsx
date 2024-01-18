@@ -142,12 +142,19 @@ function TasksPane() {
     }
   }
 
+  let createButton = null;
+
+  if (selectedImplant._id) {
+    createButton = <Button variant='contained' onClick={handleFormOpen}>Create Task</Button>;
+  }
+
+  // TODO Only show create-button when implant ID is populated
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
       <Box display="flex" justifyContent="center" alignItems="center">
         <FormControlLabel control={<Checkbox checked={showSent} onClick={handleToggle}/>} label="Show Sent" />
-        <Button variant='contained' onClick={handleFormOpen}>Create Task</Button>
+        {createButton}
       </Box>
       <List>
         {tasksItems}

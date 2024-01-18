@@ -29,14 +29,18 @@ function ACGPane() {
     shouldReconnect: () => true
   });
 
+  const refresh = async () => {
+    const json = await getGroups();
+    if (json.errors.length > 0) {
+      dispatch(setGroups(json.groups));
+    } else {
+      createErrorAlert(json.errors);
+    }
+  }
+
   useEffect(() => {
     async function callFetcher() {
-      const json = await getGroups();
-      if (json.errors.length > 0) {
-        dispatch(setGroups(json.groups));
-      } else {
-        createErrorAlert(json.errors);
-      }
+      await refresh();
     }
     callFetcher()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,7 +92,6 @@ function ACGPane() {
     } else {
       createSuccessAlert("Successfully deleted ACG");
     }
-
   }
 
   let acgsItems = null;

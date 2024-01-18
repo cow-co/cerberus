@@ -9,7 +9,7 @@ module.exports = {
   usePKI: false,
   authMethod: authMethods.DB,
   availableAuthMethods: authMethods,
-  jwtSecret: `${process.env.CERBERUS_JWT_SECRET}`,
+  jwtSecret: process.env.CERBERUS_JWT_SECRET,
   passwordRequirements: {
     requireUppercase: true,
     requireLowercase: true,
@@ -19,13 +19,13 @@ module.exports = {
   adConfig: {
     url: "",
     baseDN: "",
-    username: `${process.env.CERBERUS_LDAP_BIND_USER}`,
-    password: `${process.env.CERBERUS_LDAP_BIND_PASS}`,
+    username: process.env.CERBERUS_LDAP_BIND_USER,
+    password: process.env.CERBERUS_LDAP_BIND_PASS,
     adminGroup: "",
   },
   initialAdmin: {
-    username: `${process.env.CERBERUS_INIT_ADMIN_USER}`,
-    password: `${process.env.CERBERUS_INIT_ADMIN_PASS}`,
+    username: process.env.CERBERUS_INIT_ADMIN_USER,
+    password: process.env.CERBERUS_INIT_ADMIN_PASS,
   },
   certType: "PEM",
   certFile: "./cerberus-cert.pem",
