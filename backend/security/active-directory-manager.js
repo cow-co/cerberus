@@ -114,7 +114,7 @@ const getAllGroups = () => {
   let groups = null;
   ad.findGroups((err, adGroups) => {
     if (!err) {
-      groups = adGroups; // TODO massage these responses to match them up with the DB responses (eg map CN --> name)
+      groups = adGroups.map((adGroup) => adGroup.cn);
     } else {
       log("active-directory-manager/getAllGroups", err, levels.WARN);
     }
