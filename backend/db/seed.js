@@ -31,8 +31,6 @@ const seedInitialAdmin = async () => {
         securityConfig.initialAdmin.password
       );
 
-      // Note: this will have errors if using AD auth and the user does not exist in AD
-      // Since we cannot create AD users from here.
       if (existing.errors.length === 0) {
         log("seedInitialAdmin", "Initial admin user created", levels.DEBUG);
         await adminService.changeAdminStatus(existing._id, true);
@@ -47,7 +45,11 @@ const seedInitialAdmin = async () => {
         );
       }
     } else {
-      log("seedInitialAdmin", `setting ${existing.user.id} to admin`, levels.DEBUG);
+      log(
+        "seedInitialAdmin",
+        `setting ${existing.user.id} to admin`,
+        levels.DEBUG
+      );
       await adminService.changeAdminStatus(existing.user.id, true);
       log("seedInitialAdmin", "Initial admin set to admin", levels.INFO);
     }

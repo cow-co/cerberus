@@ -796,26 +796,12 @@ describe("Access Manager tests", () => {
     ).rejects.toThrow(TypeError);
   });
 
-  test("Implant view filtering - failure - errors in the get groups function", async () => {
-    securityConfig.authMethod = "FAKE";
-    adminService.isUserAdmin.mockResolvedValue(false);
-
-    const { filtered, errors } = await accessManager.filterImplantsForView(
-      implantSearchResults,
-      "userId"
-    );
-
-    expect(filtered).toHaveLength(0);
-    expect(errors).toHaveLength(1);
-  });
-
-  test("Get user groups - success - DB Backed", async () => {
+  test("Get user groups - success", async () => {
     dbManager.getGroupsForUser.mockResolvedValue(["read1", "operator2"]);
 
-    const { groups, errors } = await accessManager.getGroupsForUser("userId");
+    const groups = await accessManager.getGroupsForUser("userId");
 
     expect(groups).toHaveLength(2);
-    expect(errors).toHaveLength(0);
   });
 
   test("Get user groups - failure - exception", async () => {

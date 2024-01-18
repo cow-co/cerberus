@@ -2,7 +2,7 @@ const { log, levels } = require("../../utils/logger");
 const Admin = require("../models/Admin");
 
 /**
- * @param {string} userId The ID of the user to check (if using AD authentication, this will be the DN of the user)
+ * @param {string} userId The ID of the user to check
  * @returns `true` if user is an admin, `false` if not
  */
 const isUserAdmin = async (userId) => {

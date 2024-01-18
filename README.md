@@ -21,6 +21,3 @@ See [docs/support-notes.md](docs/support-notes.md) for information that can help
 
 - [ ] Got to keep the openapi docs up to date
 - [ ] Got to clean up some interfaces
-- [ ] BIG DECISION: Do we actually want to continue supporting AD auth?
-  - It's a lot of effort, difficult (for me personally) to test
-  - And really, what organisation is actually going to use this? It's just a hobby project!

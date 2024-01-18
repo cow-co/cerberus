@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-// Since our user records may not be backed by the DB (they may be in AD)
-// we want to have a separate dedicated table of admins
+// By having a separate collection of admins, we can control access to this
+// separately from access to the users collection
 const adminSchema = new Schema({
   userId: {
     type: String,

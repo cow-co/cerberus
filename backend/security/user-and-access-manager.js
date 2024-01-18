@@ -98,7 +98,7 @@ const authenticate = async (req, res, next) => {
   } else {
     req.data = {};
     // TODO Perhaps call this at the top of the function, and kick out early if user does not exist
-    //  Perhaps the user details should be returned from the AD/DB auth functions, since those will need to check user-existence at least, anyway.
+    //  Perhaps the user details should be returned from the DB auth functions, since those will need to check user-existence at least, anyway.
     const result = await findUserByName(username);
     if (result.errors.length > 0) {
       res.status(status).json({ errors });
@@ -199,10 +199,10 @@ const logout = async (userId) => {
 
 /**
  * Creates a user - specifically for DB-backed user management.
- * In a proper environment we'd probably want email verification. TBH we'd want AD auth anyway so it's kinda moot
+ * In a proper environment we'd probably want email verification
  * @param {string} username
  * @param {string} password
- * @returns An error if user management is backed by an external system (eg. AD).
+ * @returns
  */
 const register = async (username, password) => {
   log(
@@ -306,15 +306,9 @@ const findUserById = async (userId) => {
  * @returns Object: {errors, groups}
  */
 const getGroupsForUser = async (userId) => {
-  let errors = [];
-  let groups = [];
+  const groups = await dbUserManager.getGroupsForUser(userId);
 
-  groups = await dbUserManager.getGroupsForUser(userId);
-
-  return {
-    groups,
-    errors,
-  };
+  return groups;
 };
 
 const getAllGroups = async () => {
@@ -386,21 +380,16 @@ const filterImplantsForView = async (implants, userId) => {
     // TODO Perhaps don't return an errors array - if errors occur simply log it, return an empty groups
     //  Only issue is that this will make errors invisible to users - who may be confused if they are seeing fewer implants than they expect
     // TODO think about the exception vs error design we should go for
-    if (groupsResult.errors.length === 0) {
-      filtered = implants.filter((implant) => {
-        const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
-        if (implant.readOnlyACGs.length === 0) {
-          return true;
-        } else {
-          return (
-            readGroups.filter((group) => groupsResult.groups.includes(group))
-              .length > 0
-          );
-        }
-      });
-    } else {
-      errors = groupsResult.errors;
-    }
+    filtered = implants.filter((implant) => {
+      const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
+      if (implant.readOnlyACGs.length === 0) {
+        return true;
+      } else {
+        return (
+          readGroups.filter((group) => groupsResult.includes(group)).length > 0
+        );
+      }
+    });
   }
 
   return {
@@ -436,11 +425,8 @@ const isUserAuthorisedForOperationOnImplant = async (
     }
 
     if (acgs && acgs.length > 0) {
-      const { groups, errors } = await getGroupsForUser(userId);
-      if (errors.length === 0) {
-        isAuthorised =
-          acgs.filter((group) => groups.includes(group)).length > 0;
-      }
+      const groups = await getGroupsForUser(userId);
+      isAuthorised = acgs.filter((group) => groups.includes(group)).length > 0;
     } else {
       // If we are trying to edit, then we check to ensure the readOnlyACGs list is empty;
       // if it *isn't* (ie. read-only list is populated, but operator list is not) then operator is
