@@ -13,6 +13,7 @@ const userService = require("../db/services/user-service");
 const sanitize = require("sanitize");
 
 const sanitizer = sanitize();
+// TODO Maybe get rid of the separate db-user-manager, now that we don't support non-db auth?
 
 const operationType = {
   READ: "READ",
@@ -61,33 +62,11 @@ const authenticate = async (req, res, next) => {
   username = username.trim();
 
   try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        authenticated = await dbUserManager.authenticate(
-          username,
-          password,
-          securityConfig.usePKI
-        );
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        authenticated = await adUserManager.authenticate(
-          username,
-          password,
-          securityConfig.usePKI
-        );
-        break;
-
-      default:
-        log(
-          "user-and-access-manager/authenticate",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-
-        errors.push("Internal Server Error");
-        status = statusCodes.INTERNAL_SERVER_ERROR;
-        break;
-    }
+    authenticated = await dbUserManager.authenticate(
+      username,
+      password,
+      securityConfig.usePKI
+    );
   } catch (err) {
     log("user-and-access-manager/authenticate", err, levels.ERROR);
 
@@ -216,17 +195,7 @@ const logout = async (userId) => {
     `Logging out user ${userId}`,
     levels.DEBUG
   );
-  switch (securityConfig.authMethod) {
-    case securityConfig.availableAuthMethods.DB:
-      await dbUserManager.logout(userId);
-      break;
-    case securityConfig.availableAuthMethods.AD:
-      await adUserManager.logout(userId); // Actually is the user ID
-      break;
-    // TODO fill this out (throw an exception, or maybe delegate to the db manager as a default?)
-    default:
-      break;
-  }
+  await dbUserManager.logout(userId);
 };
 
 /**
@@ -251,10 +220,7 @@ const register = async (username, password) => {
     errors: [],
   };
 
-  if (
-    !user.id &&
-    securityConfig.authMethod === securityConfig.availableAuthMethods.DB
-  ) {
+  if (!user.id) {
     const createdUser = await dbUserManager.register(
       username,
       password,
@@ -262,16 +228,6 @@ const register = async (username, password) => {
     );
     response._id = createdUser.userId;
     response.errors = createdUser.errors;
-  } else if (!user.id) {
-    log(
-      "user-and-access-manager/register",
-      `Cannot register users from CERBERUS when using the ${securityConfig.authMethod} auth method`,
-      levels.WARN
-    );
-
-    response.errors.push(
-      "Registering is not supported for the configured auth method; please ask your administrator to add you."
-    );
   } else {
     log(
       "user-and-access-manager/register",
@@ -294,33 +250,7 @@ const removeUser = async (userId) => {
 
   let errors = [];
 
-  switch (securityConfig.authMethod) {
-    case securityConfig.availableAuthMethods.DB:
-      await dbUserManager.deleteUser(userId);
-      break;
-    case securityConfig.availableAuthMethods.AD:
-      log(
-        "removeUser",
-        "Cannot remove a user when backed by Active Directory. However, the user will be removed from the admins list, if they are on it.",
-        levels.WARN
-      );
-
-      adUserManager.deleteUser(userId);
-      errors.push(
-        "You cannot entirely remove users provided by Active Directory, but the user has been removed as admin."
-      );
-      break;
-
-    default:
-      log(
-        "removeUser",
-        `Auth method ${securityConfig.authMethod} not supported`,
-        levels.ERROR
-      );
-
-      errors.push("Internal Server Error");
-      break;
-  }
+  await dbUserManager.deleteUser(userId);
 
   return errors;
 };
@@ -339,24 +269,7 @@ const findUserByName = async (username) => {
   let errors = [];
   let user = { id: "", name: "" };
 
-  switch (securityConfig.authMethod) {
-    case securityConfig.availableAuthMethods.DB:
-      user = await dbUserManager.findUserByName(username);
-      break;
-    case securityConfig.availableAuthMethods.AD:
-      user = await adUserManager.findUserByName(username);
-      break;
-
-    default:
-      log(
-        "user-and-access-manager/findUserByName",
-        `Auth method ${securityConfig.authMethod} not supported`,
-        levels.ERROR
-      );
-
-      errors.push("Internal Server Error");
-      break;
-  }
+  user = await dbUserManager.findUserByName(username);
 
   return {
     user,
@@ -381,24 +294,7 @@ const findUserById = async (userId) => {
     name: "",
   };
 
-  switch (securityConfig.authMethod) {
-    case securityConfig.availableAuthMethods.DB:
-      user = await dbUserManager.findUserById(userId);
-      break;
-    case securityConfig.availableAuthMethods.AD:
-      user = await adUserManager.findUserById(userId);
-      break;
-
-    default:
-      log(
-        "user-and-access-manager/findUserById",
-        `Auth method ${securityConfig.authMethod} not supported`,
-        levels.ERROR
-      );
-
-      errors.push("Internal Server Error");
-      break;
-  }
+  user = await dbUserManager.findUserById(userId);
 
   return {
     user,
@@ -414,28 +310,7 @@ const getGroupsForUser = async (userId) => {
   let errors = [];
   let groups = [];
 
-  switch (securityConfig.authMethod) {
-    case securityConfig.availableAuthMethods.DB:
-      groups = await dbUserManager.getGroupsForUser(userId);
-      break;
-    case securityConfig.availableAuthMethods.AD:
-      groups = await adUserManager.getGroupsForUser(userId);
-      break;
-
-    // TODO Perhaps make this into an exception instead (something like BadConfigError) and throw instead of returning error array
-    //  That will make things more consistent in terms of server errors being raised as exceptions and user errors being returned in error arrays
-    //  Or perhaps simply remove these checks (at least, remove them as returned errors), and do the check at boot-time (some kinda config-validation function)
-    //  and from then on, can reasonably safely assume we're good - node caches the module so runtime updates to the config files won't take effect
-    default:
-      log(
-        "user-and-access-manager/getGroupsForUser",
-        `Auth method ${securityConfig.authMethod} not supported`,
-        levels.ERROR
-      );
-
-      errors.push("Internal Server Error");
-      break;
-  }
+  groups = await dbUserManager.getGroupsForUser(userId);
 
   return {
     groups,
@@ -448,23 +323,7 @@ const getAllGroups = async () => {
   let groups = [];
   let acgs = null;
 
-  switch (securityConfig.authMethod) {
-    case securityConfig.availableAuthMethods.DB:
-      acgs = await dbUserManager.getAllGroups();
-      break;
-    case securityConfig.availableAuthMethods.AD:
-      acgs = adUserManager.getAllGroups();
-      break;
-    default:
-      log(
-        "user-and-access-manager/getAllGroups",
-        `Auth method ${securityConfig.authMethod} not supported`,
-        levels.ERROR
-      );
-
-      errors.push("Internal Server Error");
-      break;
-  }
+  acgs = await dbUserManager.getAllGroups();
 
   if (acgs) {
     groups = acgs;
@@ -483,31 +342,7 @@ const createGroup = async (acgName) => {
 
   let errors = [];
   if (acgName) {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        errors = await dbUserManager.createGroup(acgName);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        log(
-          "user-and-access-manager/createGroup",
-          `Auth method ${securityConfig.authMethod} does not support creation of groups`,
-          levels.ERROR
-        );
-
-        errors.push(
-          "Cannot create a group via CERBERUS - please contact your system administrator."
-        );
-        break;
-      default:
-        log(
-          "user-and-access-manager/createGroup",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-
-        errors.push("Internal Server Error");
-        break;
-    }
+    errors = await dbUserManager.createGroup(acgName);
   } else {
     errors.push("Must provide a name for the ACG");
   }
@@ -523,31 +358,7 @@ const deleteGroup = async (acgId) => {
   let errors = [];
   let deletedEntity = null;
   if (acgId) {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        deletedEntity = await dbUserManager.deleteGroup(acgId);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        log(
-          "user-and-access-manager/deleteGroup",
-          `Auth method ${securityConfig.authMethod} does not support deletion of groups`,
-          levels.ERROR
-        );
-
-        errors.push(
-          "Cannot delete a group via CERBERUS - please contact your system administrator."
-        );
-        break;
-      default:
-        log(
-          "user-and-access-manager/deleteGroup",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-
-        errors.push("Internal Server Error");
-        break;
-    }
+    deletedEntity = await dbUserManager.deleteGroup(acgId);
   } else {
     errors.push("Must provide an ID for the ACG");
   }

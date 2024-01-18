@@ -1,5 +1,7 @@
 const { levels, log } = require("../utils/logger");
 
+// TODO When registering, with PKI supported, make it pull username from CN, rather than using the user's provided name
+
 /**
  * Checks that the certificate is valid, and grabs the CN from it.
  * @param {import("express").Request} req The HTTP request

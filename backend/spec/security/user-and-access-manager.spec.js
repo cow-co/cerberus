@@ -64,34 +64,6 @@ describe("Access Manager tests", () => {
     securityConfig.usePKI = false;
   });
 
-  test("authenticate - success - AD", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.authenticate.mockResolvedValue(true);
-    adManager.findUserByName.mockResolvedValue({
-      id: "id",
-      name: "user",
-    });
-    adminService.isUserAdmin.mockResolvedValue(false);
-
-    let called = false;
-    await accessManager.authenticate(
-      {
-        body: {
-          username: "user",
-          password: "pass",
-        },
-      },
-      null,
-      () => {
-        called = true;
-      }
-    );
-
-    expect(called).toBe(true);
-    expect(adManager.authenticate).toHaveBeenCalledTimes(1);
-    expect(jwt.sign).toHaveBeenCalledTimes(1);
-  });
-
   test("authenticate - success - PKI", async () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
@@ -110,34 +82,6 @@ describe("Access Manager tests", () => {
     expect(called).toBe(true);
     expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
     expect(dbManager.authenticate).toHaveBeenCalledTimes(1);
-    expect(jwt.sign).toHaveBeenCalledTimes(1);
-  });
-
-  test("authenticate - failure - user somehow deleted between creds check and ", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.authenticate.mockResolvedValue(true);
-    adManager.findUserByName.mockResolvedValue({
-      id: "id",
-      name: "user",
-    });
-    adminService.isUserAdmin.mockResolvedValue(false);
-
-    let called = false;
-    await accessManager.authenticate(
-      {
-        body: {
-          username: "user",
-          password: "pass",
-        },
-      },
-      null,
-      () => {
-        called = true;
-      }
-    );
-
-    expect(called).toBe(true);
-    expect(adManager.authenticate).toHaveBeenCalledTimes(1);
     expect(jwt.sign).toHaveBeenCalledTimes(1);
   });
 
@@ -203,39 +147,6 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  test("authenticate - failure - unsupported auth method", async () => {
-    securityConfig.authMethod = "FAKE";
-    let called = false;
-    let statusCode = 200;
-    let errors = [];
-
-    await accessManager.authenticate(
-      {
-        body: {
-          username: "user",
-          password: "pass",
-        },
-      },
-      {
-        status: (status) => {
-          statusCode = status;
-          return {
-            json: (data) => {
-              errors = data.errors;
-            },
-          };
-        },
-      },
-      () => {
-        called = true;
-      }
-    );
-
-    expect(called).toBe(false);
-    expect(statusCode).toBe(500);
-    expect(errors).toHaveLength(1);
-  });
-
   test("authenticate - failure - incorrect credentials", async () => {
     dbManager.authenticate.mockResolvedValue(false);
     let called = false;
@@ -276,22 +187,6 @@ describe("Access Manager tests", () => {
     expect(dbManager.deleteUser).toHaveBeenCalledTimes(1);
   });
 
-  test("remove user - failure - AD", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-
-    const errors = await accessManager.removeUser("userId");
-
-    expect(errors).toHaveLength(1);
-  });
-
-  test("remove user - failure - unsupported auth method", async () => {
-    securityConfig.authMethod = "FAKE";
-
-    const errors = await accessManager.removeUser("userId");
-
-    expect(errors).toHaveLength(1);
-  });
-
   test("remove user - failure - exception", async () => {
     dbManager.deleteUser.mockRejectedValue(new TypeError("TEST"));
 
@@ -300,7 +195,7 @@ describe("Access Manager tests", () => {
     ).rejects.toThrow(TypeError);
   });
 
-  test("find user by name - success - DB", async () => {
+  test("find user by name - success", async () => {
     dbManager.findUserByName.mockResolvedValue({
       id: "id",
       name: "user",
@@ -312,27 +207,6 @@ describe("Access Manager tests", () => {
     expect(res.user.name).toBe("user");
   });
 
-  test("find user by name - success - AD", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.findUserByName.mockResolvedValue({
-      id: "id",
-      name: "user",
-    });
-
-    const res = await accessManager.findUserByName("user");
-
-    expect(res.errors).toHaveLength(0);
-    expect(res.user.name).toBe("user");
-  });
-
-  test("find user by name - failure - unsupported auth method", async () => {
-    securityConfig.authMethod = "FAKE";
-    const res = await accessManager.findUserByName("user");
-
-    expect(res.errors).toHaveLength(1);
-    expect(res.user).toEqual({ id: "", name: "" });
-  });
-
   test("find user by name - failure - exception", async () => {
     dbManager.findUserByName.mockRejectedValue(new TypeError("TEST"));
 
@@ -341,7 +215,7 @@ describe("Access Manager tests", () => {
     ).rejects.toThrow(TypeError);
   });
 
-  test("find user by ID - success - DB", async () => {
+  test("find user by ID - success", async () => {
     dbManager.findUserById.mockResolvedValue({
       id: "id",
       name: "user",
@@ -351,27 +225,6 @@ describe("Access Manager tests", () => {
 
     expect(res.errors).toHaveLength(0);
     expect(res.user.name).toBe("user");
-  });
-
-  test("find user by ID - success - AD", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.findUserById.mockResolvedValue({
-      id: "id",
-      name: "user",
-    });
-
-    const res = await accessManager.findUserById("userId");
-
-    expect(res.errors).toHaveLength(0);
-    expect(res.user.name).toBe("user");
-  });
-
-  test("find user by ID - failure - unsupported auth method", async () => {
-    securityConfig.authMethod = "FAKE";
-    const res = await accessManager.findUserById("userId");
-
-    expect(res.errors).toHaveLength(1);
-    expect(res.user).toEqual({ id: "", name: "" });
   });
 
   test("find user by ID - failure - exception", async () => {
@@ -592,14 +445,6 @@ describe("Access Manager tests", () => {
     expect(dbManager.logout).toHaveBeenCalledTimes(1);
   });
 
-  test("logout - success - AD", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-
-    await accessManager.logout("id");
-
-    expect(adManager.logout).toHaveBeenCalledTimes(1);
-  });
-
   test("register - success", async () => {
     dbManager.findUserByName.mockResolvedValue({ id: "", name: "" });
     dbManager.register.mockResolvedValue({
@@ -611,16 +456,6 @@ describe("Access Manager tests", () => {
 
     expect(response._id).toBe("id");
     expect(response.errors).toHaveLength(0);
-  });
-
-  test("register - failure - AD", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.findUserByName.mockResolvedValue({ id: "", name: "" });
-
-    const response = await accessManager.register("user", "pass");
-
-    expect(response._id).toBe(null);
-    expect(response.errors).toHaveLength(1);
   });
 
   test("register - failure - user exists", async () => {
@@ -986,24 +821,6 @@ describe("Access Manager tests", () => {
     expect(errors).toHaveLength(0);
   });
 
-  test("Get user groups - success - AD Backed", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.getGroupsForUser.mockResolvedValue(["read1", "operator2"]);
-
-    const { groups, errors } = await accessManager.getGroupsForUser("userId");
-
-    expect(groups).toHaveLength(2);
-    expect(errors).toHaveLength(0);
-  });
-
-  test("Get user groups - failure - Fake auth method", async () => {
-    securityConfig.authMethod = "FAKE";
-    const { groups, errors } = await accessManager.getGroupsForUser("userId");
-
-    expect(groups).toHaveLength(0);
-    expect(errors).toHaveLength(1);
-  });
-
   test("Get user groups - failure - exception", async () => {
     dbManager.getGroupsForUser.mockRejectedValue(new TypeError("TEST"));
 
@@ -1037,22 +854,6 @@ describe("Access Manager tests", () => {
     expect(errors).toHaveLength(1);
   });
 
-  test("Delete group - failure - AD auth", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    const { deletedEntity, errors } = await accessManager.deleteGroup("id");
-
-    expect(deletedEntity).toBe(null);
-    expect(errors).toHaveLength(1);
-  });
-
-  test("Delete group - failure - fake auth method", async () => {
-    securityConfig.authMethod = "FAKE";
-    const { deletedEntity, errors } = await accessManager.deleteGroup("id");
-
-    expect(deletedEntity).toBe(null);
-    expect(errors).toHaveLength(1);
-  });
-
   test("Delete group - failure - exception", async () => {
     dbManager.deleteGroup.mockRejectedValue(new TypeError("TEST"));
 
@@ -1075,22 +876,6 @@ describe("Access Manager tests", () => {
     expect(errors).toHaveLength(1);
   });
 
-  test("create group - failure - AD auth", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-
-    const errors = await accessManager.createGroup("name");
-
-    expect(errors).toHaveLength(1);
-  });
-
-  test("create group - failure - fake auth method", async () => {
-    securityConfig.authMethod = "FAKE";
-
-    const errors = await accessManager.createGroup("name");
-
-    expect(errors).toHaveLength(1);
-  });
-
   test("create group - failure - exception gets thrown out", async () => {
     dbManager.createGroup.mockRejectedValue(new TypeError("TEST"));
 
@@ -1099,7 +884,7 @@ describe("Access Manager tests", () => {
     );
   });
 
-  test("get all groups - success - DB auth", async () => {
+  test("get all groups - success", async () => {
     dbManager.getAllGroups.mockResolvedValue([
       { _id: "a", name: "a" },
       { _id: "b", name: "b" },
@@ -1109,23 +894,5 @@ describe("Access Manager tests", () => {
 
     expect(errors).toHaveLength(0);
     expect(groups).toHaveLength(2);
-  });
-
-  test("get all groups - success - AD auth", async () => {
-    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
-    adManager.getAllGroups.mockReturnValue([{ name: "a" }, { name: "b" }]);
-
-    const { errors, groups } = await accessManager.getAllGroups();
-
-    expect(errors).toHaveLength(0);
-    expect(groups).toHaveLength(2);
-  });
-
-  test("get all groups - failure - fake auth method", async () => {
-    securityConfig.authMethod = "FAKE";
-
-    const { errors, groups } = await accessManager.getAllGroups();
-
-    expect(errors).toHaveLength(1);
   });
 });
