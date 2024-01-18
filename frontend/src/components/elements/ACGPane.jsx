@@ -11,7 +11,6 @@ import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
 import conf from "../../common/config/properties";
 
-// TODO Modify all this for ACGs rather than task types
 function ACGPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
   const acgs = useSelector((state) => state.groups.groups);
@@ -100,14 +99,14 @@ function ACGPane() {
     });
   }
 
-  // TODO Needs a referesh button, so that AD auth groups can be refreshed (DB auth ones are websocketed)
+  // TODO Needs a refresh button, so that AD auth groups can be refreshed (DB auth ones are websocketed)
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Access Control Groups</Typography>
+      <Button variant='contained' onClick={handleFormOpen}>Create Access Control Group</Button>
       <List>
         {acgsItems}
       </List>
-      <Button variant='contained' onClick={handleFormOpen}>Create Access Control Group</Button>
       <CreateACGDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
     </Container>
       

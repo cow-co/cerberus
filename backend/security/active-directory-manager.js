@@ -114,13 +114,13 @@ const getAllGroups = () => {
   let groups = null;
   ad.findGroups((err, adGroups) => {
     if (!err) {
-      groups = adGroups;
+      groups = adGroups; // TODO massage these responses to match them up with the DB responses (eg map CN --> name)
     } else {
       log("active-directory-manager/getAllGroups", err, levels.WARN);
     }
   });
   return groups;
-}
+};
 
 module.exports = {
   authenticate,

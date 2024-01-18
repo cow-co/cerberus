@@ -1099,5 +1099,33 @@ describe("Access Manager tests", () => {
     );
   });
 
-  // TODO Tests for getAllGroups
+  test("get all groups - success - DB auth", async () => {
+    dbManager.getAllGroups.mockResolvedValue([
+      { _id: "a", name: "a" },
+      { _id: "b", name: "b" },
+    ]);
+
+    const { errors, groups } = await accessManager.getAllGroups();
+
+    expect(errors).toHaveLength(0);
+    expect(groups).toHaveLength(2);
+  });
+
+  test("get all groups - success - AD auth", async () => {
+    securityConfig.authMethod = securityConfig.availableAuthMethods.AD;
+    adManager.getAllGroups.mockReturnValue([{ name: "a" }, { name: "b" }]);
+
+    const { errors, groups } = await accessManager.getAllGroups();
+
+    expect(errors).toHaveLength(0);
+    expect(groups).toHaveLength(2);
+  });
+
+  test("get all groups - failure - fake auth method", async () => {
+    securityConfig.authMethod = "FAKE";
+
+    const { errors, groups } = await accessManager.getAllGroups();
+
+    expect(errors).toHaveLength(1);
+  });
 });
