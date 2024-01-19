@@ -1,13 +1,13 @@
 const userService = require("../db/services/user-service");
 const adminService = require("../db/services/admin-service");
 const acgService = require("../db/services/acg-service");
-const argon2 = require("argon2");
 const { levels, log } = require("../utils/logger");
 const {
   validatePassword,
   validateUsername,
 } = require("../validation/security-validation");
 const TokenValidity = require("../db/models/TokenValidity");
+const argon2 = require("argon2");
 
 /**
  * @param {string} username
@@ -43,41 +43,6 @@ const register = async (username, password, pwReqs) => {
     response.errors.push("Internal Server Error");
   }
   return response;
-};
-
-/**
- * @param {string} username
- * @param {string} password Should be null if using PKI (since PKI login doesn't use a password)
- * @returns
- */
-const authenticate = async (username, password, usePKI) => {
-  log(
-    "database-manager/authenticate",
-    `Authenticating user ${username}`,
-    levels.DEBUG
-  );
-  let user = null;
-  let authenticated = false;
-
-  if (username) {
-    user = await userService.getUserAndPasswordByUsername(username);
-    if (user) {
-      if (!usePKI) {
-        authenticated = await argon2.verify(
-          user.password.hashedPassword,
-          password
-        );
-      } else {
-        authenticated = true;
-      }
-    } else {
-      log("database-manager/authenticate", "User does not exist", levels.WARN);
-    }
-  } else {
-    log("database-manager/authenticate", "Username not provided", levels.WARN);
-  }
-
-  return authenticated;
 };
 
 const logout = async (userId) => {
@@ -187,7 +152,6 @@ const deleteGroup = async (id) => {
 
 module.exports = {
   register,
-  authenticate,
   logout,
   deleteUser,
   findUserById,

@@ -6,6 +6,7 @@ const adminService = require("../../db/services/admin-service");
 const implantService = require("../../db/services/implant-service");
 const userService = require("../../db/services/user-service");
 const jwt = require("jsonwebtoken");
+const argon2 = require("argon2");
 let accessManager;
 
 jest.mock("../../security/pki");
@@ -14,6 +15,9 @@ jest.mock("../../db/services/admin-service");
 jest.mock("../../db/services/implant-service");
 jest.mock("../../db/services/user-service");
 jest.mock("jsonwebtoken");
+jest.mock("argon2");
+
+// TODO Update all tests to use more appropriate Jest matchers (instead of just "toBe" everywhere)
 
 const implantSearchResults = [
   {
@@ -59,33 +63,226 @@ describe("Access Manager tests", () => {
 
   beforeEach(() => {
     securityConfig.usePKI = false;
+    argon2.hash.mockResolvedValue("hashed");
+    argon2.verify.mockResolvedValue(true);
+  });
+
+  test("authenticate - success - no PKI", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      name: "ksdah",
+      password: "hashed",
+      acgs: [],
+    });
+    dbManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    let res;
+    let called = false;
+
+    await accessManager.authenticate(
+      {
+        body: {
+          username: "ksdah",
+          password: "kjsdahf",
+        },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBeTruthy();
+    expect(res).toBeUndefined();
+  });
+
+  test("authenticate - failure - empty username", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      name: "ksdah",
+      password: "hashed",
+      acgs: [],
+    });
+    dbManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    let res;
+    let called = false;
+
+    await accessManager.authenticate(
+      {
+        body: {
+          username: "",
+          password: "kjsdahf",
+        },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBeFalsy();
+    expect(resStatus).toBe(401);
+    expect(res.errors).toHaveLength(1);
+  });
+
+  // TODO Some helper functions to neaten up the tests
+  test("authenticate - failure - no username", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      name: "ksdah",
+      password: "hashed",
+      acgs: [],
+    });
+    dbManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    let res;
+    let called = false;
+
+    await accessManager.authenticate(
+      {
+        body: {
+          password: "kjsdahf",
+        },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBeFalsy();
+    expect(resStatus).toBe(401);
+    expect(res.errors).toHaveLength(1);
+  });
+
+  test("authenticate - failure - user not found", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue(null);
+    let res;
+    let called = false;
+
+    await accessManager.authenticate(
+      {
+        body: {
+          username: "sss",
+          password: "kjsdahf",
+        },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBeFalsy();
+    expect(resStatus).toBe(401);
+    expect(res.errors).toHaveLength(1);
+  });
+
+  test("authenticate - failure - password wrong", async () => {
+    argon2.verify.mockResolvedValue(false);
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      name: "ksdah",
+      password: "hashed",
+      acgs: [],
+    });
+    dbManager.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "user",
+    });
+    let res;
+    let called = false;
+
+    await accessManager.authenticate(
+      {
+        body: {
+          username: "ksdah",
+          password: "kjsdahf",
+        },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBeFalsy();
+    expect(resStatus).toBe(401);
+    expect(res.errors).toHaveLength(1);
   });
 
   test("authenticate - success - PKI", async () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
-    dbManager.authenticate.mockResolvedValue(true);
     dbManager.findUserByName.mockResolvedValue({
       id: "id",
       name: "user",
     });
     adminService.isUserAdmin.mockResolvedValue(false);
+    jwt.sign.mockReturnValue("TEST");
 
     let called = false;
     await accessManager.authenticate({}, null, () => {
       called = true;
     });
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
     expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
-    expect(dbManager.authenticate).toHaveBeenCalledTimes(1);
     expect(jwt.sign).toHaveBeenCalledTimes(1);
   });
 
   test("authenticate - failure - PKI, user does not exist", async () => {
     securityConfig.usePKI = true;
     pki.extractUserDetails.mockReturnValue("user");
-    dbManager.authenticate.mockResolvedValue(false);
+    userService.getUserAndPasswordByUsername.mockResolvedValue(null);
 
     let called = false;
     let stat = 200;
@@ -107,12 +304,13 @@ describe("Access Manager tests", () => {
     expect(called).toBe(true);
     expect(stat).toBe(401);
     expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
-    expect(dbManager.authenticate).toHaveBeenCalledTimes(1);
     expect(jwt.sign).toHaveBeenCalledTimes(0);
   });
 
   test("authenticate - failure - exception", async () => {
-    dbManager.authenticate.mockRejectedValue(new TypeError("TEST"));
+    userService.getUserAndPasswordByUsername.mockRejectedValue(
+      new TypeError("TEST")
+    );
 
     let called = false;
     let resStatus = 200;
@@ -144,39 +342,6 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  test("authenticate - failure - incorrect credentials", async () => {
-    dbManager.authenticate.mockResolvedValue(false);
-    let called = false;
-    let resStatus = 200;
-    let res = {};
-
-    await accessManager.authenticate(
-      {
-        body: {
-          username: "ksdah",
-          password: "kjsdahf",
-        },
-      },
-      {
-        status: (status) => {
-          resStatus = status;
-          return {
-            json: (data) => {
-              res = data;
-            },
-          };
-        },
-      },
-      () => {
-        called = true;
-      }
-    );
-
-    expect(called).toBe(false);
-    expect(resStatus).toBe(401);
-    expect(res.errors).toHaveLength(1);
-  });
-
   test("remove user - success", async () => {
     const errors = await accessManager.removeUser("userId");
 
@@ -196,12 +361,12 @@ describe("Access Manager tests", () => {
     dbManager.findUserByName.mockResolvedValue({
       id: "id",
       name: "user",
+      acgs: [],
     });
 
     const res = await accessManager.findUserByName("user");
 
-    expect(res.errors).toHaveLength(0);
-    expect(res.user.name).toBe("user");
+    expect(res.name).toBe("user");
   });
 
   test("find user by name - failure - exception", async () => {
@@ -403,37 +568,6 @@ describe("Access Manager tests", () => {
     expect(called).toBe(false);
     expect(res.errors).toHaveLength(1);
     expect(resStatus).toBe(403);
-  });
-
-  test("verify token - success - PKI", async () => {
-    pki.extractUserDetails.mockReturnValue("user");
-    dbManager.findUserByName.mockResolvedValue({
-      user: {
-        id: "id",
-        name: "user",
-      },
-      errors: [],
-    });
-    dbManager.authenticate.mockResolvedValue(true);
-    securityConfig.usePKI = true;
-    let called = false;
-
-    await accessManager.verifyToken(
-      {
-        headers: {
-          "content-type": "application/json",
-        },
-        headerString: function (header) {
-          return this.headers[header];
-        },
-      },
-      null,
-      () => {
-        called = true;
-      }
-    );
-
-    expect(called).toBe(true);
   });
 
   test("logout - success", async () => {

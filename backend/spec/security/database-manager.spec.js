@@ -84,57 +84,6 @@ describe("Database user manager tests", () => {
     expect(result.errors).toHaveLength(1);
   });
 
-  test("authenticate - success - no PKI", async () => {
-    argon2.verify.mockResolvedValue(true);
-    userService.getUserAndPasswordByUsername.mockResolvedValue({
-      _id: "id",
-      name: "user",
-      password: {
-        _id: "hashId",
-        hashedPassword: "hash",
-      },
-    });
-
-    const auth = await manager.authenticate("user", "pass", false);
-
-    expect(auth).toBe(true);
-  });
-
-  test("authenticate - success - PKI", async () => {
-    userService.findUserByName.mockResolvedValue({
-      _id: "id",
-    });
-
-    const auth = await manager.authenticate("user", null, true);
-
-    expect(auth).toBe(true);
-  });
-
-  test("authenticate - failure - no username", async () => {
-    const auth = await manager.authenticate(null, "pass", false);
-
-    expect(auth).toBe(false);
-  });
-
-  test("authenticate - failure - user not found", async () => {
-    userService.getUserAndPasswordByUsername.mockResolvedValue(null);
-
-    const auth = await manager.authenticate("user", "pass", false);
-
-    expect(auth).toBe(false);
-  });
-
-  test("authenticate - failure - password wrong", async () => {
-    argon2.verify.mockResolvedValue(false);
-    userService.findUserByName.mockResolvedValue({
-      _id: "id",
-    });
-
-    const auth = await manager.authenticate("user", "pass", false);
-
-    expect(auth).toBe(false);
-  });
-
   test("find user by ID - success - user found", async () => {
     userService.findUserById.mockResolvedValue({
       _id: "id",

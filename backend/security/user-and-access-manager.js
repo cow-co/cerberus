@@ -10,6 +10,7 @@ const implantService = require("../db/services/implant-service");
 const jwt = require("jsonwebtoken");
 const userService = require("../db/services/user-service");
 const sanitize = require("sanitize");
+const argon2 = require("argon2");
 
 const sanitizer = sanitize();
 // TODO Maybe get rid of the separate db-user-manager, now that we don't support non-db auth?
@@ -28,6 +29,68 @@ const accessControlType = {
 const targetEntityType = {
   IMPLANT: "IMPLANT",
   USER: "USER",
+};
+
+// TODO JSDoc comment
+const checkCreds = async (username, password) => {
+  log(
+    "user-and-access-manager/checkCreds",
+    `Authenticating user ${username}`,
+    levels.DEBUG
+  );
+  let errors = [];
+  let authenticated = false;
+
+  if (username) {
+    const user = await userService.getUserAndPasswordByUsername(username);
+    if (user) {
+      if (!securityConfig.usePKI) {
+        authenticated = await argon2.verify(
+          user.password.hashedPassword,
+          password
+        );
+      } else {
+        authenticated = true;
+      }
+    }
+  }
+
+  if (!authenticated) {
+    log(
+      "user-and-access-manager/authenticate",
+      `Incorrect Credentials: username = ${username}`,
+      levels.SECURITY
+    );
+    errors.push("Incorrect Credentials");
+  }
+
+  return { authenticated, errors };
+};
+
+// TODO JSDoc comment
+const generateJWT = async (username) => {
+  log("user-and-access-manager/generateJWT", "generating JWT...", levels.DEBUG);
+  let data = {};
+  const user = await findUserByName(username); // TODO Perhaps return the user from checkCreds (empty if wrong creds) so we don't need to call again here?
+  if (user.id) {
+    data.userId = user.id;
+    data.username = user.name;
+    data.isAdmin = await adminService.isUserAdmin(user.id);
+
+    const token = jwt.sign(
+      {
+        userId: data.userId,
+        username: data.username, // TODO Are these (name and isAdmin) ever actually used from the token? isAdmin shouldn't be!
+        isAdmin: data.isAdmin,
+      },
+      securityConfig.jwtSecret,
+      { expiresIn: "1h" }
+    );
+
+    data.token = token;
+  }
+
+  return data;
 };
 
 /**
@@ -58,69 +121,27 @@ const authenticate = async (req, res, next) => {
   }
   let authenticated = false;
 
-  username = username.trim();
+  username = username ? username.trim() : "";
 
   try {
-    authenticated = await dbUserManager.authenticate(
-      username,
-      password,
-      securityConfig.usePKI
-    );
+    credsResult = await checkCreds(username, password);
+    errors = errors.concat(credsResult.errors);
+    authenticated = credsResult.authenticated;
+
+    if (!authenticated) {
+      status = statusCodes.UNAUTHENTICATED;
+      res.status(status).json({ errors });
+    } else {
+      const result = await generateJWT(username);
+      req.data = result;
+      next();
+    }
   } catch (err) {
     log("user-and-access-manager/authenticate", err, levels.ERROR);
 
     errors.push("Internal Server Error");
     status = statusCodes.INTERNAL_SERVER_ERROR;
-  }
-
-  // TODO Possibly split this block and the section above into separate functions, called from authenticate()
-  if (!authenticated && errors.length === 0) {
-    log(
-      "user-and-access-manager/authenticate",
-      `User ${username} failed login due to incorrect credentials`,
-      levels.SECURITY
-    );
-
-    status = statusCodes.UNAUTHENTICATED;
-    errors.push("Incorrect login credentials");
-
     res.status(status).json({ errors });
-  } else if (errors.length > 0) {
-    log(
-      "user-and-access-manager/authenticate",
-      `User ${username} failed login due to miscellaneous errors: ${JSON.stringify(
-        errors
-      )}`,
-      levels.SECURITY
-    );
-
-    res.status(status).json({ errors });
-  } else {
-    req.data = {};
-    // TODO Perhaps call this at the top of the function, and kick out early if user does not exist
-    //  Perhaps the user details should be returned from the DB auth functions, since those will need to check user-existence at least, anyway.
-    const result = await findUserByName(username);
-    if (result.errors.length > 0) {
-      res.status(status).json({ errors });
-    } else {
-      req.data.userId = result.user.id;
-      req.data.username = username;
-      req.data.isAdmin = await adminService.isUserAdmin(result.user.id);
-
-      const token = jwt.sign(
-        {
-          userId: req.data.userId,
-          username: req.data.username, // TODO Are these (name and isAdmin) ever actually used from the token? isAdmin shouldn't be!
-          isAdmin: req.data.isAdmin,
-        },
-        securityConfig.jwtSecret,
-        { expiresIn: "1h" }
-      );
-
-      req.data.token = token;
-
-      next();
-    }
   }
 };
 
@@ -212,7 +233,7 @@ const register = async (username, password) => {
   );
 
   username = username.trim();
-  const { user } = await findUserByName(username);
+  const user = await findUserByName(username);
 
   let response = {
     _id: null,
@@ -265,15 +286,9 @@ const findUserByName = async (username) => {
     levels.DEBUG
   );
 
-  let errors = [];
-  let user = { id: "", name: "" };
+  const user = await dbUserManager.findUserByName(username);
 
-  user = await dbUserManager.findUserByName(username);
-
-  return {
-    user,
-    errors,
-  };
+  return user;
 };
 
 /**
