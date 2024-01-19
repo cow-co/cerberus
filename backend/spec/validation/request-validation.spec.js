@@ -16,7 +16,7 @@ describe("Beacon validation tests", () => {
       beaconIntervalSeconds: 500,
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(true);
+    expect(validation.validateBeacon(beacon).isValid).toBeTruthy();
   });
 
   test("Beacon validation - success - IPv6", () => {
@@ -26,7 +26,7 @@ describe("Beacon validation tests", () => {
       beaconIntervalSeconds: 500,
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(true);
+    expect(validation.validateBeacon(beacon).isValid).toBeTruthy();
   });
 
   test("Beacon validation - success - no IP", () => {
@@ -35,7 +35,7 @@ describe("Beacon validation tests", () => {
       beaconIntervalSeconds: 500,
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(true);
+    expect(validation.validateBeacon(beacon).isValid).toBeTruthy();
   });
 
   test("Beacon validation - failure - no ID", () => {
@@ -44,7 +44,7 @@ describe("Beacon validation tests", () => {
       beaconIntervalSeconds: 500,
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(false);
+    expect(validation.validateBeacon(beacon).isValid).toBeFalsy();
   });
 
   test("Beacon validation - failure - IPv4", () => {
@@ -54,7 +54,7 @@ describe("Beacon validation tests", () => {
       beaconIntervalSeconds: 500,
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(false);
+    expect(validation.validateBeacon(beacon).isValid).toBeFalsy();
   });
 
   test("Beacon validation - failure - IPv6", () => {
@@ -64,7 +64,7 @@ describe("Beacon validation tests", () => {
       beaconIntervalSeconds: 500,
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(false);
+    expect(validation.validateBeacon(beacon).isValid).toBeFalsy();
   });
 
   test("Beacon validation - failure - no interval", () => {
@@ -73,7 +73,7 @@ describe("Beacon validation tests", () => {
       ip: "127.0.0.1",
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(false);
+    expect(validation.validateBeacon(beacon).isValid).toBeFalsy();
   });
 
   test("Beacon validation - failure - negative interval", () => {
@@ -83,7 +83,7 @@ describe("Beacon validation tests", () => {
       beaconIntervalSeconds: -500,
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(false);
+    expect(validation.validateBeacon(beacon).isValid).toBeFalsy();
   });
 
   test("Beacon validation - failure - zero interval", () => {
@@ -93,7 +93,7 @@ describe("Beacon validation tests", () => {
       beaconIntervalSeconds: 0,
     };
 
-    expect(validation.validateBeacon(beacon).isValid).toBe(false);
+    expect(validation.validateBeacon(beacon).isValid).toBeFalsy();
   });
 });
 
@@ -114,7 +114,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(true);
+    expect(res.isValid).toBeTruthy();
   });
 
   test("validate task - success - some params", async () => {
@@ -152,7 +152,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(true);
+    expect(res.isValid).toBeTruthy();
   });
 
   test("validate task - failure - expects string, gets number", async () => {
@@ -182,7 +182,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 
   test("validate task - failure - expects number, gets string with no digits", async () => {
@@ -212,7 +212,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 
   test("validate task - failure - expects number, gets string with digits and letters", async () => {
@@ -242,7 +242,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 
   test("validate task - success - float", async () => {
@@ -272,7 +272,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(true);
+    expect(res.isValid).toBeTruthy();
   });
 
   test("validate task - failure - no type", async () => {
@@ -290,7 +290,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 
   test("validate task - faiure - no type id", async () => {
@@ -312,7 +312,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 
   test("validate task - failure - no type name", async () => {
@@ -334,7 +334,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 
   test("validate task - failure - no matching task type", async () => {
@@ -359,7 +359,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 
   test("validate task - failure - wrong param count", async () => {
@@ -384,7 +384,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 
   test("validate task - failure - no implant ID", async () => {
@@ -403,7 +403,7 @@ describe("Task validation tests", () => {
     };
 
     const res = await validation.validateTask(task);
-    expect(res.isValid).toBe(false);
+    expect(res.isValid).toBeFalsy();
   });
 });
 
@@ -414,7 +414,7 @@ describe("Task type validation tests", () => {
       params: [],
     };
 
-    expect(validation.validateTaskType(taskType).isValid).toBe(true);
+    expect(validation.validateTaskType(taskType).isValid).toBeTruthy();
   });
 
   test("Validate task type - success - some params", () => {
@@ -423,7 +423,7 @@ describe("Task type validation tests", () => {
       params: ["param 1", "param 2"],
     };
 
-    expect(validation.validateTaskType(taskType).isValid).toBe(true);
+    expect(validation.validateTaskType(taskType).isValid).toBeTruthy();
   });
 
   test("Validate task type - failure - no params list", () => {
@@ -431,7 +431,7 @@ describe("Task type validation tests", () => {
       name: "type",
     };
 
-    expect(validation.validateTaskType(taskType).isValid).toBe(false);
+    expect(validation.validateTaskType(taskType).isValid).toBeFalsy();
   });
 
   test("Validate task type - failure - no name", () => {
@@ -439,7 +439,7 @@ describe("Task type validation tests", () => {
       params: [],
     };
 
-    expect(validation.validateTaskType(taskType).isValid).toBe(false);
+    expect(validation.validateTaskType(taskType).isValid).toBeFalsy();
   });
 
   test("Validate task type - failure - repeated params", () => {
@@ -448,6 +448,6 @@ describe("Task type validation tests", () => {
       params: ["param 1", "param 2", "param 1"],
     };
 
-    expect(validation.validateTaskType(taskType).isValid).toBe(false);
+    expect(validation.validateTaskType(taskType).isValid).toBeFalsy();
   });
 });

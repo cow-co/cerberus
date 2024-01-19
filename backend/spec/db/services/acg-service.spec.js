@@ -54,7 +54,7 @@ describe("Admin service tests", () => {
 
     const result = await acgService.findACG("name");
 
-    expect(result).toBe(null);
+    expect(result).toBeNull();
   });
 
   test("find ACG - failure - exception throws out successfully", async () => {

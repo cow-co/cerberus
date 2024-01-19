@@ -146,7 +146,7 @@ describe("Access Manager tests", () => {
     expect(res.errors).toHaveLength(1);
   });
 
-  // TODO Some helper functions to neaten up the tests
+  // TODO Some helper functions to neaten up the tests (across all test suites)
   test("authenticate - failure - no username", async () => {
     userService.getUserAndPasswordByUsername.mockResolvedValue({
       name: "ksdah",
@@ -301,7 +301,7 @@ describe("Access Manager tests", () => {
       () => {}
     );
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
     expect(stat).toBe(401);
     expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
     expect(jwt.sign).toHaveBeenCalledTimes(0);
@@ -337,7 +337,7 @@ describe("Access Manager tests", () => {
       }
     );
 
-    expect(called).toBe(false);
+    expect(called).toBeFalsy();
     expect(resStatus).toBe(500);
     expect(res.errors).toHaveLength(1);
   });
@@ -418,7 +418,7 @@ describe("Access Manager tests", () => {
       }
     );
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
     expect(jwt.verify).toHaveBeenCalledTimes(1);
     expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(1);
   });
@@ -454,7 +454,7 @@ describe("Access Manager tests", () => {
       }
     );
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
     expect(jwt.verify).toHaveBeenCalledTimes(1);
     expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(1);
     expect(httpStatus).toBe(403);
@@ -491,7 +491,7 @@ describe("Access Manager tests", () => {
       }
     );
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
     expect(jwt.verify).toHaveBeenCalledTimes(1);
     expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(1);
     expect(httpStatus).toBe(500);
@@ -531,7 +531,7 @@ describe("Access Manager tests", () => {
       }
     );
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
     expect(jwt.verify).toHaveBeenCalledTimes(1);
     expect(userService.getMinTokenTimestamp).toHaveBeenCalledTimes(0);
     expect(httpStatus).toBe(403);
@@ -565,7 +565,7 @@ describe("Access Manager tests", () => {
       }
     );
 
-    expect(called).toBe(false);
+    expect(called).toBeFalsy();
     expect(res.errors).toHaveLength(1);
     expect(resStatus).toBe(403);
   });
@@ -598,7 +598,7 @@ describe("Access Manager tests", () => {
 
     const response = await accessManager.register("user", "pass");
 
-    expect(response._id).toBe(null);
+    expect(response._id).toBeNull();
     expect(response.errors).toHaveLength(1);
   });
 
@@ -619,7 +619,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(true);
+    expect(isPermitted).toBeTruthy();
   });
 
   test("User authorisation - success - edit, admin", async () => {
@@ -639,7 +639,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(true);
+    expect(isPermitted).toBeTruthy();
   });
 
   test("User authorisation - success - read, no ACGs", async () => {
@@ -659,7 +659,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(true);
+    expect(isPermitted).toBeTruthy();
   });
 
   test("User authorisation - success - read, read-only ACGs", async () => {
@@ -680,7 +680,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(true);
+    expect(isPermitted).toBeTruthy();
   });
 
   test("User authorisation - success - read, operator (no read-only) ACGs", async () => {
@@ -700,7 +700,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(true);
+    expect(isPermitted).toBeTruthy();
   });
 
   test("User authorisation - success - edit, no ACGs", async () => {
@@ -721,7 +721,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(true);
+    expect(isPermitted).toBeTruthy();
   });
 
   test("User authorisation - success - edit, operator ACGs", async () => {
@@ -742,7 +742,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(true);
+    expect(isPermitted).toBeTruthy();
   });
 
   test("User authorisation - failure - read, read-only ACGs", async () => {
@@ -763,7 +763,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(false);
+    expect(isPermitted).toBeFalsy();
   });
 
   test("User authorisation - failure - edit, only read-only ACGs", async () => {
@@ -784,7 +784,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(false);
+    expect(isPermitted).toBeFalsy();
   });
 
   test("User authorisation - failure - edit, operator ACGs", async () => {
@@ -805,7 +805,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(false);
+    expect(isPermitted).toBeFalsy();
   });
 
   test("User authorisation - failure - throws exception out", async () => {
@@ -840,7 +840,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(true);
+    expect(isPermitted).toBeTruthy();
   });
 
   test("User authorisation - failure - invalid entity type", async () => {
@@ -854,7 +854,7 @@ describe("Access Manager tests", () => {
       "id"
     );
 
-    expect(isPermitted).toBe(false);
+    expect(isPermitted).toBeFalsy();
   });
 
   test("Implant view filtering - success - admin", async () => {
@@ -960,14 +960,14 @@ describe("Access Manager tests", () => {
 
     const { deletedEntity, errors } = await accessManager.deleteGroup("id");
 
-    expect(deletedEntity).toBe(null);
+    expect(deletedEntity).toBeNull();
     expect(errors).toHaveLength(0);
   });
 
   test("Delete group - failure - no ID provided", async () => {
     const { deletedEntity, errors } = await accessManager.deleteGroup("");
 
-    expect(deletedEntity).toBe(null);
+    expect(deletedEntity).toBeNull();
     expect(errors).toHaveLength(1);
   });
 

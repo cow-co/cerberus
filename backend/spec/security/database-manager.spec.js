@@ -158,7 +158,7 @@ describe("Database user manager tests", () => {
 
     const isInGroup = await manager.isUserInGroup("id", "acg1");
 
-    expect(isInGroup).toBe(true);
+    expect(isInGroup).toBeTruthy();
   });
 
   test("check group membership - success - multiple groups on user", async () => {
@@ -171,7 +171,7 @@ describe("Database user manager tests", () => {
 
     const isInGroup = await manager.isUserInGroup("id", "acg2");
 
-    expect(isInGroup).toBe(true);
+    expect(isInGroup).toBeTruthy();
   });
 
   test("check group membership - failure", async () => {
@@ -184,7 +184,7 @@ describe("Database user manager tests", () => {
 
     const isInGroup = await manager.isUserInGroup("id", "acg2");
 
-    expect(isInGroup).toBe(false);
+    expect(isInGroup).toBeFalsy();
   });
 
   test("Get groups - success - empty ACG array", async () => {

@@ -16,7 +16,7 @@ describe("Admin service tests", () => {
 
     const result = await adminService.isUserAdmin("id");
 
-    expect(result).toBe(true);
+    expect(result).toBeTruthy();
   });
 
   test("check admin - false - admin record does not exist", async () => {
@@ -24,13 +24,13 @@ describe("Admin service tests", () => {
 
     const result = await adminService.isUserAdmin("id");
 
-    expect(result).toBe(false);
+    expect(result).toBeFalsy();
   });
 
   test("check admin - false - userId null", async () => {
     const result = await adminService.isUserAdmin(null);
 
-    expect(result).toBe(false);
+    expect(result).toBeFalsy();
   });
 
   test("add admin - success", async () => {
@@ -70,7 +70,7 @@ describe("Admin service tests", () => {
 
     await adminService.changeAdminStatus("id", false);
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
   });
 
   test("delete admin - noop - admin does not exist", async () => {

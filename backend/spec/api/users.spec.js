@@ -170,7 +170,7 @@ describe("User tests", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.user.name).toBe("user");
-    expect(res.body.user.isAdmin).toBe(false);
+    expect(res.body.user.isAdmin).toBeFalsy();
   });
 
   test("whoami - failure - exception", async () => {

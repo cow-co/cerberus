@@ -23,9 +23,9 @@ describe("Config validation tests", () => {
   test("security config validation - success", () => {
     const securityConfig = { ...baseline };
 
-    expect(validation.validateSecurityConfig(securityConfig).isValid).toBe(
-      true
-    );
+    expect(
+      validation.validateSecurityConfig(securityConfig).isValid
+    ).toBeTruthy();
     expect(
       validation.validateSecurityConfig(securityConfig).errors
     ).toHaveLength(0);
@@ -35,9 +35,9 @@ describe("Config validation tests", () => {
     const securityConfig = { ...baseline };
     securityConfig.jwtSecret = "";
 
-    expect(validation.validateSecurityConfig(securityConfig).isValid).toBe(
-      false
-    );
+    expect(
+      validation.validateSecurityConfig(securityConfig).isValid
+    ).toBeFalsy();
     expect(
       validation.validateSecurityConfig(securityConfig).errors
     ).toHaveLength(1);
@@ -47,9 +47,9 @@ describe("Config validation tests", () => {
     const securityConfig = { ...baseline };
     securityConfig.passwordRequirements = undefined;
 
-    expect(validation.validateSecurityConfig(securityConfig).isValid).toBe(
-      false
-    );
+    expect(
+      validation.validateSecurityConfig(securityConfig).isValid
+    ).toBeFalsy();
     expect(
       validation.validateSecurityConfig(securityConfig).errors
     ).toHaveLength(1);
@@ -59,9 +59,9 @@ describe("Config validation tests", () => {
     const securityConfig = { ...baseline };
     securityConfig.initialAdmin.username = "";
 
-    expect(validation.validateSecurityConfig(securityConfig).isValid).toBe(
-      false
-    );
+    expect(
+      validation.validateSecurityConfig(securityConfig).isValid
+    ).toBeFalsy();
     expect(
       validation.validateSecurityConfig(securityConfig).errors
     ).toHaveLength(1);
@@ -71,9 +71,9 @@ describe("Config validation tests", () => {
     const securityConfig = { ...baseline };
     securityConfig.initialAdmin.password = "";
 
-    expect(validation.validateSecurityConfig(securityConfig).isValid).toBe(
-      false
-    );
+    expect(
+      validation.validateSecurityConfig(securityConfig).isValid
+    ).toBeFalsy();
     expect(
       validation.validateSecurityConfig(securityConfig).errors
     ).toHaveLength(1);

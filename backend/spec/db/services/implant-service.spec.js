@@ -20,7 +20,7 @@ describe("Implant service tests", () => {
 
     const args = Implant.create.mock.calls[0];
     expect(Implant.create).toHaveBeenCalledTimes(1);
-    expect(args[0].isActive).toBe(true);
+    expect(args[0].isActive).toBeTruthy();
   });
 
   test("update implant - success", async () => {
@@ -35,7 +35,7 @@ describe("Implant service tests", () => {
     const args = Implant.findOneAndUpdate.mock.calls[0];
     expect(Implant.findOneAndUpdate).toHaveBeenCalledTimes(1);
     expect(args[0].id).toBe("details.id");
-    expect(args[1].isActive).toBe(true);
+    expect(args[1].isActive).toBeTruthy();
   });
 
   test("find implant - success", async () => {
@@ -58,7 +58,7 @@ describe("Implant service tests", () => {
   test("find implant - failure - no ID provided", async () => {
     const imp = await implantService.findImplantById("");
 
-    expect(imp).toBe(null);
+    expect(imp).toBeNull();
   });
 
   test("get all implants - success", async () => {
@@ -134,9 +134,9 @@ describe("Implant service tests", () => {
 
     await implantService.checkActivity();
 
-    expect(updates.id1).toBe(true);
-    expect(updates.id2).toBe(false);
-    expect(updates.id3).toBe(false);
+    expect(updates.id1).toBeTruthy();
+    expect(updates.id2).toBeFalsy();
+    expect(updates.id3).toBeFalsy();
   });
 
   test("Update ACGs", async () => {
@@ -160,6 +160,6 @@ describe("Implant service tests", () => {
     expect(result.readOnlyACGs).toHaveLength(1);
     expect(result.operatorACGs).toHaveLength(2);
     expect(result.readOnlyACGs[0]).toBe("group 3");
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
   });
 });

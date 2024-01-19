@@ -39,6 +39,6 @@ describe("PKI Tests", () => {
         },
       },
     });
-    expect(res).toBe(null);
+    expect(res).toBeNull();
   });
 });
