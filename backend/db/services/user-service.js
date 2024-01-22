@@ -91,6 +91,19 @@ const getMinTokenTimestamp = async (userId) => {
   return timestamp;
 };
 
+const generateTokenValidityEntry = async (userId) => {
+  const existing = await TokenValidity.findOne({ userId: userId });
+  if (existing) {
+    existing.minTokenValidity = Date.now();
+    await existing.save();
+  } else {
+    await TokenValidity.create({
+      userId: userId,
+      minTokenValidity: Date.now(),
+    });
+  }
+};
+
 module.exports = {
   findUserByName,
   findUserById,
@@ -98,4 +111,5 @@ module.exports = {
   deleteUser,
   getUserAndPasswordByUsername,
   getMinTokenTimestamp,
+  generateTokenValidityEntry,
 };

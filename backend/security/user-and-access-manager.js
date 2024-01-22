@@ -3,14 +3,17 @@
 const securityConfig = require("../config/security-config");
 const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
-const dbUserManager = require("./database-manager");
-const pki = require("./pki");
+
 const adminService = require("../db/services/admin-service");
 const implantService = require("../db/services/implant-service");
-const jwt = require("jsonwebtoken");
+const acgService = require("../db/services/acg-service");
 const userService = require("../db/services/user-service");
+const validation = require("../validation/security-validation");
+const pki = require("./pki");
+
 const sanitize = require("sanitize");
 const argon2 = require("argon2");
+const jwt = require("jsonwebtoken");
 
 const sanitizer = sanitize();
 // TODO Maybe get rid of the separate db-user-manager, now that we don't support non-db auth?
@@ -31,7 +34,12 @@ const targetEntityType = {
   USER: "USER",
 };
 
-// TODO JSDoc comment
+/**
+ * Verifies the username/password combination is correct.
+ * @param {string} username
+ * @param {string} password
+ * @returns authenticated {bool}, errors {array{string}}
+ */
 const checkCreds = async (username, password) => {
   log(
     "user-and-access-manager/checkCreds",
@@ -67,11 +75,15 @@ const checkCreds = async (username, password) => {
   return { authenticated, errors };
 };
 
-// TODO JSDoc comment
+/**
+ * Generates a JWT for the user. Call *after* checking their credentials.
+ * @param {string} username
+ * @returns Object containing userId, username, isAdmin, and token
+ */
 const generateJWT = async (username) => {
   log("user-and-access-manager/generateJWT", "generating JWT...", levels.DEBUG);
   let data = {};
-  const user = await findUserByName(username); // TODO Perhaps return the user from checkCreds (empty if wrong creds) so we don't need to call again here?
+  const user = await findUserByName(username);
   if (user.id) {
     data.userId = user.id;
     data.username = user.name;
@@ -80,8 +92,7 @@ const generateJWT = async (username) => {
     const token = jwt.sign(
       {
         userId: data.userId,
-        username: data.username, // TODO Are these (name and isAdmin) ever actually used from the token? isAdmin shouldn't be!
-        isAdmin: data.isAdmin,
+        username: data.username,
       },
       securityConfig.jwtSecret,
       { expiresIn: "1h" }
@@ -215,7 +226,7 @@ const logout = async (userId) => {
     `Logging out user ${userId}`,
     levels.DEBUG
   );
-  await dbUserManager.logout(userId);
+  await userService.generateTokenValidityEntry(userId);
 };
 
 /**
@@ -236,18 +247,31 @@ const register = async (username, password) => {
   const user = await findUserByName(username);
 
   let response = {
-    _id: null,
+    userId: null,
     errors: [],
   };
 
   if (!user.id) {
-    const createdUser = await dbUserManager.register(
-      username,
+    let validationErrors = validation.validatePassword(
       password,
       securityConfig.passwordRequirements
     );
-    response._id = createdUser.userId;
-    response.errors = createdUser.errors;
+    validationErrors = validationErrors.concat(
+      validation.validateUsername(username)
+    );
+
+    if (validationErrors.length === 0) {
+      const hashed = await argon2.hash(password);
+      const userRecord = await userService.createUser(username, hashed);
+      response.userId = userRecord._id;
+    } else {
+      log(
+        "database-manager/register",
+        "Validation of username/password failed",
+        levels.WARN
+      );
+      response.errors = response.errors.concat(validationErrors);
+    }
   } else {
     log(
       "user-and-access-manager/register",
@@ -267,12 +291,10 @@ const register = async (username, password) => {
  */
 const removeUser = async (userId) => {
   log("removeUser", `Removing user ${userId}`, levels.DEBUG);
-
-  let errors = [];
-
-  await dbUserManager.deleteUser(userId);
-
-  return errors;
+  if (userId) {
+    await userService.deleteUser(userId);
+    await adminService.changeAdminStatus(userId, false);
+  }
 };
 
 /**
@@ -285,9 +307,19 @@ const findUserByName = async (username) => {
     `Finding user ${username}`,
     levels.DEBUG
   );
-
-  const user = await dbUserManager.findUserByName(username);
-
+  let user = await userService.findUserByName(username);
+  if (!user) {
+    user = {
+      id: "",
+      name: "",
+      acgs: [],
+    };
+  } else {
+    // This is only the ID of the hashed password, not the hash itself, but is still sensitive
+    delete user.password;
+    user.id = user._id;
+    delete user._id;
+  }
   return user;
 };
 
@@ -301,58 +333,56 @@ const findUserById = async (userId) => {
     `Finding user ${userId}`,
     levels.DEBUG
   );
-
-  let errors = [];
-  let user = {
-    id: "",
-    name: "",
-  };
-
-  user = await dbUserManager.findUserById(userId);
-
-  return {
-    user,
-    errors,
-  };
+  let user = await userService.findUserById(userId);
+  if (!user) {
+    user = {
+      id: "",
+      name: "",
+      acgs: [],
+    };
+  } else {
+    // This is only the ID of the hashed password, not the hash itself, but is still sensitive
+    delete user.password;
+    user.id = user._id;
+    delete user._id;
+  }
+  return user;
 };
 
 /**
- * @param {String} userId ID (either database ID, or UPN for active directory) of user
- * @returns Object: {errors, groups}
+ * @param {String} userId
+ * @returns group IDs
  */
 const getGroupsForUser = async (userId) => {
-  const groups = await dbUserManager.getGroupsForUser(userId);
-
-  return groups;
+  let acgs = [];
+  const user = await findUserById(userId);
+  if (user && user.acgs) {
+    acgs = user.acgs;
+  }
+  return acgs;
 };
 
 const getAllGroups = async () => {
   let errors = [];
-  let groups = [];
   let acgs = null;
+  acgs = await acgService.getAllACGs();
 
-  acgs = await dbUserManager.getAllGroups();
-
-  if (acgs) {
-    groups = acgs;
-  } else {
+  if (!acgs) {
     errors = ["Query for all ACGs failed"];
   }
 
   return {
     errors,
-    groups,
+    acgs,
   };
 };
 
 const createGroup = async (acgName) => {
   // TODO return an error if acg with that name already exists
-
   let errors = [];
-  if (acgName) {
-    errors = await dbUserManager.createGroup(acgName);
-  } else {
-    errors.push("Must provide a name for the ACG");
+  const created = await acgService.createACG(acgName);
+  if (!created) {
+    errors.push("Could not create ACG!");
   }
   return errors;
 };
@@ -366,7 +396,7 @@ const deleteGroup = async (acgId) => {
   let errors = [];
   let deletedEntity = null;
   if (acgId) {
-    deletedEntity = await dbUserManager.deleteGroup(acgId);
+    deletedEntity = await acgService.deleteACG(acgId);
   } else {
     errors.push("Must provide an ID for the ACG");
   }
