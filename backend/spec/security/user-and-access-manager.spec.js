@@ -1,6 +1,5 @@
 const securityConfig = require("../../config/security-config");
 const { purgeCache } = require("../utils");
-const pki = require("../../security/pki");
 const adminService = require("../../db/services/admin-service");
 const implantService = require("../../db/services/implant-service");
 const userService = require("../../db/services/user-service");
@@ -10,7 +9,6 @@ const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
 let accessManager;
 
-jest.mock("../../security/pki");
 jest.mock("../../db/services/admin-service");
 jest.mock("../../db/services/implant-service");
 jest.mock("../../db/services/user-service");
@@ -67,6 +65,75 @@ describe("Access Manager tests", () => {
     argon2.verify.mockResolvedValue(true);
     validation.validatePassword.mockReturnValue([]);
     validation.validateUsername.mockReturnValue([]);
+  });
+
+  test("pki user extraction - success", async () => {
+    securityConfig.usePKI = true;
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      name: "user",
+      password: "hashed",
+      acgs: [],
+    });
+
+    let called = false;
+    await accessManager.authenticate(
+      {
+        client: { authorized: true },
+        socket: {
+          getPeerCertificate: () => {
+            return { subject: { CN: "user" } };
+          },
+        },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBeTruthy();
+  });
+
+  test("pki user extraction - failure - untrusted cert", async () => {
+    securityConfig.usePKI = true;
+
+    let called = false;
+    let resStatus = 200;
+    await accessManager.authenticate(
+      {
+        client: { authorized: false },
+        socket: {
+          getPeerCertificate: () => {
+            return { subject: { CN: "user" } };
+          },
+        },
+      },
+      {
+        status: (status) => {
+          resStatus = status;
+          return {
+            json: (data) => {
+              res = data;
+            },
+          };
+        },
+      },
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBeFalsy();
+    expect(resStatus).toBe(401);
   });
 
   test("authenticate - success - no PKI", async () => {
@@ -258,7 +325,6 @@ describe("Access Manager tests", () => {
 
   test("authenticate - success - PKI", async () => {
     securityConfig.usePKI = true;
-    pki.extractUserDetails.mockReturnValue("user");
     userService.findUserByName.mockResolvedValue({
       _id: "id",
       name: "user",
@@ -268,24 +334,40 @@ describe("Access Manager tests", () => {
     jwt.sign.mockReturnValue("TEST");
 
     let called = false;
-    await accessManager.authenticate({}, null, () => {
-      called = true;
-    });
+    await accessManager.authenticate(
+      {
+        client: { authorized: true },
+        socket: {
+          getPeerCertificate: () => {
+            return { subject: { CN: "user" } };
+          },
+        },
+      },
+      null,
+      () => {
+        called = true;
+      }
+    );
 
     expect(called).toBeTruthy();
-    expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
     expect(jwt.sign).toHaveBeenCalledTimes(1);
   });
 
   test("authenticate - failure - PKI, user does not exist", async () => {
     securityConfig.usePKI = true;
-    pki.extractUserDetails.mockReturnValue("user");
     userService.getUserAndPasswordByUsername.mockResolvedValue(null);
 
     let called = false;
     let stat = 200;
     await accessManager.authenticate(
-      {},
+      {
+        client: { authorized: true },
+        socket: {
+          getPeerCertificate: () => {
+            return { subject: { CN: "user" } };
+          },
+        },
+      },
       {
         status: (status) => {
           stat = status;
@@ -301,7 +383,6 @@ describe("Access Manager tests", () => {
 
     expect(called).toBeTruthy();
     expect(stat).toBe(401);
-    expect(pki.extractUserDetails).toHaveBeenCalledTimes(1);
     expect(jwt.sign).toHaveBeenCalledTimes(0);
   });
 

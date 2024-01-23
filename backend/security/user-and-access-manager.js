@@ -9,14 +9,12 @@ const implantService = require("../db/services/implant-service");
 const acgService = require("../db/services/acg-service");
 const userService = require("../db/services/user-service");
 const validation = require("../validation/security-validation");
-const pki = require("./pki");
 
 const sanitize = require("sanitize");
 const argon2 = require("argon2");
 const jwt = require("jsonwebtoken");
 
 const sanitizer = sanitize();
-// TODO Maybe get rid of the separate db-user-manager, now that we don't support non-db auth?
 
 const operationType = {
   READ: "READ",
@@ -35,6 +33,33 @@ const targetEntityType = {
 };
 
 /**
+ * Checks that the certificate is valid, and grabs the CN from it.
+ * @param {import("express").Request} req The HTTP request
+ * @returns The CN of the certificate subject
+ */
+const extractUserDetailsFromCert = (req) => {
+  log(
+    "extractUserDetails",
+    "Extracting user details from client certificate",
+    levels.DEBUG
+  );
+  const clientCert = req.socket.getPeerCertificate();
+  let username = null;
+
+  if (req.client.authorized) {
+    username = clientCert.subject.CN;
+  } else {
+    log(
+      "extractUserDetails",
+      "PKI Certificate Authentication Failed - Cert rejected",
+      levels.WARN
+    );
+  }
+
+  return username;
+};
+
+/**
  * Verifies the username/password combination is correct.
  * @param {string} username
  * @param {string} password
@@ -48,6 +73,9 @@ const checkCreds = async (username, password) => {
   );
   let errors = [];
   let authenticated = false;
+  console.log(
+    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + username + " " + password
+  );
 
   if (username) {
     const user = await userService.getUserAndPasswordByUsername(username);
@@ -123,7 +151,7 @@ const authenticate = async (req, res, next) => {
   let status = statusCodes.BAD_REQUEST;
 
   if (securityConfig.usePKI) {
-    username = pki.extractUserDetails(req);
+    username = extractUserDetailsFromCert(req);
   } else {
     username = req.body.username;
     username = sanitizer.value(username, "str");
