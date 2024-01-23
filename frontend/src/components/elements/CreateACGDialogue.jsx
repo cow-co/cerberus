@@ -27,6 +27,7 @@ const CreateACGDialogue = (props) => {
     setACG(updated);
   }
 
+  // TODO "Name" as a placeholder/label
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Create New Access Control Group</DialogTitle>

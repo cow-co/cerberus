@@ -43,6 +43,7 @@ const extractUserDetailsFromCert = (req) => {
     "Extracting user details from client certificate",
     levels.DEBUG
   );
+  // TODO When registering, pull these deets from the cert if PKI is enabled (rather than the user setting their own username)
   const clientCert = req.socket.getPeerCertificate();
   let username = null;
 
@@ -73,9 +74,6 @@ const checkCreds = async (username, password) => {
   );
   let errors = [];
   let authenticated = false;
-  console.log(
-    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + username + " " + password
-  );
 
   if (username) {
     const user = await userService.getUserAndPasswordByUsername(username);
@@ -405,8 +403,8 @@ const getAllGroups = async () => {
   };
 };
 
+// TODO Add dupe-name checks for groups even though mongo will also de-dupe
 const createGroup = async (acgName) => {
-  // TODO return an error if acg with that name already exists
   let errors = [];
   const created = await acgService.createACG(acgName);
   if (!created) {

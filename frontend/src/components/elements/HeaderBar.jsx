@@ -55,6 +55,7 @@ const HeaderBar = (props) => {
     adminButton = <Link underline="none" component={RouterLink} to={"admin"}>Admin</Link>;
   }
 
+  // TODO make the CERBERUS logo a link to the homeppage
   return (
       <AppBar position="static">
         <Toolbar>

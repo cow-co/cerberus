@@ -14,8 +14,9 @@ module.exports = {
     password:
       process.env.CERBERUS_INIT_ADMIN_PASS || "CHANGEMETOOFORCRYINGINTHESINK",
   },
-  certType: "PEM",
-  certFile: "./cerberus-cert.pem",
+  certType: "PFX",
+  certFile: "../powershellcert.pfx",
+  certPassword: process.env.CERB_CERT_PW || "CHANGETHISONETOO",
   keyFile: "./cerberus-key.pem",
   rateLimit: {
     windowTimeMS: 15 * 60 * 1000, // The timespan over which the rate is taken

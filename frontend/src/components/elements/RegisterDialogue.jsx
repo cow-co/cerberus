@@ -32,6 +32,7 @@ const RegisterDialogue = (props) => {
     setPassword(event.target.value);
   }
 
+  // TODO Password-confirmation field
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Register</DialogTitle>
