@@ -2,6 +2,7 @@ import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
+import ConfirmationDialogue from './ConfirmationDialogue';
 import { deleteImplant, fetchImplants } from '../../common/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
@@ -13,9 +14,11 @@ import conf from "../../common/config/properties";
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [hasLoggedIn, setHasLoggedIn] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [filtered, setFiltered] = useState([]);
 
   const implants = useSelector((state) => state.implants.implants);
+  const selectedImplant = useSelector((state) => state.implants.selected);
   const username = useSelector((state) => state.users.username);
   const dispatch = useDispatch();
 
@@ -99,17 +102,23 @@ const ImplantsPane = () => {
     setShowInactive(!showInactive);
   }
 
-  const removeImplant = async (implant) => {
-    const res = await deleteImplant(implant);
+  const removeImplant = async () => {
+    const res = await deleteImplant(selectedImplant);
     if (res.errors.length > 0) {
       createErrorAlert(res.errors);
     } else {
       createSuccessAlert("Successfully deleted implant");
+      setConfirmOpen(false);
     }
   }
 
+  const openConfirmation = (implant) => {
+    dispatch(setSelectedImplant(implant));
+    setConfirmOpen(true);
+  }
+
   const implantsItems = filtered.map(implant => {
-    return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))} deleteImplant={() => removeImplant(implant)} />
+    return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))} deleteImplant={() => openConfirmation(implant)} />
   });
 
   return (
@@ -121,6 +130,7 @@ const ImplantsPane = () => {
       <List>
         {implantsItems}
       </List>
+      <ConfirmationDialogue open={confirmOpen} onClose={ () => setConfirmOpen(false) } onOK={removeImplant} />
     </Container>
   );
 }

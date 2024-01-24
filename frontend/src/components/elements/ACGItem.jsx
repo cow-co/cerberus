@@ -4,6 +4,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const ACGItem = ({acg, deleteACG}) => {
   // TODO Open the confirmation dialogue when clicking delete
+  // FIXME No longer removing from list when delete clicked
   return (
       <ListItem className={"listElement"} key={acg.name}>
         <Grid item xs={11}>
