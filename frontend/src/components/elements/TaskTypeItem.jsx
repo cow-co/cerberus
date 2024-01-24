@@ -7,6 +7,7 @@ const TaskTypeItem = ({taskType, deleteTaskType}) => {
     return <ListItem key={param._id}>{param.name} ({param.type})</ListItem>
   });
 
+  // TODO Open the confirmation dialogue when clicking delete
   return (
       <ListItem className={"listElement"} key={taskType.name}>
         <Grid item xs={4}>

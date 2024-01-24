@@ -13,7 +13,7 @@ const ImplantItem = ({implant, chooseImplant, deleteImplant}) => {
     deleteButton = <IconButton onClick={deleteImplant}><DeleteForeverIcon /></IconButton>
   }
 
-  // TODO Delete button: confirmation dialogue
+  // TODO Open the confirmation dialogue when clicking delete
   // TODO Allow admins to add ACGs to implant
   return (
       <ListItem className={`listElement ${implantClass}`} key={implant.id}>

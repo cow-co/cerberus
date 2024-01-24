@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
-import { FormControl, Dialog, DialogTitle, Button, TextField, MenuItem, Select, Typography, ListItem, Grid, IconButton, List } from '@mui/material';
-import { v4 as uuidv4 } from "uuid";
-import { getParamTypes } from '../../common/apiCalls';
+import { useState } from 'react';
+import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 
 const CreateACGDialogue = (props) => {
   const {onClose, open, onSubmit} = props;

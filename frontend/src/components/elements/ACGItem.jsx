@@ -3,6 +3,7 @@ import Grid from '@mui/material/Grid';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const ACGItem = ({acg, deleteACG}) => {
+  // TODO Open the confirmation dialogue when clicking delete
   return (
       <ListItem className={"listElement"} key={acg.name}>
         <Grid item xs={11}>
