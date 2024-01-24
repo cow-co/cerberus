@@ -52,16 +52,17 @@ const HeaderBar = (props) => {
 
   let adminButton = null;
   if (isAdmin) {
-    adminButton = <Link underline="none" component={RouterLink} to={"admin"}>Admin</Link>;
+    adminButton = <Link underline="none" component={RouterLink} to={"/admin"}>Admin</Link>;
   }
 
-  // TODO make the CERBERUS logo a link to the homeppage
   return (
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-            Cerberus
-          </Typography>
+          <Link underline="none" component={RouterLink} to={"/"}>
+            <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
+              Cerberus
+            </Typography>
+          </Link>
           <Button onClick={props.handleRegisterFormOpen}>Register</Button>
           {loginoutButton}
           {adminButton}

@@ -31,8 +31,8 @@ function ACGPane() {
 
   const refresh = async () => {
     const json = await getGroups();
-    if (json.errors.length > 0) {
-      dispatch(setGroups(json.groups));
+    if (json.errors.length === 0) {
+      dispatch(setGroups(json.acgs));
     } else {
       createErrorAlert(json.errors);
     }
@@ -102,7 +102,7 @@ function ACGPane() {
     });
   }
 
-  // TODO Needs a refresh button, so that AD auth groups can be refreshed (DB auth ones are websocketed)
+  // FIXME alerts appear at the bottom of the create-dialogue, not at the bottom of the screen.
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Access Control Groups</Typography>

@@ -19,6 +19,7 @@ router.post("/register", async (req, res) => {
   );
   const username = req.bodyString("username");
   const password = req.bodyString("password");
+  // TODO Require a confirm-password field
 
   let responseStatus = statusCodes.OK;
   let response = {
@@ -68,30 +69,34 @@ router.post("/login", accessManager.authenticate, (req, res) => {
   });
 });
 
-router.delete(
-  "/logout",
-  accessManager.verifyToken,
-  async (req, res) => {
-    log("DELETE /access/logout", `Logging out user ${req.data.userId}`, levels.DEBUG);
+router.delete("/logout", accessManager.verifyToken, async (req, res) => {
+  log(
+    "DELETE /access/logout",
+    `Logging out user ${req.data.userId}`,
+    levels.DEBUG
+  );
 
-    let status = statusCodes.OK;
-    let errors = [];
+  let status = statusCodes.OK;
+  let errors = [];
 
-    try {
-      await accessManager.logout(req.data.userId);
-      status = statusCodes.OK;
+  try {
+    await accessManager.logout(req.data.userId);
+    status = statusCodes.OK;
 
-      log("DELETE /access/logout", `User ${req.data.userId} logged out`, levels.DEBUG);
-    } catch (err) {
-      log("DELETE /access/logout", err, levels.ERROR);
+    log(
+      "DELETE /access/logout",
+      `User ${req.data.userId} logged out`,
+      levels.DEBUG
+    );
+  } catch (err) {
+    log("DELETE /access/logout", err, levels.ERROR);
 
-      status = statusCodes.INTERNAL_SERVER_ERROR;
-      errors.push("Internal Server Error");
-    }
-
-    res.status(status).json({ errors });
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    errors.push("Internal Server Error");
   }
-);
+
+  res.status(status).json({ errors });
+});
 
 /**
  * Changes admin status of the user.
@@ -333,7 +338,11 @@ router.delete("/acgs/:acgId", accessManager.verifyToken, async (req, res) => {
     if (permitted) {
       response = await accessManager.deleteGroup(acgId);
       if (response.errors.length > 0) {
-        log("DELETE /access/acgs", JSON.stringify(response.errors), levels.WARN);
+        log(
+          "DELETE /access/acgs",
+          JSON.stringify(response.errors),
+          levels.WARN
+        );
 
         status = statusCodes.BAD_REQUEST;
       } else if (!response.deletedEntity) {

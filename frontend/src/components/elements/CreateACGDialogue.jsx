@@ -27,12 +27,11 @@ const CreateACGDialogue = (props) => {
     setACG(updated);
   }
 
-  // TODO "Name" as a placeholder/label
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Create New Access Control Group</DialogTitle>
       <FormControl fullWidth>
-        <TextField className='text-input' variant="outlined" id="name-input" value={acg.name} onChange={handleNameUpdate} />
+        <TextField className='text-input' label="ACG Name" variant="outlined" id="name-input" value={acg.name} onChange={handleNameUpdate} />
         <Button onClick={handleSubmit}>Create</Button>
       </FormControl>
     </Dialog>

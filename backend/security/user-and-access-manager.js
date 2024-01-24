@@ -403,12 +403,16 @@ const getAllGroups = async () => {
   };
 };
 
-// TODO Add dupe-name checks for groups even though mongo will also de-dupe
 const createGroup = async (acgName) => {
   let errors = [];
-  const created = await acgService.createACG(acgName);
-  if (!created) {
-    errors.push("Could not create ACG!");
+  const existing = await acgService.findACG(acgName);
+  if (!existing) {
+    const created = await acgService.createACG(acgName);
+    if (!created) {
+      errors.push("Could not create ACG!");
+    }
+  } else {
+    errors.push("ACG with that name already exists!");
   }
   return errors;
 };
@@ -448,9 +452,6 @@ const filterImplantsForView = async (implants, userId) => {
   } else {
     const groupsResult = await getGroupsForUser(userId);
 
-    // TODO Perhaps don't return an errors array - if errors occur simply log it, return an empty groups
-    //  Only issue is that this will make errors invisible to users - who may be confused if they are seeing fewer implants than they expect
-    // TODO think about the exception vs error design we should go for
     filtered = implants.filter((implant) => {
       const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
       if (implant.readOnlyACGs.length === 0) {
