@@ -10,10 +10,12 @@ import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatc
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
 import conf from "../../common/config/properties";
+import ConfirmationDialogue from './ConfirmationDialogue';
 
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState({_id: "", taskType: {id: "", name: ""}, params: []});
 
   const tasks = useSelector((state) => state.tasks.tasks);
@@ -102,8 +104,13 @@ function TasksPane() {
     }
   }
 
-  const handleDelete = async (task) => {
-    const res = await deleteTask(task);
+  const handleConfirmOpen = (task) => {
+    setSelectedTask(task);
+    setConfirmOpen(true);
+  }
+
+  const handleDelete = async () => {
+    const res = await deleteTask(selectedTask);
 
     if (res.errors.length > 0) {
       createErrorAlert(res.errors);
@@ -132,12 +139,12 @@ function TasksPane() {
   if (tasks !== undefined && tasks !== null) {
     if (showSent) {
       tasksItems = tasks.map(task => {
-        return <TaskItem task={task} key={task.order} deleteTask={() => handleDelete(task)} editTask={() => handleEdit(task)} />
+        return <TaskItem task={task} key={task.order} deleteTask={() => handleConfirmOpen(task)} editTask={() => handleEdit(task)} />
       });
     } else {
       const filtered = tasks.filter(task => task.sent === false);
       tasksItems = filtered.map(task => {
-        return <TaskItem task={task} key={task._id} deleteTask={() => handleDelete(task)} editTask={() => handleEdit(task)} />
+        return <TaskItem task={task} key={task._id} deleteTask={() => handleConfirmOpen(task)} editTask={() => handleEdit(task)} />
       });
     }
   }
@@ -158,8 +165,9 @@ function TasksPane() {
       <List>
         {tasksItems}
       </List>
-      {dialogueOpen && <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} providedTask={selectedTask} />}      
-    </Container>      
+      <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} providedTask={selectedTask} />
+      <ConfirmationDialogue open={confirmOpen} onClose={() => setConfirmOpen(false)} onOK={handleDelete} />
+    </Container>
   )
 }
 
