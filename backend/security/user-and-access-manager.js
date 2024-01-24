@@ -262,7 +262,7 @@ const logout = async (userId) => {
  * @param {string} password
  * @returns
  */
-const register = async (username, password) => {
+const register = async (username, password, confirmPassword) => {
   log(
     "user-and-access-manager/register",
     `Registering user ${username}`,
@@ -280,6 +280,7 @@ const register = async (username, password) => {
   if (!user.id) {
     let validationErrors = validation.validatePassword(
       password,
+      confirmPassword,
       securityConfig.passwordRequirements
     );
     validationErrors = validationErrors.concat(

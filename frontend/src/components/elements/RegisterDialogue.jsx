@@ -19,7 +19,7 @@ const RegisterDialogue = (props) => {
   }
 
   const handleSubmit = async () => {
-    const response = await register(username, password);
+    const response = await register(username, password, confirmPassword);
     if (response.errors.length > 0) {
       createErrorAlert(response.errors);
     } else {
@@ -51,8 +51,8 @@ const RegisterDialogue = (props) => {
       <FormControl fullWidth>
         <TextField className='text-input' label="Username" variant="outlined" value={username} onChange={handleUsernameUpdate} />
         <TextField type="password" className='text-input' label="Password" variant="outlined" value={password} onChange={handlePasswordUpdate} />
-        <TextField type="password" className='text-input' label="Confirm Password" variant="outlined" value={confirmPassword} error={error} helperText={error} onChange={handleConfirmPasswordUpdate} />
-        <Button onClick={handleSubmit}>Submit</Button>
+        <TextField type="password" className='text-input' label="Confirm Password" variant="outlined" value={confirmPassword} error={error !== ""} helperText={error} onChange={handleConfirmPasswordUpdate} />
+        <Button onClick={handleSubmit} disabled={error !== ""}>Submit</Button>
       </FormControl>
     </Dialog>
   );

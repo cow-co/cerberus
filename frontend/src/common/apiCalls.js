@@ -9,7 +9,7 @@ const getToken = () => {
     token = localStorage.getItem("token");
   }
   return token;
-}
+};
 
 const fetchTasks = async (implantId, showSent) => {
   let json = null;
@@ -21,8 +21,8 @@ const fetchTasks = async (implantId, showSent) => {
       `${conf.apiURL}tasks/${implantId}?includeSent=${showSent}`,
       {
         headers: {
-          "Authorization": `Bearer ${getToken()}`
-        }
+          Authorization: `Bearer ${getToken()}`,
+        },
       }
     );
     json = await response.json();
@@ -38,11 +38,10 @@ const fetchTasks = async (implantId, showSent) => {
 const fetchTaskTypes = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}task-types`,
-    {
+    const response = await fetch(`${conf.apiURL}task-types`, {
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -57,11 +56,10 @@ const fetchTaskTypes = async () => {
 const fetchImplants = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}implants`,
-    {
+    const response = await fetch(`${conf.apiURL}implants`, {
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -79,8 +77,8 @@ const deleteImplant = async (implant) => {
     const response = await fetch(`${conf.apiURL}implants/${implant.id}`, {
       method: "DELETE",
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -97,7 +95,10 @@ const setTask = async (task) => {
   try {
     const response = await fetch(`${conf.apiURL}tasks`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json", "authorization": `Bearer ${getToken()}` }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify(task),
     });
     json = await response.json();
@@ -115,7 +116,10 @@ const createTaskType = async (taskType) => {
   try {
     const response = await fetch(`${conf.apiURL}task-types`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json", "authorization": `Bearer ${getToken()}` }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify(taskType),
     });
     json = await response.json();
@@ -134,8 +138,8 @@ const deleteTask = async (task) => {
     const response = await fetch(`${conf.apiURL}tasks/${task._id}`, {
       method: "DELETE",
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -153,8 +157,8 @@ const deleteTaskType = async (taskTypeId) => {
     const response = await fetch(`${conf.apiURL}task-types/${taskTypeId}`, {
       method: "DELETE",
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -166,15 +170,19 @@ const deleteTaskType = async (taskTypeId) => {
   return json;
 };
 
-const register = async (username, password) => {
+const register = async (username, password, confirmPassword) => {
   let json = null;
   try {
     const response = await fetch(`${conf.apiURL}access/register`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json", "authorization": `Bearer ${getToken()}` }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify({
         username,
         password,
+        confirmPassword,
       }),
     });
     json = await response.json();
@@ -192,7 +200,10 @@ const login = async (username, password) => {
   try {
     const response = await fetch(`${conf.apiURL}access/login`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json", "authorization": `Bearer ${getToken()}` }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify({
         username,
         password,
@@ -214,8 +225,8 @@ const logout = async () => {
     const response = await fetch(`${conf.apiURL}access/logout`, {
       method: "DELETE",
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -230,11 +241,10 @@ const logout = async () => {
 const findUserByName = async (username) => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}users/user/${username}`,
-    {
+    const response = await fetch(`${conf.apiURL}users/user/${username}`, {
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -251,7 +261,10 @@ const changeAdminStatus = async (userId, makeAdmin) => {
   try {
     const response = await fetch(`${conf.apiURL}access/admin`, {
       method: "PUT",
-      headers: new Headers({ "content-type": "application/json", "authorization": `Bearer ${getToken()}` }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify({
         userId,
         makeAdmin,
@@ -273,8 +286,8 @@ const deleteUser = async (userId) => {
     const response = await fetch(`${conf.apiURL}users/user/${userId}`, {
       method: "DELETE",
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -290,11 +303,10 @@ const checkToken = async () => {
   let json = null;
 
   try {
-    const response = await fetch(`${conf.apiURL}users/whoami`,
-    {
+    const response = await fetch(`${conf.apiURL}users/whoami`, {
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -309,11 +321,10 @@ const checkToken = async () => {
 const getParamTypes = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}task-types/param-data-types`,
-    {
+    const response = await fetch(`${conf.apiURL}task-types/param-data-types`, {
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -328,11 +339,10 @@ const getParamTypes = async () => {
 const getGroups = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}access/acgs`,
-    {
+    const response = await fetch(`${conf.apiURL}access/acgs`, {
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -343,7 +353,7 @@ const getGroups = async () => {
     };
   }
   return json;
-}
+};
 
 const deleteGroup = async (groupId) => {
   let json = null;
@@ -351,8 +361,8 @@ const deleteGroup = async (groupId) => {
     const response = await fetch(`${conf.apiURL}access/acgs/${groupId}`, {
       method: "DELETE",
       headers: {
-        "Authorization": `Bearer ${getToken()}`
-      }
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -362,14 +372,17 @@ const deleteGroup = async (groupId) => {
     };
   }
   return json;
-}
+};
 
 const createGroup = async (acg) => {
   let json = null;
   try {
     const response = await fetch(`${conf.apiURL}access/acgs`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json", "authorization": `Bearer ${getToken()}` }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify(acg),
     });
     json = await response.json();

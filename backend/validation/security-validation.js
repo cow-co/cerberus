@@ -8,9 +8,13 @@ const USERNAME_REGEX = /[0-9a-zA-Z_-]+/g;
  * @param {string} password
  * @returns errors
  */
-const validatePassword = (password, pwReqs) => {
+const validatePassword = (password, confirmPassword, pwReqs) => {
   log("validatePassword", "Validating password", levels.DEBUG);
   let errors = [];
+
+  if (confirmPassword !== password) {
+    errors.push("Password and Confirmation must match");
+  }
 
   if (pwReqs.requireUppercase && password.toLowerCase() === password) {
     errors.push("Password must contain at least one uppercase character");

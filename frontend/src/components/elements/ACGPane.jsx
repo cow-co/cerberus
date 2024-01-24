@@ -102,7 +102,7 @@ function ACGPane() {
     });
   }
 
-  // FIXME alerts appear at the bottom of the create-dialogue, not at the bottom of the screen.
+  // FIXME The title gets pushed up into the header, by the create-button
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Access Control Groups</Typography>

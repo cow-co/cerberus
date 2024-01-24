@@ -19,7 +19,7 @@ router.post("/register", async (req, res) => {
   );
   const username = req.bodyString("username");
   const password = req.bodyString("password");
-  // TODO Require a confirm-password field
+  const confirmPassword = req.bodyString("confirmPassword");
 
   let responseStatus = statusCodes.OK;
   let response = {
@@ -27,7 +27,11 @@ router.post("/register", async (req, res) => {
   };
 
   try {
-    const result = await accessManager.register(username, password);
+    const result = await accessManager.register(
+      username,
+      password,
+      confirmPassword
+    );
 
     if (result.errors.length > 0) {
       log(

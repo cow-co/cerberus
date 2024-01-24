@@ -58,11 +58,11 @@ const HeaderBar = (props) => {
   return (
       <AppBar position="static">
         <Toolbar>
-          <Link underline="none" component={RouterLink} to={"/"}>
-            <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-              Cerberus
-            </Typography>
-          </Link>
+          <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
+            <Link underline="none" component={RouterLink} to={"/"}>
+                Cerberus
+            </Link>
+          </Typography>
           <Button onClick={props.handleRegisterFormOpen}>Register</Button>
           {loginoutButton}
           {adminButton}
