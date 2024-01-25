@@ -10,9 +10,13 @@ import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../commo
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
 import conf from "../../common/config/properties";
+import ConfirmationDialogue from './ConfirmationDialogue';
 
 function TaskTypesPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState(false);
+
   const taskTypes = useSelector((state) => state.tasks.taskTypes);
   const dispatch = useDispatch();
 
@@ -76,8 +80,8 @@ function TaskTypesPane() {
     }
   }
 
-  const handleDelete = async (taskType) => {
-    const { errors } = await deleteTaskType(taskType._id);
+  const handleDelete = async () => {
+    const { errors } = await deleteTaskType(selectedType._id);
 
     if (errors.length > 0) {
       createErrorAlert(errors);
@@ -85,14 +89,19 @@ function TaskTypesPane() {
       await loadTaskTypes();
       createSuccessAlert("Successfully deleted task type");
     }
+    setConfirmOpen(false);
+  }
 
+  const handleConfirmOpen = (taskType) => {
+    setSelectedType(taskType);
+    setConfirmOpen(true);
   }
 
   let taskTypesItems = null;
 
   if (taskTypes !== undefined && taskTypes !== null) {
     taskTypesItems = taskTypes.map(taskType => {
-      return <TaskTypeItem taskType={taskType} key={taskType.order} deleteTaskType={() => handleDelete(taskType)} />
+      return <TaskTypeItem taskType={taskType} key={taskType.order} deleteTaskType={() => handleConfirmOpen(taskType)} />
     });
   }
 
@@ -104,6 +113,7 @@ function TaskTypesPane() {
       </List>
       <Button variant='contained' onClick={handleFormOpen}>Create Task Type</Button>
       <CreateTaskTypeDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
+      <ConfirmationDialogue open={confirmOpen} onClose={() => setConfirmOpen(false)} onOK={handleDelete} />
     </Container>
       
   )

@@ -12,7 +12,6 @@ const TaskItem = ({task, deleteTask, editTask}) => {
   const editButton = task.sent ? (null) : (<Button onClick={editTask}>Edit</Button>);
   const deleteBtn = task.sent ? (null) : (<IconButton onClick={deleteTask}><DeleteForeverIcon /></IconButton>);
   
-  // TODO Open the confirmation dialogue when clicking delete
   return (
       <ListItem className={"listElement"} key={task.order}>
         <ListItemIcon>

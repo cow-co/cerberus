@@ -52,16 +52,16 @@ const HeaderBar = (props) => {
 
   let adminButton = null;
   if (isAdmin) {
-    adminButton = <Link underline="none" component={RouterLink} to={"/admin"}>Admin</Link>;
+    adminButton = <Button component={RouterLink} to={"/admin"}>Admin</Button>;
   }
 
   return (
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-            <Link underline="none" component={RouterLink} to={"/"}>
+            <Button component={RouterLink} to={"/"}>
                 Cerberus
-            </Link>
+            </Button>
           </Typography>
           <Button onClick={props.handleRegisterFormOpen}>Register</Button>
           {loginoutButton}
