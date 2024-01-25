@@ -4,10 +4,12 @@ const { purgeCache } = require("../utils");
 
 const accessManager = require("../../security/user-and-access-manager");
 const adminService = require("../../db/services/admin-service");
+const implantService = require("../../db/services/implant-service");
 
 jest.mock("../../security/user-and-access-manager");
 jest.mock("../../db/services/admin-service");
 jest.mock("../../db/services/user-service");
+jest.mock("../../db/services/implant-service");
 
 describe("Access tests", () => {
   afterEach(() => {
@@ -135,23 +137,16 @@ describe("Access tests", () => {
   });
 
   test("logout - success", async () => {
-    const res = await agent.delete("/api/access/logout/id");
+    const res = await agent.delete("/api/access/logout");
 
     expect(res.statusCode).toBe(200);
     expect(accessManager.logout).toHaveBeenCalledTimes(1);
   });
 
-  test("logout - failure - logging a different user out", async () => {
-    const res = await agent.delete("/api/access/logout/id2");
-
-    expect(res.statusCode).toBe(403);
-    expect(accessManager.logout).toHaveBeenCalledTimes(0);
-  });
-
   test("logout - failure - exception thrown", async () => {
     accessManager.logout.mockRejectedValue(new TypeError("TEST"));
 
-    const res = await agent.delete("/api/access/logout/id");
+    const res = await agent.delete("/api/access/logout");
 
     expect(res.statusCode).toBe(500);
   });
@@ -198,6 +193,19 @@ describe("Access tests", () => {
 
     expect(res.statusCode).toBe(400);
     expect(accessManager.findUserById).toHaveBeenCalledTimes(1);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(0);
+  });
+
+  test("add admin - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent
+      .put("/api/access/admin")
+      .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
+
+    expect(res.statusCode).toBe(403);
+    expect(accessManager.findUserById).toHaveBeenCalledTimes(0);
+    expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(0);
   });
 
   test("add admin - failure - exception thrown", async () => {
@@ -208,5 +216,191 @@ describe("Access tests", () => {
       .send({ userId: "650a3a2a7dcd3241ecee2d70", makeAdmin: true });
 
     expect(res.statusCode).toBe(500);
+  });
+
+  test("update implant ACGs - success", async () => {
+    implantService.updateACGs.mockResolvedValue({
+      _id: "id",
+      id: "implantId",
+      readOnlyACGs: ["group1"],
+      operatorACGs: ["group2"],
+    });
+
+    const res = await agent
+      .post("/api/access/implants/implantId/acgs")
+      .send({ readOnlyACGs: ["group1"], operatorACGs: ["group2"] });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.implant.readOnlyACGs).toHaveLength(1);
+    expect(res.body.implant.operatorACGs).toHaveLength(1);
+  });
+
+  test("update implant ACGs - failure - not found", async () => {
+    implantService.updateACGs.mockResolvedValue(null);
+
+    const res = await agent
+      .post("/api/access/implants/implantId/acgs")
+      .send({ readOnlyACGs: ["group1"], operatorACGs: ["group2"] });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("update implant ACGs - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent
+      .post("/api/access/implants/implantId/acgs")
+      .send({ readOnlyACGs: ["group1"], operatorACGs: ["group2"] });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("update implant ACGs - failure - exception", async () => {
+    implantService.updateACGs.mockRejectedValue(new TypeError("TEST"));
+
+    const res = await agent
+      .post("/api/access/implants/implantId/acgs")
+      .send({ readOnlyACGs: ["group1"], operatorACGs: ["group2"] });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("create ACG - success", async () => {
+    accessManager.createGroup.mockResolvedValue([]);
+
+    const res = await agent.post("/api/access/acgs").send({ name: "acg" });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.errors).toHaveLength(0);
+  });
+
+  test("create ACG - failure - ACG creation error", async () => {
+    accessManager.createGroup.mockResolvedValue(["Test error"]);
+
+    const res = await agent.post("/api/access/acgs").send({ name: "acg" });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("create ACG - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.post("/api/access/acgs").send({ name: "acg" });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("create ACG - failure - exception", async () => {
+    accessManager.createGroup.mockRejectedValue(new TypeError("TEST"));
+
+    const res = await agent.post("/api/access/acgs").send({ name: "acg" });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("get all ACGs - success", async () => {
+    accessManager.getAllGroups.mockResolvedValue({
+      errors: [],
+      groups: ["group"],
+    });
+
+    const res = await agent.get("/api/access/acgs");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.errors).toHaveLength(0);
+    expect(res.body.groups).toHaveLength(1);
+  });
+
+  test("get all ACGs - failure - query errors", async () => {
+    accessManager.getAllGroups.mockResolvedValue({
+      errors: ["Test Error"],
+      groups: [],
+    });
+
+    const res = await agent.get("/api/access/acgs");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+    expect(res.body.groups).toHaveLength(0);
+  });
+
+  test("get all ACGs - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.get("/api/access/acgs");
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.errors).toHaveLength(1);
+    expect(res.body.groups).toHaveLength(0);
+  });
+
+  test("get all ACGs - failure - exception", async () => {
+    accessManager.getAllGroups.mockRejectedValue(new TypeError("TEST"));
+
+    const res = await agent.get("/api/access/acgs");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
+    expect(res.body.groups).toHaveLength(0);
+  });
+
+  test("delete ACG - success", async () => {
+    accessManager.deleteGroup.mockResolvedValue({
+      deletedEntity: { _id: "id", name: "name" },
+      errors: [],
+    });
+
+    const res = await agent.delete("/api/access/acgs/id");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.errors).toHaveLength(0);
+  });
+
+  test("delete ACG - success - ACG did not exist", async () => {
+    accessManager.deleteGroup.mockResolvedValue({
+      deletedEntity: null,
+      errors: [],
+    });
+
+    const res = await agent.delete("/api/access/acgs/id");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.errors).toHaveLength(0);
+  });
+
+  test("delete ACG - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.delete("/api/access/acgs/id");
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("delete ACG - failure - error in deletion", async () => {
+    accessManager.deleteGroup.mockResolvedValue({
+      deletedEntity: null,
+      errors: ["Error"],
+    });
+
+    const res = await agent.delete("/api/access/acgs/id");
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("delete ACG - failure - exception", async () => {
+    accessManager.deleteGroup.mockRejectedValue(new TypeError("TEST"));
+
+    const res = await agent.delete("/api/access/acgs/id");
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.errors).toHaveLength(1);
   });
 });

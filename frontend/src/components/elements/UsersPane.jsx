@@ -6,7 +6,7 @@ import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormContr
 import { changeAdminStatus, deleteUser, findUserByName } from '../../common/apiCalls';
 import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 
-const AdminPane = () => {
+const UsersPane = () => {
   const [user, setUser] = useState({id: "", name: ""});
   const [searchError, setSearchError] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
@@ -49,7 +49,7 @@ const AdminPane = () => {
       createErrorAlert(response.errors);
       setSearchError(true);
       setHelpText("Could not find user");
-    } else if (response.user !== null) {
+    } else if (response.user.id) {
       createSuccessAlert("Successfully found");
       setUser({id: response.user.id, name: response.user.name});
       setSearchError(false);
@@ -62,7 +62,7 @@ const AdminPane = () => {
 
   return (
     <Container fixed>
-      <Typography align="center" variant="h3">Administrator Interface</Typography>
+      <Typography align="center" variant="h3">Manage Users</Typography>
       <FormGroup>
         <TextField className="text-input" variant="outlined" value={user.name} label="User to find" type="search" onChange={handleChange} error={searchError} helperText={helpText} />
         <FormControlLabel control={<Checkbox checked={makeAdmin} onClick={() => setMakeAdmin(!makeAdmin)} />} label="Make User Admin" />
@@ -81,4 +81,4 @@ const AdminPane = () => {
   );
 }
 
-export default AdminPane;
+export default UsersPane;

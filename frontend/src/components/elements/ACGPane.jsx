@@ -1,23 +1,23 @@
 import { Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
-import TaskTypeItem from './TaskTypeItem';
-import { createTaskType, deleteTaskType } from '../../common/apiCalls';
-import { setTaskTypes } from "../../common/redux/tasks-slice";
-import CreateTaskTypeDialogue from './CreateTaskTypeDialogue';
+import ACGItem from './ACGItem';
+import { createGroup, deleteGroup, getGroups } from '../../common/apiCalls';
+import { setGroups } from "../../common/redux/groups-slice";
+import CreateACGDialogue from './CreateACGDialogue';
 import { useSelector, useDispatch } from "react-redux";
-import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
 import conf from "../../common/config/properties";
 import ConfirmationDialogue from './ConfirmationDialogue';
 
-function TaskTypesPane() {
+function ACGPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
+  const [selectedACG, setSelectedACG] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState(false);
 
-  const taskTypes = useSelector((state) => state.tasks.taskTypes);
+  const acgs = useSelector((state) => state.groups.groups);
   const dispatch = useDispatch();
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
@@ -27,15 +27,24 @@ function TaskTypesPane() {
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
       const data = JSON.parse(message.data);
-      return data.entityType === entityTypes.TASK_TYPES;
+      return data.entityType === entityTypes.GROUPS;
     },
     retryOnError: true,
     shouldReconnect: () => true
   });
 
+  const refresh = async () => {
+    const json = await getGroups();
+    if (json.errors.length === 0) {
+      dispatch(setGroups(json.acgs));
+    } else {
+      createErrorAlert(json.errors);
+    }
+  }
+
   useEffect(() => {
     async function callFetcher() {
-      await loadTaskTypes();
+      await refresh();
     }
     callFetcher()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,20 +52,20 @@ function TaskTypesPane() {
 
   useEffect(() => {
     if (lastJsonMessage) {
-      let updated = [...taskTypes];
+      let updated = [...acgs];
 
       switch (lastJsonMessage.eventType) {
         case eventTypes.CREATE:
           updated.push(lastJsonMessage.entity);
           break;
         case eventTypes.DELETE:
-          updated = updated.filter(taskType => taskType._id !== lastJsonMessage.entity._id);
+          updated = updated.filter(acg => acg._id !== lastJsonMessage.entity._id);
           break;
         default:
           break;
       }
 
-      dispatch(setTaskTypes(updated));
+      dispatch(setGroups(updated));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
@@ -70,53 +79,53 @@ function TaskTypesPane() {
   }
 
   const handleFormSubmit = async (data) => {
-    const response = await createTaskType(data);
+    const response = await createGroup(data);
     if (response.errors.length > 0) {
       createErrorAlert(response.errors);
     } else {
       handleFormClose();
-      await loadTaskTypes();
-      createSuccessAlert("Successfully created task type");
+      createSuccessAlert("Successfully created ACG");
     }
   }
 
   const handleDelete = async () => {
-    const { errors } = await deleteTaskType(selectedType._id);
+    const { errors } = await deleteGroup(selectedACG._id);
 
     if (errors.length > 0) {
       createErrorAlert(errors);
     } else {
-      await loadTaskTypes();
-      createSuccessAlert("Successfully deleted task type");
+      createSuccessAlert("Successfully deleted ACG");
     }
+
     setConfirmOpen(false);
   }
 
-  const handleConfirmOpen = (taskType) => {
-    setSelectedType(taskType);
+  const openConfirmation = (acg) => {
+    setSelectedACG(acg);
     setConfirmOpen(true);
   }
 
-  let taskTypesItems = null;
+  let acgsItems = null;
 
-  if (taskTypes !== undefined && taskTypes !== null) {
-    taskTypesItems = taskTypes.map(taskType => {
-      return <TaskTypeItem taskType={taskType} key={taskType.order} deleteTaskType={() => handleConfirmOpen(taskType)} />
+  if (acgs !== undefined && acgs !== null) {
+    acgsItems = acgs.map(acg => {
+      return <ACGItem acg={acg} key={acg._id}  deleteACG={() => openConfirmation(acg)} />
     });
   }
 
+  // FIXME The title gets pushed up into the header, by the create-button
   return (
     <Container fixed>
-      <Typography align="center" variant="h3">Task Types</Typography>
+      <Typography align="center" variant="h3">Access Control Groups</Typography>
+      <Button variant='contained' onClick={handleFormOpen}>Create Access Control Group</Button>
       <List>
-        {taskTypesItems}
+        {acgsItems}
       </List>
-      <Button variant='contained' onClick={handleFormOpen}>Create Task Type</Button>
-      <CreateTaskTypeDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
-      <ConfirmationDialogue open={confirmOpen} onClose={() => setConfirmOpen(false)} onOK={handleDelete} />
+      <CreateACGDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
+      <ConfirmationDialogue open={confirmOpen} onClose={ () => setConfirmOpen(false) } onOK={handleDelete} />
     </Container>
       
   )
 }
 
-export default TaskTypesPane;
+export default ACGPane;

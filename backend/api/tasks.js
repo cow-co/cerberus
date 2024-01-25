@@ -17,8 +17,8 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
 
   log(`GET /tasks/${implantId}`, "Getting tasks for implant...", levels.DEBUG);
 
-  let returnStatus = statusCodes.OK;
-  let responseJSON = {};
+  let status = statusCodes.OK;
+  let response = {};
 
   try {
     if (implantId) {
@@ -31,8 +31,8 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
       );
 
       if (!isAuthed) {
-        returnStatus = statusCodes.FORBIDDEN;
-        responseJSON = {
+        status = statusCodes.FORBIDDEN;
+        response = {
           errors: ["You are not allowed to view this implant!"],
         };
       } else {
@@ -41,7 +41,7 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
           implantId,
           includeSent
         );
-        responseJSON = {
+        response = {
           tasks: tasks,
           errors: [],
         };
@@ -49,37 +49,37 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
     }
   } catch (err) {
     log(`GET /tasks/${implantId}`, err, levels.ERROR);
-    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON = {
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response = {
       tasks: [],
       errors: ["Internal Server Error"],
     };
   }
 
-  res.status(returnStatus).json(responseJSON);
+  res.status(status).json(response);
 });
 
 router.get("/task-types", accessManager.verifyToken, async (req, res) => {
   log("GET /task-types", "Getting task types...", levels.DEBUG);
-  let returnStatus = statusCodes.OK;
-  let responseJSON = {};
+  let status = statusCodes.OK;
+  let response = {};
 
   try {
     const taskTypes = await tasksService.getTaskTypes();
-    responseJSON = {
+    response = {
       taskTypes: taskTypes,
       errors: [],
     };
   } catch (err) {
     log("GET /task-types", err, levels.ERROR);
-    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON = {
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response = {
       taskTypes: [],
       errors: ["Internal Server Error"],
     };
   }
 
-  res.status(returnStatus).json(responseJSON);
+  res.status(status).json(response);
 });
 
 /**
@@ -128,8 +128,8 @@ router.post("/task-types", accessManager.verifyToken, async (req, res) => {
 
 router.post("/tasks", accessManager.verifyToken, async (req, res) => {
   log("POST /tasks", `Setting task ${JSON.stringify(req.body)}`, levels.DEBUG);
-  let returnStatus = statusCodes.OK;
-  let responseJSON = { errors: [] };
+  let status = statusCodes.OK;
+  let response = { errors: [] };
 
   try {
     const isAuthed = await accessManager.authZCheck(
@@ -143,44 +143,44 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
     if (isAuthed) {
       const validationResult = await validateTask(req.body);
       if (validationResult.isValid) {
-        error = await tasksService.setTask(req.body); // TODO May be worth recursively sanitising the body down to just strings/ints/bools and objects built from such.
+        error = await tasksService.setTask(req.body);
         if (error) {
           log("POST /tasks", error, levels.WARN);
-          returnStatus = statusCodes.BAD_REQUEST;
-          responseJSON.errors = [error];
+          status = statusCodes.BAD_REQUEST;
+          response.errors = [error];
         }
       } else {
-        returnStatus = statusCodes.BAD_REQUEST;
-        responseJSON.errors = validationResult.errors;
+        status = statusCodes.BAD_REQUEST;
+        response.errors = validationResult.errors;
       }
     } else {
-      returnStatus = statusCodes.FORBIDDEN;
-      responseJSON.errors = [
+      status = statusCodes.FORBIDDEN;
+      response.errors = [
         "You are not permitted to assign tasks to this implant!",
       ];
     }
   } catch (err) {
     log("POST /tasks", err, levels.ERROR);
-    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON = {
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response = {
       errors: ["Internal Server Error"],
     };
   }
 
-  res.status(returnStatus).json(responseJSON);
+  res.status(status).json(response);
 });
 
 router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
   const taskId = req.paramString("taskId");
   log(`DELETE /tasks/${taskId}`, `Deleting task ${taskId}`, levels.INFO);
 
-  let responseJSON = {
+  let response = {
     errors: [],
   };
-  let returnStatus = statusCodes.OK;
+  let status = statusCodes.OK;
 
   try {
-    const task = await tasksService.getTaskById(taskId); // TODO Is there a security risk in exposing the fact that the task does/doesn't exist, to unauthorised people?
+    const task = await tasksService.getTaskById(taskId);
 
     if (task) {
       const isAuthed = await accessManager.authZCheck(
@@ -194,14 +194,14 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
       if (isAuthed && !task.sent) {
         await tasksService.deleteTask(taskId);
       } else if (isAuthed && task.sent) {
-        returnStatus = statusCodes.BAD_REQUEST;
-        responseJSON.errors.push(
+        status = statusCodes.BAD_REQUEST;
+        response.errors.push(
           "Cannot delete a task that has been sent to an implant."
         );
         log(`DELETE /tasks/${taskId}`, "Task already sent", levels.WARN);
       } else {
-        returnStatus = statusCodes.FORBIDDEN;
-        responseJSON.errors = [
+        status = statusCodes.FORBIDDEN;
+        response.errors = [
           "You are not permitted to delete tasks from this implant!",
         ];
       }
@@ -213,12 +213,12 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
       );
     }
   } catch (err) {
-    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON.errors.push("Internal Server Error");
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response.errors.push("Internal Server Error");
     log(`DELETE /tasks/${taskId}`, err, levels.ERROR);
   }
 
-  res.status(returnStatus).json(responseJSON);
+  res.status(status).json(response);
 });
 
 router.delete(
@@ -232,10 +232,10 @@ router.delete(
       levels.INFO
     );
 
-    let responseJSON = {
+    let response = {
       errors: [],
     };
-    let returnStatus = statusCodes.OK;
+    let status = statusCodes.OK;
 
     try {
       const isAuthed = await accessManager.authZCheck(
@@ -257,16 +257,16 @@ router.delete(
           );
         }
       } else {
-        returnStatus = statusCodes.FORBIDDEN;
-        responseJSON.errors = ["You are not permitted to delete task types!"];
+        status = statusCodes.FORBIDDEN;
+        response.errors = ["You are not permitted to delete task types!"];
       }
     } catch (err) {
-      returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-      responseJSON.errors.push("Internal Server Error");
+      status = statusCodes.INTERNAL_SERVER_ERROR;
+      response.errors.push("Internal Server Error");
       log(`DELETE /task-types/${taskTypeId}`, err, levels.ERROR);
     }
 
-    return res.status(returnStatus).json(responseJSON);
+    return res.status(status).json(response);
   }
 );
 

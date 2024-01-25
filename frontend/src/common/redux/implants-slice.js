@@ -11,7 +11,9 @@ export const implantsSlice = createSlice({
       state.implants = action.payload;
     },
     setSelectedImplant: (state, action) => {
+      console.log(action);
       state.selected = action.payload;
+      console.log(state);
     },
   },
 });

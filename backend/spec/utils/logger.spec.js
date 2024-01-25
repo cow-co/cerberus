@@ -19,9 +19,6 @@ jest.mock("chalk", () => {
 
 describe("Logger tests", () => {
   test("Logging - Info level, debug log", () => {
-    chalk.blue.mockImplementation((message) => {
-      console.log("TETTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
-    });
     logging.log("Test", "Test", logging.levels.DEBUG);
 
     expect(chalk.blue).toHaveBeenCalledTimes(0);

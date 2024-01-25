@@ -18,7 +18,10 @@ describe("Seeding tests", () => {
   test("should seed admin - no admins, no users", async () => {
     adminService.numAdmins.mockResolvedValue(0);
     accessManager.findUserByName.mockResolvedValue({
-      user: null,
+      user: {
+        id: "",
+        name: ""
+      },
       errors: [],
     });
     accessManager.register.mockResolvedValue({
@@ -59,7 +62,10 @@ describe("Seeding tests", () => {
   test("should not seed admin - error", async () => {
     adminService.numAdmins.mockResolvedValue(0);
     accessManager.findUserByName.mockResolvedValue({
-      user: null,
+      user: {
+        id: "",
+        name: ""
+      },
       errors: [],
     });
     accessManager.register.mockResolvedValue({

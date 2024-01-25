@@ -39,7 +39,9 @@ const levels = {
  */
 const log = (location, message, level) => {
   const timestamp = new Date().toISOString();
-  message = `${timestamp} [${level.value}] ${location} ${message}`;
+  message = `${timestamp} [${level.value}] ${location} ${
+    message.stack || message
+  }`;
   if (level.ord === levels.SECURITY.ord) {
     console.warn(chalk.yellow(message));
   } else if (level.ord >= levels[config["log-level"]].ord) {

@@ -3,14 +3,16 @@
 const securityConfig = require("../config/security-config");
 const statusCodes = require("../config/statusCodes");
 const { levels, log } = require("../utils/logger");
-const dbUserManager = require("./database-manager");
-const adUserManager = require("./active-directory-manager");
-const pki = require("./pki");
+
 const adminService = require("../db/services/admin-service");
 const implantService = require("../db/services/implant-service");
-const jwt = require("jsonwebtoken");
+const acgService = require("../db/services/acg-service");
 const userService = require("../db/services/user-service");
+const validation = require("../validation/security-validation");
+
 const sanitize = require("sanitize");
+const argon2 = require("argon2");
+const jwt = require("jsonwebtoken");
 
 const sanitizer = sanitize();
 
@@ -31,8 +33,105 @@ const targetEntityType = {
 };
 
 /**
+ * Checks that the certificate is valid, and grabs the CN from it.
+ * @param {import("express").Request} req The HTTP request
+ * @returns The CN of the certificate subject
+ */
+const extractUserDetailsFromCert = (req) => {
+  log(
+    "extractUserDetails",
+    "Extracting user details from client certificate",
+    levels.DEBUG
+  );
+  // TODO When registering, pull these deets from the cert if PKI is enabled (rather than the user setting their own username)
+  const clientCert = req.socket.getPeerCertificate();
+  let username = null;
+
+  if (req.client.authorized) {
+    username = clientCert.subject.CN;
+  } else {
+    log(
+      "extractUserDetails",
+      "PKI Certificate Authentication Failed - Cert rejected",
+      levels.WARN
+    );
+  }
+
+  return username;
+};
+
+/**
+ * Verifies the username/password combination is correct.
+ * @param {string} username
+ * @param {string} password
+ * @returns authenticated {bool}, errors {array{string}}
+ */
+const checkCreds = async (username, password) => {
+  log(
+    "user-and-access-manager/checkCreds",
+    `Authenticating user ${username}`,
+    levels.DEBUG
+  );
+  let errors = [];
+  let authenticated = false;
+
+  if (username) {
+    const user = await userService.getUserAndPasswordByUsername(username);
+    if (user) {
+      if (!securityConfig.usePKI) {
+        authenticated = await argon2.verify(
+          user.password.hashedPassword,
+          password
+        );
+      } else {
+        authenticated = true;
+      }
+    }
+  }
+
+  if (!authenticated) {
+    log(
+      "user-and-access-manager/authenticate",
+      `Incorrect Credentials: username = ${username}`,
+      levels.SECURITY
+    );
+    errors.push("Incorrect Credentials");
+  }
+
+  return { authenticated, errors };
+};
+
+/**
+ * Generates a JWT for the user. Call *after* checking their credentials.
+ * @param {string} username
+ * @returns Object containing userId, username, isAdmin, and token
+ */
+const generateJWT = async (username) => {
+  log("user-and-access-manager/generateJWT", "generating JWT...", levels.DEBUG);
+  let data = {};
+  const user = await findUserByName(username);
+  if (user.id) {
+    data.userId = user.id;
+    data.username = user.name;
+    data.isAdmin = await adminService.isUserAdmin(user.id);
+
+    const token = jwt.sign(
+      {
+        userId: data.userId,
+        username: data.username,
+      },
+      securityConfig.jwtSecret,
+      { expiresIn: "1h" }
+    );
+
+    data.token = token;
+  }
+
+  return data;
+};
+
+/**
  * Basically checks the provided credentials
- * TODO Should probably neaten this up
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @param {function} next
@@ -50,7 +149,7 @@ const authenticate = async (req, res, next) => {
   let status = statusCodes.BAD_REQUEST;
 
   if (securityConfig.usePKI) {
-    username = pki.extractUserDetails(req);
+    username = extractUserDetailsFromCert(req);
   } else {
     username = req.body.username;
     username = sanitizer.value(username, "str");
@@ -59,89 +158,27 @@ const authenticate = async (req, res, next) => {
   }
   let authenticated = false;
 
-  username = username.trim();
+  username = username ? username.trim() : "";
 
   try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        authenticated = await dbUserManager.authenticate(
-          username,
-          password,
-          securityConfig.usePKI
-        );
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        authenticated = await adUserManager.authenticate(
-          username,
-          password,
-          securityConfig.usePKI
-        );
-        break;
+    credsResult = await checkCreds(username, password);
+    errors = errors.concat(credsResult.errors);
+    authenticated = credsResult.authenticated;
 
-      default:
-        log(
-          "user-and-access-manager/authenticate",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-
-        errors.push("Internal Server Error");
-        status = statusCodes.INTERNAL_SERVER_ERROR;
-        break;
+    if (!authenticated) {
+      status = statusCodes.UNAUTHENTICATED;
+      res.status(status).json({ errors });
+    } else {
+      const result = await generateJWT(username);
+      req.data = result;
+      next();
     }
   } catch (err) {
     log("user-and-access-manager/authenticate", err, levels.ERROR);
 
     errors.push("Internal Server Error");
     status = statusCodes.INTERNAL_SERVER_ERROR;
-  }
-
-  if (!authenticated && errors.length === 0) {
-    log(
-      "user-and-access-manager/authenticate",
-      `User ${username} failed login due to incorrect credentials`,
-      levels.SECURITY
-    );
-
-    status = statusCodes.UNAUTHENTICATED;
-    errors.push("Incorrect login credentials");
-
     res.status(status).json({ errors });
-  } else if (errors.length > 0) {
-    log(
-      "user-and-access-manager/authenticate",
-      `User ${username} failed login due to miscellaneous errors: ${JSON.stringify(
-        errors
-      )}`,
-      levels.SECURITY
-    );
-
-    res.status(status).json({ errors });
-  } else {
-    req.data = {};
-    const result = await findUserByName(username);
-    if (result.errors.length > 0) {
-      res.status(status).json({ errors });
-    } else {
-      req.data.userId = result.user.id;
-      req.data.username = username;
-      req.data.isAdmin = await adminService.isUserAdmin(result.user.id);
-
-      const token = jwt.sign(
-        {
-          userId: req.data.id,
-          username: req.data.username,
-          isAdmin: req.data.isAdmin,
-          iat: Date.now(), // Default IAT is in seconds, which not match with the timestamps we use elsewhere
-        },
-        securityConfig.jwtSecret,
-        { expiresIn: "1h" }
-      );
-
-      req.data.token = token;
-
-      next();
-    }
   }
 };
 
@@ -170,11 +207,10 @@ const verifyToken = async (req, res, next) => {
         payload.userId
       );
 
-      if (minTimestamp < payload.iat) {
+      if (minTimestamp < payload.iat * 1000) {
         req.data = {};
         req.data.userId = payload.userId;
         req.data.username = payload.username;
-        req.data.isAdmin = Boolean(payload.isAdmin);
 
         next();
       } else {
@@ -216,26 +252,17 @@ const logout = async (userId) => {
     `Logging out user ${userId}`,
     levels.DEBUG
   );
-  switch (securityConfig.authMethod) {
-    case securityConfig.availableAuthMethods.DB:
-      await dbUserManager.logout(userId);
-      break;
-    case securityConfig.availableAuthMethods.AD:
-      await adUserManager.logout(userId); // Actually is the user ID
-      break;
-    default:
-      break;
-  }
+  await userService.generateTokenValidityEntry(userId);
 };
 
 /**
  * Creates a user - specifically for DB-backed user management.
- * In a proper environment we'd probably want email verification. TBH we'd want AD auth anyway so it's kinda moot
+ * In a proper environment we'd probably want email verification
  * @param {string} username
  * @param {string} password
- * @returns An error if user management is backed by an external system (eg. AD).
+ * @returns
  */
-const register = async (username, password) => {
+const register = async (username, password, confirmPassword) => {
   log(
     "user-and-access-manager/register",
     `Registering user ${username}`,
@@ -243,34 +270,35 @@ const register = async (username, password) => {
   );
 
   username = username.trim();
-  const { user } = await findUserByName(username);
+  const user = await findUserByName(username);
 
   let response = {
-    _id: null,
+    userId: null,
     errors: [],
   };
 
-  if (
-    !user &&
-    securityConfig.authMethod === securityConfig.availableAuthMethods.DB
-  ) {
-    const createdUser = await dbUserManager.register(
-      username,
+  if (!user.id) {
+    let validationErrors = validation.validatePassword(
       password,
+      confirmPassword,
       securityConfig.passwordRequirements
     );
-    response._id = createdUser.userId;
-    response.errors = createdUser.errors;
-  } else if (!user) {
-    log(
-      "user-and-access-manager/register",
-      `Cannot register users from CERBERUS when using the ${securityConfig.authMethod} auth method`,
-      levels.WARN
+    validationErrors = validationErrors.concat(
+      validation.validateUsername(username)
     );
 
-    response.errors.push(
-      "Registering is not supported for the configured auth method; please ask your administrator to add you."
-    );
+    if (validationErrors.length === 0) {
+      const hashed = await argon2.hash(password);
+      const userRecord = await userService.createUser(username, hashed);
+      response.userId = userRecord._id;
+    } else {
+      log(
+        "database-manager/register",
+        "Validation of username/password failed",
+        levels.WARN
+      );
+      response.errors = response.errors.concat(validationErrors);
+    }
   } else {
     log(
       "user-and-access-manager/register",
@@ -290,44 +318,10 @@ const register = async (username, password) => {
  */
 const removeUser = async (userId) => {
   log("removeUser", `Removing user ${userId}`, levels.DEBUG);
-
-  let errors = [];
-
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        await dbUserManager.deleteUser(userId);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        log(
-          "removeUser",
-          "Cannot remove a user when backed by Active Directory. However, the user will be removed from the admins list, if they are on it.",
-          levels.WARN
-        );
-
-        adUserManager.deleteUser(userId);
-        errors.push(
-          "You cannot entirely remove users provided by Active Directory, but the user has been removed as admin."
-        );
-        break;
-
-      default:
-        log(
-          "removeUser",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("removeUser", err, levels.ERROR);
-
-    errors.push("Internal Server Error");
+  if (userId) {
+    await userService.deleteUser(userId);
+    await adminService.changeAdminStatus(userId, false);
   }
-
-  return errors;
 };
 
 /**
@@ -340,39 +334,20 @@ const findUserByName = async (username) => {
     `Finding user ${username}`,
     levels.DEBUG
   );
-
-  let errors = [];
-  let user = { id: "", name: "" };
-
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        user = await dbUserManager.findUserByName(username);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        user = await adUserManager.findUserByName(username);
-        break;
-
-      default:
-        log(
-          "user-and-access-manager/findUserByName",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("user-and-access-manager/findUserByName", err, levels.ERROR);
-
-    errors.push("Internal Server Error");
+  let user = await userService.findUserByName(username);
+  if (!user) {
+    user = {
+      id: "",
+      name: "",
+      acgs: [],
+    };
+  } else {
+    // This is only the ID of the hashed password, not the hash itself, but is still sensitive
+    delete user.password;
+    user.id = user._id;
+    delete user._id;
   }
-
-  return {
-    user,
-    errors,
-  };
+  return user;
 };
 
 /**
@@ -385,81 +360,79 @@ const findUserById = async (userId) => {
     `Finding user ${userId}`,
     levels.DEBUG
   );
-
-  let errors = [];
-  let user = {
-    id: "",
-    name: "",
-  };
-
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        user = await dbUserManager.findUserById(userId);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        user = await adUserManager.findUserById(userId);
-        break;
-
-      default:
-        log(
-          "user-and-access-manager/findUserById",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-
-        console.log(JSON.stringify(user));
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("user-and-access-manager/findUserById", err, levels.ERROR);
-
-    errors.push("Internal Server Error");
+  let user = await userService.findUserById(userId);
+  if (!user) {
+    user = {
+      id: "",
+      name: "",
+      acgs: [],
+    };
+  } else {
+    // This is only the ID of the hashed password, not the hash itself, but is still sensitive
+    delete user.password;
+    user.id = user._id;
+    delete user._id;
   }
-
-  return {
-    user,
-    errors,
-  };
+  return user;
 };
 
 /**
- * TODO Should probably just allow the exception to throw out, rather than catching it here. Provides consistency with the other authz functions
- * @param {String} userId ID (either database ID, or UPN for active directory) of user
- * @returns Object: {errors, groups}
+ * @param {String} userId
+ * @returns group IDs
  */
 const getGroupsForUser = async (userId) => {
+  let acgs = [];
+  const user = await findUserById(userId);
+  if (user && user.acgs) {
+    acgs = user.acgs;
+  }
+  return acgs;
+};
+
+const getAllGroups = async () => {
   let errors = [];
-  let groups = [];
+  let acgs = null;
+  acgs = await acgService.getAllACGs();
 
-  try {
-    switch (securityConfig.authMethod) {
-      case securityConfig.availableAuthMethods.DB:
-        groups = await dbUserManager.getGroupsForUser(userId);
-        break;
-      case securityConfig.availableAuthMethods.AD:
-        groups = await adUserManager.getGroupsForUser(userId);
-        break;
-
-      default:
-        log(
-          "user-and-access-manager/getGroupsForUser",
-          `Auth method ${securityConfig.authMethod} not supported`,
-          levels.ERROR
-        );
-
-        errors.push("Internal Server Error");
-        break;
-    }
-  } catch (err) {
-    log("user-and-access-manager/getGroupsForUser", err, levels.ERROR);
-
-    errors.push("Internal Server Error");
+  if (!acgs) {
+    errors = ["Query for all ACGs failed"];
   }
 
   return {
-    groups,
+    errors,
+    acgs,
+  };
+};
+
+const createGroup = async (acgName) => {
+  let errors = [];
+  const existing = await acgService.findACG(acgName);
+  if (!existing) {
+    const created = await acgService.createACG(acgName);
+    if (!created) {
+      errors.push("Could not create ACG!");
+    }
+  } else {
+    errors.push("ACG with that name already exists!");
+  }
+  return errors;
+};
+
+/**
+ *
+ * @param {string} acgId
+ * @returns
+ */
+const deleteGroup = async (acgId) => {
+  let errors = [];
+  let deletedEntity = null;
+  if (acgId) {
+    deletedEntity = await acgService.deleteACG(acgId);
+  } else {
+    errors.push("Must provide an ID for the ACG");
+  }
+  return {
+    deletedEntity,
     errors,
   };
 };
@@ -480,21 +453,16 @@ const filterImplantsForView = async (implants, userId) => {
   } else {
     const groupsResult = await getGroupsForUser(userId);
 
-    if (groupsResult.errors.length === 0) {
-      filtered = implants.filter((implant) => {
-        const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
-        if (implant.readOnlyACGs.length === 0) {
-          return true;
-        } else {
-          return (
-            readGroups.filter((group) => groupsResult.groups.includes(group))
-              .length > 0
-          );
-        }
-      });
-    } else {
-      errors = groupsResult.errors;
-    }
+    filtered = implants.filter((implant) => {
+      const readGroups = implant.readOnlyACGs.concat(implant.operatorACGs);
+      if (implant.readOnlyACGs.length === 0) {
+        return true;
+      } else {
+        return (
+          readGroups.filter((group) => groupsResult.includes(group)).length > 0
+        );
+      }
+    });
   }
 
   return {
@@ -530,11 +498,8 @@ const isUserAuthorisedForOperationOnImplant = async (
     }
 
     if (acgs && acgs.length > 0) {
-      const { groups, errors } = await getGroupsForUser(userId);
-      if (errors.length === 0) {
-        isAuthorised =
-          acgs.filter((group) => groups.includes(group)).length > 0;
-      }
+      const groups = await getGroupsForUser(userId);
+      isAuthorised = acgs.filter((group) => groups.includes(group)).length > 0;
     } else {
       // If we are trying to edit, then we check to ensure the readOnlyACGs list is empty;
       // if it *isn't* (ie. read-only list is populated, but operator list is not) then operator is
@@ -608,5 +573,8 @@ module.exports = {
   findUserById,
   filterImplantsForView,
   getGroupsForUser,
+  getAllGroups,
+  createGroup,
+  deleteGroup,
   authZCheck,
 };

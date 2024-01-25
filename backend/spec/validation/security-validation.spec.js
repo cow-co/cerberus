@@ -20,7 +20,7 @@ describe("Password validation tests", () => {
   test("Password validation - success - default config", () => {
     const pw = "abcABC123123ABCabc";
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
   test("Password validation - success - no-lowercase config", () => {
@@ -32,7 +32,7 @@ describe("Password validation tests", () => {
     };
     const pw = "ABC123123ABCABC";
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
   test("Password validation - success - no-uppercase config", () => {
@@ -44,7 +44,7 @@ describe("Password validation tests", () => {
       minLength: 15,
     };
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
   test("Password validation - success - no-numbers config", () => {
@@ -56,7 +56,7 @@ describe("Password validation tests", () => {
       minLength: 15,
     };
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
   test("Password validation - success - shorter length config", () => {
@@ -68,27 +68,39 @@ describe("Password validation tests", () => {
       minLength: 2,
     };
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
+  });
+
+  test("Password validation - failure - confirmation does not match", () => {
+    const pw = "ABCABC123123ABcABC";
+    expect(validation.validatePassword(pw, "skdjhaskjdhf", reqs)).toHaveLength(
+      1
+    );
+  });
+
+  test("Password validation - failure - confirmation null", () => {
+    const pw = "ABCABC123123ABcABC";
+    expect(validation.validatePassword(pw, null, reqs)).toHaveLength(1);
   });
 
   test("Password validation - failure - no lower", () => {
     const pw = "ABCABC123123ABCABC";
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(1);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(1);
   });
 
   test("Password validation - failure - no upper", () => {
     const pw = "abc123123abcabc";
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(1);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(1);
   });
 
   test("Password validation - failure - no numbers", () => {
     const pw = "abcABCABCabcabc";
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(1);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(1);
   });
 
   test("Password validation - failure - too short", () => {
     const pw = "abcABC111abc";
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(1);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(1);
   });
 });
 

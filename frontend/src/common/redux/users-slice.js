@@ -5,6 +5,7 @@ export const usersSlice = createSlice({
   initialState: {
     username: "",
     isAdmin: false,
+    token: ""
   },
   reducers: {
     setUsername: (state, action) => {
@@ -13,8 +14,11 @@ export const usersSlice = createSlice({
     setIsAdmin: (state, action) => {
       state.isAdmin = action.payload;
     },
+    setToken: (state, action) => {
+      state.token = action.payload;
+    }
   },
 });
 
-export const { setUsername, setIsAdmin } = usersSlice.actions;
+export const { setUsername, setIsAdmin, setToken } = usersSlice.actions;
 export default usersSlice.reducer;

@@ -13,6 +13,7 @@ const ImplantItem = ({implant, chooseImplant, deleteImplant}) => {
     deleteButton = <IconButton onClick={deleteImplant}><DeleteForeverIcon /></IconButton>
   }
 
+  // TODO Allow admins to add ACGs to implant
   return (
       <ListItem className={`listElement ${implantClass}`} key={implant.id}>
         <Grid item xs={4}>

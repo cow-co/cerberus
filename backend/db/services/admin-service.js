@@ -2,7 +2,7 @@ const { log, levels } = require("../../utils/logger");
 const Admin = require("../models/Admin");
 
 /**
- * @param {string} userId The ID of the user to check (if using AD authentication, this will be the DN of the user)
+ * @param {string} userId The ID of the user to check
  * @returns `true` if user is an admin, `false` if not
  */
 const isUserAdmin = async (userId) => {
@@ -17,6 +17,8 @@ const isUserAdmin = async (userId) => {
 };
 
 const changeAdminStatus = async (userId, shouldBeAdmin) => {
+  log("changeAdminStatus", `Adding an admin`, levels.INFO);
+
   if (userId) {
     const existingAdminRecord = await Admin.findOne({ userId: userId });
     if (shouldBeAdmin && !existingAdminRecord) {
@@ -39,8 +41,7 @@ const changeAdminStatus = async (userId, shouldBeAdmin) => {
  * @returns Count of all admin users
  */
 const numAdmins = async () => {
-  const allAdmins = await Admin.countDocuments({});
-  return allAdmins;
+  return await Admin.countDocuments({});
 };
 
 module.exports = {

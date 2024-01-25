@@ -161,8 +161,8 @@ describe("User tests", () => {
 
   test("whoami - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: { _id: "id", name: "user" },
-      errors: [],
+      _id: "id",
+      name: "user",
     });
     adminService.isUserAdmin.mockResolvedValue(false);
 
@@ -170,7 +170,7 @@ describe("User tests", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.user.name).toBe("user");
-    expect(res.body.user.isAdmin).toBe(false);
+    expect(res.body.user.isAdmin).toBeFalsy();
   });
 
   test("whoami - failure - exception", async () => {

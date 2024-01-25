@@ -93,6 +93,17 @@ const deleteImplant = async (implantId) => {
   });
 };
 
+const updateACGs = async (implantId, readOnlyACGs, operatorACGs) => {
+  log("updateACGs", `Updating implant ${implantId}'s ACGs`, levels.INFO);
+  const implant = await findImplantById(implantId);
+  if (implant) {
+    implant.readOnlyACGs = readOnlyACGs;
+    implant.operatorACGs = operatorACGs;
+    await implant.save();
+  }
+  return implant;
+};
+
 module.exports = {
   addImplant,
   updateImplant,
@@ -100,4 +111,5 @@ module.exports = {
   getAllImplants,
   checkActivity,
   deleteImplant,
+  updateACGs,
 };

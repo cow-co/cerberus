@@ -1,27 +1,48 @@
 const ACG = require("../models/ACG");
+const {
+  entityTypes,
+  eventTypes,
+  sendMessage,
+} = require("../../utils/web-sockets");
+
+// Very shallow interface here, but I think it makes sense, just to logically
+// keep the handling of ACGs in line with the handling of other database entities.
+// Also ensures the access managers don't need to go direct to the DB
 
 const createACG = async (name) => {
-  return await ACG.create({
-    name: name,
-  });
+  let result = null;
+  if (name) {
+    result = await ACG.create({
+      name: name,
+    });
+    sendMessage(entityTypes.GROUPS, eventTypes.CREATE, result);
+  }
+  return result;
 };
 
 const deleteACG = async (id) => {
-  await ACG.findByIdAndDelete(id);
+  let result = await ACG.findByIdAndDelete(id);
+  if (result._id) {
+    sendMessage(entityTypes.GROUPS, eventTypes.DELETE, result);
+  }
+  return result;
 };
 
 const findACG = async (name) => {
-  let acg = null;
-
+  let result = null;
   if (name) {
-    acg = await ACG.findOne({ name: name });
+    result = await ACG.findOne({ name: name });
   }
+  return result;
+};
 
-  return acg;
+const getAllACGs = async () => {
+  return await ACG.find();
 };
 
 module.exports = {
   createACG,
   deleteACG,
   findACG,
+  getAllACGs,
 };

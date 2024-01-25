@@ -7,7 +7,7 @@ const { log, levels } = require("../utils/logger");
 
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   const username = req.paramString("username");
-  log(`GET /users/user/${username}`, `Getting user ${username}`, levels.DEBUG);
+  log(`GET /users/user/${username}`, `Getting user ${username}`, levels.INFO);
   let status = statusCodes.OK;
   let response = {
     user: {
@@ -21,22 +21,28 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 
   try {
     const result = await accessManager.findUserByName(chosenUser);
-    const permitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.USER,
-      result.user.id,
-      accessManager.accessControlType.READ,
-      req.data.userId
-    );
+    if (result.errors.length === 0) {
+      const permitted = await accessManager.authZCheck(
+        accessManager.operationType.READ,
+        accessManager.targetEntityType.USER,
+        result.user.id,
+        accessManager.accessControlType.READ,
+        req.data.userId
+      );
 
-    if (permitted) {
-      response.user = {
-        id: result.user.id,
-        name: result.user.name,
-      };
+      if (permitted) {
+        response.user = {
+          id: result.user.id,
+          name: result.user.name,
+        };
+      } else {
+        response.errors.push("Not permitted");
+        status = statusCodes.FORBIDDEN;
+      }
     } else {
-      response.errors.push("Not permitted");
-      status = statusCodes.FORBIDDEN;
+      log("GET /user/:username", JSON.stringify(result.errors), levels.WARN);
+      status = statusCodes.BAD_REQUEST;
+      response.errors = result.errors;
     }
   } catch (err) {
     log("GET /user/:username", err, levels.ERROR);
@@ -99,7 +105,7 @@ router.get("/whoami", accessManager.verifyToken, async (req, res) => {
   let status = statusCodes.OK;
 
   try {
-    const { user } = await accessManager.findUserById(req.data.userId);
+    const user = await accessManager.findUserById(req.data.userId);
     const isAdmin = await adminService.isUserAdmin(req.data.userId);
 
     status = statusCodes.OK;

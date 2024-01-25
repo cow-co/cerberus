@@ -5,15 +5,13 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
-// TODO decide how we will handle adding/removing ACGs to/from implants in the UI
-
 /**
  * Retrieves all the implants that the user is authorised to view.
  */
 router.get("", accessManager.verifyToken, async (req, res) => {
   log("GET /implants/", "Request to get all implants", levels.DEBUG);
-  let responseJSON = {
-    implants: null,
+  let response = {
+    implants: [],
     errors: [],
   };
   let status = statusCodes.OK;
@@ -24,27 +22,27 @@ router.get("", accessManager.verifyToken, async (req, res) => {
       req.data.userId
     );
     if (errors.length > 0) {
-      responseJSON.errors = errors;
+      response.errors = errors;
     } else {
-      responseJSON.implants = filtered;
+      response.implants = filtered;
     }
   } catch (err) {
     log("GET /implants/", err, levels.ERROR);
-    responseJSON.errors = ["Internal Server Error"];
+    response.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }
 
-  res.status(status).json(responseJSON);
+  res.status(status).json(response);
 });
 
 router.delete("/:implantId", accessManager.verifyToken, async (req, res) => {
   const implantId = req.paramString("implantId");
   log(`DELETE /implants/${implantId}`, `Implant ${implantId}`, levels.INFO);
 
-  let responseJSON = {
+  let response = {
     errors: [],
   };
-  let returnStatus = statusCodes.OK;
+  let status = statusCodes.OK;
 
   try {
     const isAuthed = await accessManager.authZCheck(
@@ -67,8 +65,8 @@ router.delete("/:implantId", accessManager.verifyToken, async (req, res) => {
         );
       }
     } else {
-      returnStatus = statusCodes.FORBIDDEN;
-      responseJSON.errors.push("Not authorised to delete implant");
+      status = statusCodes.FORBIDDEN;
+      response.errors.push("Not authorised to delete implant");
       log(
         `DELETE /implants/${implantId}`,
         `Non-admin user ${req.data.userId} attempted to delete an implant`,
@@ -76,12 +74,12 @@ router.delete("/:implantId", accessManager.verifyToken, async (req, res) => {
       );
     }
   } catch (err) {
-    returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-    responseJSON.errors.push("Internal Server Error");
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response.errors.push("Internal Server Error");
     log(`DELETE /implants/${implantId}`, err, levels.ERROR);
   }
 
-  res.status(returnStatus).json(responseJSON);
+  res.status(status).json(response);
 });
 
 module.exports = router;
