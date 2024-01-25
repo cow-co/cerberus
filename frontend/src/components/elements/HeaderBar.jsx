@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Button, Typography, Link } from "@mui/material";
+import { AppBar, Toolbar, Button, Typography } from "@mui/material";
 import { checkToken, logout } from "../../common/apiCalls";
 import { setIsAdmin, setUsername, setToken } from "../../common/redux/users-slice";
 import { useDispatch, useSelector } from "react-redux";
