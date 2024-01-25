@@ -10,9 +10,13 @@ import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatc
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
 import conf from "../../common/config/properties";
+import ConfirmationDialogue from './ConfirmationDialogue';
 
 function ACGPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
+  const [selectedACG, setSelectedACG] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const acgs = useSelector((state) => state.groups.groups);
   const dispatch = useDispatch();
 
@@ -84,21 +88,28 @@ function ACGPane() {
     }
   }
 
-  const handleDelete = async (acg) => {
-    const { errors } = await deleteGroup(acg._id);
+  const handleDelete = async () => {
+    const { errors } = await deleteGroup(selectedACG._id);
 
     if (errors.length > 0) {
       createErrorAlert(errors);
     } else {
       createSuccessAlert("Successfully deleted ACG");
     }
+
+    setConfirmOpen(false);
+  }
+
+  const openConfirmation = (acg) => {
+    setSelectedACG(acg);
+    setConfirmOpen(true);
   }
 
   let acgsItems = null;
 
   if (acgs !== undefined && acgs !== null) {
     acgsItems = acgs.map(acg => {
-      return <ACGItem acg={acg} key={acg._id} deleteACG={() => handleDelete(acg)} />
+      return <ACGItem acg={acg} key={acg._id}  deleteACG={() => openConfirmation(acg)} />
     });
   }
 
@@ -111,6 +122,7 @@ function ACGPane() {
         {acgsItems}
       </List>
       <CreateACGDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
+      <ConfirmationDialogue open={confirmOpen} onClose={ () => setConfirmOpen(false) } onOK={handleDelete} />
     </Container>
       
   )
