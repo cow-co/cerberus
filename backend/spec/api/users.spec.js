@@ -161,8 +161,8 @@ describe("User tests", () => {
 
   test("whoami - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: { _id: "id", name: "user" },
-      errors: [],
+      _id: "id",
+      name: "user",
     });
     adminService.isUserAdmin.mockResolvedValue(false);
 
