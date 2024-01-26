@@ -395,6 +395,30 @@ const createGroup = async (acg) => {
   return json;
 };
 
+const editACGs = async (implantId, acgs) => {
+  let json = null;
+  try {
+    const response = await fetch(
+      `${conf.apiURL}access/implants/${implantId}/acgs`,
+      {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json",
+          authorization: `Bearer ${getToken()}`,
+        }),
+        body: JSON.stringify(acgs),
+      }
+    );
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
 export {
   fetchImplants,
   deleteImplant,
@@ -415,4 +439,5 @@ export {
   getGroups,
   createGroup,
   deleteGroup,
+  editACGs,
 };

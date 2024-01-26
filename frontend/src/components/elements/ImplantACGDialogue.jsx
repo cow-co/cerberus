@@ -10,9 +10,13 @@ import { getGroups } from "../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 
+// TODO Test that the ACGs actually do, in fact, control access.
 const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   const groups = useSelector((state) => {
     return state.groups.groups
+  });
+  const selectedImplant = useSelector((state) => {
+    return state.implants.selected
   });
   const dispatch = useDispatch();
   const [acgs, setACGs] = useState({readOnlyACGs: [], operatorACGs: []});
@@ -40,9 +44,25 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
       }
     };
     getData();
+    const ro = providedACGs.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
+    const op = providedACGs.operatorACGs.map(acg => groups.find(group => group._id === acg));
+    setACGs({
+      readOnlyACGs: ro,
+      operatorACGs: op
+    });
     setACGs(providedACGs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const ro = selectedImplant.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
+    const op = selectedImplant.operatorACGs.map(acg => groups.find(group => group._id === acg));
+    setACGs({
+      readOnlyACGs: ro,
+      operatorACGs: op
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedImplant]);
 
   useEffect(() => {
     if (lastJsonMessage) {
@@ -63,8 +83,6 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
-  
-  useEffect(() => console.log(acgs), [acgs]);
 
   const handleAddROGroup = () => {
     let updated = {
@@ -94,7 +112,6 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   }
 
   const deleteROGroup = (id) => {
-    console.log(id);
     let updated = {
       readOnlyACGs: acgs.readOnlyACGs.filter(group => group.internalId !== id),
       operatorACGs: acgs.operatorACGs
@@ -137,7 +154,6 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   }
 
   const handleClose = () => {
-    setACGs({readOnlyACGs: [], operatorACGs: []});
     onClose();
   }
 

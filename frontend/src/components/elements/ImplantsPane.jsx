@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
 import ConfirmationDialogue from './ConfirmationDialogue';
 import ImplantACGDialogue from './ImplantACGDialogue';
-import { deleteImplant, fetchImplants } from '../../common/apiCalls';
+import { deleteImplant, fetchImplants, editACGs } from '../../common/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
 import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
@@ -39,6 +39,7 @@ const ImplantsPane = () => {
 
   const refresh = async () => {
     const result = await fetchImplants();
+    // TODO Also refresh the list of ACGs
     if (result.errors.length === 0) {
       dispatch(setImplants(result.implants));
     } else {
@@ -67,7 +68,7 @@ const ImplantsPane = () => {
       }
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username, showInactive, implants]);
+  }, [username, showInactive, implants]); // TODO Also trigger when ACGs are updated
 
   // Splitting this out ensures we don't dispatch redux updates unless 
   // a websocket message has actually arrived
@@ -125,7 +126,14 @@ const ImplantsPane = () => {
   }
 
   const submitACGs = async (acgs) => {
-    // TODO Fill out
+    const response = await editACGs(selectedImplant.id, acgs);
+    if (response.errors.length > 0) {
+      createErrorAlert(response.errors);
+    } else {
+      setACGEditOpen(false);
+      await refresh();
+      createSuccessAlert("Successfully updated groups");
+    }
   }
 
   const implantsItems = filtered.map(implant => {
@@ -142,7 +150,7 @@ const ImplantsPane = () => {
         {implantsItems}
       </List>
       <ConfirmationDialogue open={confirmOpen} onClose={ () => setConfirmOpen(false) } onOK={removeImplant} />
-      <ImplantACGDialogue open={acgEditOpen} onClose={ () => setACGEditOpen(false) } onSubmit={submitACGs} providedACGs={{readOnlyACGs: selectedImplant.readOnlyACGs, operatorACGs: selectedImplant.operatorACGs}} />
+      <ImplantACGDialogue open={acgEditOpen} onClose={ () => setACGEditOpen(false) } onSubmit={submitACGs} providedACGs={{readOnlyACGs: [...selectedImplant.readOnlyACGs], operatorACGs: [...selectedImplant.operatorACGs]}} />
     </Container>
   );
 }
