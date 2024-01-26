@@ -5,6 +5,9 @@ const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
+// FIXME Make-admin broken
+// TODO Allow admin to add user to group
+
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   const username = req.paramString("username");
   log(`GET /users/user/${username}`, `Getting user ${username}`, levels.INFO);
@@ -21,28 +24,28 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 
   try {
     const result = await accessManager.findUserByName(chosenUser);
-    if (result.errors.length === 0) {
+    if (result.id) {
       const permitted = await accessManager.authZCheck(
         accessManager.operationType.READ,
         accessManager.targetEntityType.USER,
-        result.user.id,
+        result.id,
         accessManager.accessControlType.READ,
         req.data.userId
       );
 
       if (permitted) {
         response.user = {
-          id: result.user.id,
-          name: result.user.name,
+          id: result.id,
+          name: result.name,
         };
       } else {
         response.errors.push("Not permitted");
         status = statusCodes.FORBIDDEN;
       }
     } else {
-      log("GET /user/:username", JSON.stringify(result.errors), levels.WARN);
+      log("GET /user/:username", "Could not find user!", levels.WARN);
       status = statusCodes.BAD_REQUEST;
-      response.errors = result.errors;
+      response.errors = ["Could not find user!"];
     }
   } catch (err) {
     log("GET /user/:username", err, levels.ERROR);

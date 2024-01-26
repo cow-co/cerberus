@@ -39,7 +39,6 @@ const ImplantsPane = () => {
 
   const refresh = async () => {
     const result = await fetchImplants();
-    // TODO Also refresh the list of ACGs
     if (result.errors.length === 0) {
       dispatch(setImplants(result.implants));
     } else {
@@ -68,7 +67,7 @@ const ImplantsPane = () => {
       }
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username, showInactive, implants]); // TODO Also trigger when ACGs are updated
+  }, [username, showInactive, implants]);
 
   // Splitting this out ensures we don't dispatch redux updates unless 
   // a websocket message has actually arrived

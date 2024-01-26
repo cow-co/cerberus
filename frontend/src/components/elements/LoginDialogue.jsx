@@ -28,6 +28,7 @@ const LoginDialogue = (props) => {
         dispatch(setIsAdmin(response.user.isAdmin));
         localStorage.setItem("token", response.token);
         await loadTaskTypes();
+        // TODO Also load ACGs
         handleClose();
     }
   }

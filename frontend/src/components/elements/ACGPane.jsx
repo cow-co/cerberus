@@ -6,7 +6,7 @@ import { createGroup, deleteGroup, getGroups } from '../../common/apiCalls';
 import { setGroups } from "../../common/redux/groups-slice";
 import CreateACGDialogue from './CreateACGDialogue';
 import { useSelector, useDispatch } from "react-redux";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert, loadGroups } from '../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../common/web-sockets";
 import conf from "../../common/config/properties";
@@ -86,6 +86,7 @@ function ACGPane() {
       handleFormClose();
       createSuccessAlert("Successfully created ACG");
     }
+    // TODO Also load groups
   }
 
   const handleDelete = async () => {
