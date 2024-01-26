@@ -42,6 +42,7 @@ const CreateTaskTypeDialogue = (props) => {
     onSubmit(data);
     setTaskType({name: "", params: []});
   }
+  // FIXME the select-input-label in a slightly iffy place
   
   const handleAddParam = () => {
     let updated = {

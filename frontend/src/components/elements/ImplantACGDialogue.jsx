@@ -8,6 +8,7 @@ import conf from "../../common/config/properties";
 import { setGroups } from '../../common/redux/groups-slice';
 import { getGroups } from "../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import { v4 as uuidv4 } from "uuid";
 
 const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   const groups = useSelector((state) => {
@@ -63,23 +64,29 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
   
+  useEffect(() => console.log(acgs), [acgs]);
+
   const handleAddROGroup = () => {
     let updated = {
       readOnlyACGs: [...acgs.readOnlyACGs],
       operatorACGs: [...acgs.operatorACGs]
     };
-    updated.readOnlyACGs.push({_id: "", name: ""});
+    updated.readOnlyACGs.push({internalId: uuidv4(), _id: "", name: ""});
     setACGs(updated);
   }
   
+  // FIXME the select-input-label in a slightly iffy place
   const handleChooseROGroup = (event) => {
     const {name, value} = event.target;
+
     let updated = {
       readOnlyACGs: [...acgs.readOnlyACGs],
       operatorACGs: [...acgs.operatorACGs]
     };
+    const selectedACG = groups.find(group => group.name === value);
     updated.readOnlyACGs.forEach((acg) => {
-      if (acg._id === name) {
+      if (acg.internalId === name) {
+        acg._id = selectedACG._id;
         acg.name = value;
       }
     });
@@ -87,8 +94,9 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   }
 
   const deleteROGroup = (id) => {
+    console.log(id);
     let updated = {
-      readOnlyACGs: acgs.readOnlyACGs.filter(group => group._id === id),
+      readOnlyACGs: acgs.readOnlyACGs.filter(group => group.internalId !== id),
       operatorACGs: acgs.operatorACGs
     };
     setACGs(updated);
@@ -96,21 +104,24 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   
   const handleAddOpGroup = () => {
     let updated = {
-      readOnlyACGs: acgs.readOnlyACGs,
-      operatorACGs: acgs.operatorACGs
+      readOnlyACGs: [...acgs.readOnlyACGs],
+      operatorACGs: [...acgs.operatorACGs]
     };
-    updated.operatorACGs.push({_id: "", name: ""});
+    updated.operatorACGs.push({internalId: uuidv4(), _id: "", name: ""});
     setACGs(updated);
   }
-  
+  // FIXME the select-input-label in a slightly iffy place
+  // FIXME the ACGs don't load until go into admin page - move that to the implant-pane load?
   const handleChooseOpGroup = (event) => {
     const {name, value} = event.target;
     let updated = {
-      readOnlyACGs: acgs.readOnlyACGs,
-      operatorACGs: acgs.operatorACGs
+      readOnlyACGs: [...acgs.readOnlyACGs],
+      operatorACGs: [...acgs.operatorACGs]
     };
+    const selectedACG = groups.find(group => group.name === value);
     updated.operatorACGs.forEach((acg) => {
-      if (acg._id === name) {
+      if (acg.internalId === name) {
+        acg._id = selectedACG._id;
         acg.name = value;
       }
     });
@@ -120,7 +131,7 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   const deleteOpGroup = (id) => {
     let updated = {
       readOnlyACGs: acgs.readOnlyACGs,
-      operatorACGs: acgs.operatorACGs.filter(group => group._id === id)
+      operatorACGs: acgs.operatorACGs.filter(group => group.internalId !== id)
     };
     setACGs(updated);
   }
@@ -135,43 +146,41 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   }
 
   const roGroupSelects = groups.map(group => {
-    return <MenuItem value={group.name} key={group._id} id={group._id}>{group.name}</MenuItem>
+    return <MenuItem value={group.name} key={group.internalId} id={group.internalId}>{group.name}</MenuItem>
   });
 
   const opGroupSelects = groups.map(group => {
-    return <MenuItem value={group.name} key={group._id} id={group._id}>{group.name}</MenuItem>
+    return <MenuItem value={group.name} key={group.internalId} id={group.internalId}>{group.name}</MenuItem>
   });
   
-  // FIXME the delete button doesn't work
   const readGroupsSettings = acgs.readOnlyACGs.map((acg) => (
-    <ListItem className="listElement" key={acg._id} >
+    <ListItem className="listElement" key={acg.internalId} >
       <Grid item xs={11}>
         <FormControl sx={{ m: 1, minWidth: 120 }}>
           <InputLabel id="ro-group-label">Group</InputLabel>
-          <Select className="select-list" label="Group" labelId="ro-group-label" value={acg.name} onChange={handleChooseROGroup} name={acg.name} id={acg._id}>
+          <Select className="select-list" label="Group" labelId="ro-group-label" value={acg.name} onChange={handleChooseROGroup} name={acg.internalId} id={acg._id}>
             {roGroupSelects}
           </Select>
         </FormControl>
       </Grid>
       <Grid item xs={1}>
-        <IconButton onClick={() => deleteROGroup(acg._id)}><DeleteForeverIcon /></IconButton>
+        <IconButton onClick={() => deleteROGroup(acg.internalId)}><DeleteForeverIcon /></IconButton>
       </Grid>
     </ListItem>
   ));
   
-  // FIXME the delete button doesn't work
   const operatorGroupsSettings = acgs.operatorACGs.map((acg) => (
-    <ListItem className="listElement" key={acg._id} >
+    <ListItem className="listElement" key={acg.internalId} >
       <Grid item xs={11}>
         <FormControl sx={{ m: 1, minWidth: 120 }}>
           <InputLabel id="op-group-label">Group</InputLabel>
-          <Select className="select-list" label="Group" labelId="op-group-label" value={acg.name} onChange={handleChooseOpGroup} name={acg.name} id={acg._id}>
+          <Select className="select-list" label="Group" labelId="op-group-label" value={acg.name} onChange={handleChooseOpGroup} name={acg.internalId} id={acg._id}>
             {opGroupSelects}
           </Select>
         </FormControl>
       </Grid>
       <Grid item xs={1}>
-        <IconButton onClick={() => deleteOpGroup(acg._id)}><DeleteForeverIcon /></IconButton>
+        <IconButton onClick={() => deleteOpGroup(acg.internalId)}><DeleteForeverIcon /></IconButton>
       </Grid>
     </ListItem>
   ));
