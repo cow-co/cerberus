@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, ListItem, Grid, IconButton } from '@mui/material';
+import { FormControl, MenuItem, Select, Dialog, DialogTitle, Button, ListItem, Grid, IconButton, List, Typography, InputLabel } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
 import { createErrorAlert } from '../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
@@ -9,8 +9,6 @@ import { setGroups } from '../../common/redux/groups-slice';
 import { getGroups } from "../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
-// FIXME UI for this is all borked
-// FIXME None of the buttons work
 const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   const groups = useSelector((state) => {
     return state.groups.groups
@@ -67,8 +65,8 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   
   const handleAddROGroup = () => {
     let updated = {
-      readOnlyACGs: acgs.readOnlyACGs,
-      operatorACGs: acgs.operatorACGs
+      readOnlyACGs: [...acgs.readOnlyACGs],
+      operatorACGs: [...acgs.operatorACGs]
     };
     updated.readOnlyACGs.push({_id: "", name: ""});
     setACGs(updated);
@@ -77,8 +75,8 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   const handleChooseROGroup = (event) => {
     const {name, value} = event.target;
     let updated = {
-      readOnlyACGs: acgs.readOnlyACGs,
-      operatorACGs: acgs.operatorACGs
+      readOnlyACGs: [...acgs.readOnlyACGs],
+      operatorACGs: [...acgs.operatorACGs]
     };
     updated.readOnlyACGs.forEach((acg) => {
       if (acg._id === name) {
@@ -136,16 +134,24 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
     onSubmit(acgs);
   }
 
-  const groupSelects = groups.map(group => {
+  const roGroupSelects = groups.map(group => {
+    return <MenuItem value={group.name} key={group._id} id={group._id}>{group.name}</MenuItem>
+  });
+
+  const opGroupSelects = groups.map(group => {
     return <MenuItem value={group.name} key={group._id} id={group._id}>{group.name}</MenuItem>
   });
   
+  // FIXME the delete button doesn't work
   const readGroupsSettings = acgs.readOnlyACGs.map((acg) => (
     <ListItem className="listElement" key={acg._id} >
       <Grid item xs={11}>
-        <Select className="select-list" label="Group" value={acg.name} onChange={handleChooseROGroup} name={acg.name} id={acg._id}>
-          {groupSelects}
-        </Select>
+        <FormControl sx={{ m: 1, minWidth: 120 }}>
+          <InputLabel id="ro-group-label">Group</InputLabel>
+          <Select className="select-list" label="Group" labelId="ro-group-label" value={acg.name} onChange={handleChooseROGroup} name={acg.name} id={acg._id}>
+            {roGroupSelects}
+          </Select>
+        </FormControl>
       </Grid>
       <Grid item xs={1}>
         <IconButton onClick={() => deleteROGroup(acg._id)}><DeleteForeverIcon /></IconButton>
@@ -153,12 +159,16 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
     </ListItem>
   ));
   
+  // FIXME the delete button doesn't work
   const operatorGroupsSettings = acgs.operatorACGs.map((acg) => (
     <ListItem className="listElement" key={acg._id} >
       <Grid item xs={11}>
-        <Select className="select-list" label="Group" value={acg.name} onChange={handleChooseOpGroup} name={acg.name} id={acg._id}>
-          {groupSelects}
-        </Select>
+        <FormControl sx={{ m: 1, minWidth: 120 }}>
+          <InputLabel id="op-group-label">Group</InputLabel>
+          <Select className="select-list" label="Group" labelId="op-group-label" value={acg.name} onChange={handleChooseOpGroup} name={acg.name} id={acg._id}>
+            {opGroupSelects}
+          </Select>
+        </FormControl>
       </Grid>
       <Grid item xs={1}>
         <IconButton onClick={() => deleteOpGroup(acg._id)}><DeleteForeverIcon /></IconButton>
@@ -170,11 +180,15 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Update Implant ACGs</DialogTitle>
       <FormControl fullWidth>
-        <InputLabel id="task-type-label">Read-Only Groups</InputLabel>
-        {readGroupsSettings}
+        <Typography variant="h6">Read-Only Groups</Typography>
+        <List>
+          {readGroupsSettings}
+        </List>
+        <Typography variant="h6">Operator Groups</Typography>
+        <List>
+          {operatorGroupsSettings}
+        </List>
         <Button onClick={handleAddROGroup}>Add Read-Only Group</Button>
-        <InputLabel id="task-type-label">Operator Groups</InputLabel>
-        {operatorGroupsSettings}
         <Button onClick={handleAddOpGroup}>Add Operator Group</Button>
         <Button onClick={handleSubmit}>Set ACGs</Button>
       </FormControl>

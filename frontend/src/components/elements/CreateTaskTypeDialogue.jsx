@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FormControl, Dialog, DialogTitle, Button, TextField, MenuItem, Select, Typography, ListItem, Grid, IconButton, List } from '@mui/material';
+import { FormControl, Dialog, DialogTitle, Button, TextField, MenuItem, Select, Typography, ListItem, Grid, IconButton, List, InputLabel } from '@mui/material';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 import { getParamTypes } from '../../common/apiCalls';
@@ -110,9 +110,12 @@ const CreateTaskTypeDialogue = (props) => {
         <TextField fullWidth className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamNameUpdate} />
       </Grid>
       <Grid item xs={4}>
-        <Select className="select-list" label="Data Type" value={param.type} onChange={handleParamTypeChange} name={param.id} id={param.name}>
-          {dataTypeSelects}
-        </Select>
+        <FormControl sx={{ m: 1, minWidth: 120 }}>
+          <InputLabel id="data-type-label">Data Type</InputLabel>
+          <Select className="select-list" label="Data Type" labelId="data-type-label" value={param.type} onChange={handleParamTypeChange} name={param.id} id={param.name}>
+            {dataTypeSelects}
+          </Select>
+        </FormControl>
       </Grid>
       <Grid item xs={1}>
         <IconButton onClick={() => deleteParam(param.id)}><DeleteForeverIcon /></IconButton>
