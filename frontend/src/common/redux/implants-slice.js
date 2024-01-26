@@ -4,7 +4,7 @@ export const implantsSlice = createSlice({
   name: "implants",
   initialState: {
     implants: [],
-    selected: { id: "" },
+    selected: { id: "", readOnlyACGs: [], operatorACGs: [] },
   },
   reducers: {
     setImplants: (state, action) => {

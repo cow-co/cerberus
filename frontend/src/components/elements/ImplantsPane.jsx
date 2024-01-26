@@ -3,6 +3,7 @@ import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
 import ConfirmationDialogue from './ConfirmationDialogue';
+import ImplantACGDialogue from './ImplantACGDialogue';
 import { deleteImplant, fetchImplants } from '../../common/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
@@ -15,6 +16,7 @@ const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [hasLoggedIn, setHasLoggedIn] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [acgEditOpen, setACGEditOpen] = useState(false);
   const [filtered, setFiltered] = useState([]);
 
   const implants = useSelector((state) => state.implants.implants);
@@ -117,8 +119,17 @@ const ImplantsPane = () => {
     setConfirmOpen(true);
   }
 
+  const openACGs = (implant) => {
+    dispatch(setSelectedImplant(implant));
+    setACGEditOpen(true);
+  }
+
+  const submitACGs = async (acgs) => {
+    // TODO Fill out
+  }
+
   const implantsItems = filtered.map(implant => {
-    return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))} deleteImplant={() => openConfirmation(implant)} />
+    return <ImplantItem implant={implant} key={implant.id} chooseImplant={() => dispatch(setSelectedImplant(implant))} editACGs={() => openACGs(implant)} deleteImplant={() => openConfirmation(implant)} />
   });
 
   return (
@@ -131,6 +142,7 @@ const ImplantsPane = () => {
         {implantsItems}
       </List>
       <ConfirmationDialogue open={confirmOpen} onClose={ () => setConfirmOpen(false) } onOK={removeImplant} />
+      <ImplantACGDialogue open={acgEditOpen} onClose={ () => setACGEditOpen(false) } onSubmit={submitACGs} providedACGs={{readOnlyACGs: selectedImplant.readOnlyACGs, operatorACGs: selectedImplant.operatorACGs}} />
     </Container>
   );
 }
