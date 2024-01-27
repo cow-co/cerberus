@@ -36,12 +36,9 @@ describe("User tests", () => {
 
   test("get user - success", async () => {
     accessManager.findUserByName.mockResolvedValue({
-      user: {
-        _id: "some-mongo-id3",
-        name: "username",
-        hashedPassword: "hashed",
-      },
-      errors: [],
+      id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
     });
 
     const res = await agent.get("/api/users/user/username");
@@ -69,12 +66,9 @@ describe("User tests", () => {
 
   test("get user - success - does not include password hash", async () => {
     accessManager.findUserByName.mockResolvedValue({
-      user: {
-        _id: "some-mongo-id3",
-        name: "username",
-        hashedPassword: "hashed",
-      },
-      errors: [],
+      id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
     });
 
     const res = await agent.get("/api/users/user/username");
@@ -85,12 +79,9 @@ describe("User tests", () => {
 
   test("delete user - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: {
-        _id: "some-mongo-id3",
-        name: "username",
-        hashedPassword: "hashed",
-      },
-      errors: [],
+      id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
     });
     accessManager.removeUser.mockResolvedValue([]);
 
@@ -111,12 +102,9 @@ describe("User tests", () => {
 
   test("delete user - failure - error", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: {
-        _id: "some-mongo-id3",
-        name: "username",
-        hashedPassword: "hashed",
-      },
-      errors: [],
+      id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
     });
     accessManager.removeUser.mockResolvedValue(["error"]);
 
@@ -128,12 +116,9 @@ describe("User tests", () => {
 
   test("delete user - failure - exception", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: {
-        _id: "some-mongo-id3",
-        name: "username",
-        hashedPassword: "hashed",
-      },
-      errors: [],
+      id: "some-mongo-id3",
+      name: "username",
+      hashedPassword: "hashed",
     });
     accessManager.removeUser.mockRejectedValue(new TypeError("TEST"));
 
@@ -145,12 +130,9 @@ describe("User tests", () => {
 
   test("delete user - success - user does not exist", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: {
-        id: "",
-        name: "",
-        acgs: [],
-      },
-      errors: [],
+      id: "",
+      name: "",
+      acgs: [],
     });
     accessManager.removeUser.mockResolvedValue([]);
 
@@ -161,7 +143,7 @@ describe("User tests", () => {
 
   test("whoami - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      _id: "id",
+      id: "id",
       name: "user",
     });
     adminService.isUserAdmin.mockResolvedValue(false);
@@ -213,5 +195,23 @@ describe("User tests", () => {
     expect(res.statusCode).toBe(500);
     expect(res.body.groups).toHaveLength(0);
     expect(res.body.errors).toHaveLength(1);
+  });
+
+  test("update user's groups - success", async () => {
+    const res = await agent
+      .post("/api/users/user/id/groups")
+      .send({ groups: ["test"] });
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  test("update user's groups - failure - exception", async () => {
+    accessManager.editUserGroups.mockRejectedValue(new TypeError("TEST"));
+
+    const res = await agent
+      .post("/api/users/user/id/groups")
+      .send({ groups: ["test"] });
+
+    expect(res.statusCode).toBe(500);
   });
 });

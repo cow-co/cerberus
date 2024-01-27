@@ -133,7 +133,7 @@ router.put("/admin", accessManager.verifyToken, async (req, res) => {
     );
     if (permitted) {
       const result = await accessManager.findUserById(userId);
-      if (result.user) {
+      if (result.id) {
         await adminService.changeAdminStatus(userId, makeAdmin);
       } else {
         log(
