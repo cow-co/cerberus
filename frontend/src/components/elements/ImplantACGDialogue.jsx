@@ -10,7 +10,6 @@ import { getGroups } from "../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 
-// TODO Test that the ACGs actually do, in fact, control access.
 const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   const groups = useSelector((state) => {
     return state.groups.groups
@@ -50,7 +49,6 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
       readOnlyACGs: ro,
       operatorACGs: op
     });
-    setACGs(providedACGs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

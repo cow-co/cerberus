@@ -2,9 +2,10 @@
 // Also in future will allow creation of task types
 
 import { useState } from 'react';
-import { Dialog, DialogTitle, Button, TextField, Checkbox, Typography, FormControlLabel, FormGroup, Container } from '@mui/material';
+import { Button, TextField, Checkbox, Typography, FormControlLabel, FormGroup, Container } from '@mui/material';
 import { changeAdminStatus, deleteUser, findUserByName } from '../../common/apiCalls';
 import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import ConfirmationDialogue from './ConfirmationDialogue';
 
 const UsersPane = () => {
   const [user, setUser] = useState({id: "", name: ""});
@@ -60,6 +61,7 @@ const UsersPane = () => {
     }
   }  
 
+  // TODO Button for updating their groups
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Manage Users</Typography>
@@ -71,12 +73,7 @@ const UsersPane = () => {
         <Button onClick={handleSubmitAdminStatus} disabled={user.id === ""}>Change User Admin Status</Button>
         <Button onClick={() => setConfirmationOpen(true)} disabled={user.id === ""}>Delete User</Button>
       </FormGroup>
-      <Dialog open={confirmationOpen} onClose={() => setConfirmationOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>Are You Sure?</DialogTitle>
-        <Typography variant="body1">You are going to delete user {user.name}</Typography>
-        <Button onClick={handleSubmitDelete}>Confirm</Button>
-        <Button onClick={() => setConfirmationOpen(false)}>Cancel</Button>
-      </Dialog>
+      <ConfirmationDialogue open={confirmationOpen} onClose={() => setConfirmationOpen(false)} onOK={handleSubmitDelete} />
     </Container>
   );
 }
