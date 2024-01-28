@@ -2,15 +2,15 @@ import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
-import ConfirmationDialogue from './ConfirmationDialogue';
+import ConfirmationDialogue from '../common/ConfirmationDialogue';
 import ImplantACGDialogue from './ImplantACGDialogue';
-import { deleteImplant, fetchImplants, editACGs } from '../../common/apiCalls';
+import { deleteImplant, fetchImplants, editACGs } from '../../../common/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
-import { setImplants, setSelectedImplant } from "../../common/redux/implants-slice";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { setImplants, setSelectedImplant } from "../../../common/redux/implants-slice";
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
 
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);

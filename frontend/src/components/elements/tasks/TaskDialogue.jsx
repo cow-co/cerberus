@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { fetchTaskTypes } from '../../common/apiCalls';
+import { fetchTaskTypes } from '../../../common/apiCalls';
 import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
-import { setTaskTypes } from "../../common/redux/tasks-slice";
-import { createErrorAlert } from '../../common/redux/dispatchers';
+import { setTaskTypes } from "../../../common/redux/tasks-slice";
+import { createErrorAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
 
 const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
   const taskTypes = useSelector((state) => {

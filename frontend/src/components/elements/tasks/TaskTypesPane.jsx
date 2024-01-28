@@ -2,15 +2,15 @@ import { Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskTypeItem from './TaskTypeItem';
-import { createTaskType, deleteTaskType } from '../../common/apiCalls';
-import { setTaskTypes } from "../../common/redux/tasks-slice";
+import { createTaskType, deleteTaskType } from '../../../common/apiCalls';
+import { setTaskTypes } from "../../../common/redux/tasks-slice";
 import CreateTaskTypeDialogue from './CreateTaskTypeDialogue';
 import { useSelector, useDispatch } from "react-redux";
-import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
-import ConfirmationDialogue from './ConfirmationDialogue';
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
+import ConfirmationDialogue from '../common/ConfirmationDialogue';
 
 function TaskTypesPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);

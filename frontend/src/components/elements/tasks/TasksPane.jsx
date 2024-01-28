@@ -2,15 +2,15 @@ import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
-import { setTask, fetchTasks, deleteTask } from '../../common/apiCalls';
+import { setTask, fetchTasks, deleteTask } from '../../../common/apiCalls';
 import TaskDialogue from './TaskDialogue';
 import { useSelector, useDispatch } from "react-redux";
-import { setTasks } from "../../common/redux/tasks-slice";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { setTasks } from "../../../common/redux/tasks-slice";
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
-import ConfirmationDialogue from './ConfirmationDialogue';
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
+import ConfirmationDialogue from '../common/ConfirmationDialogue';
 
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);

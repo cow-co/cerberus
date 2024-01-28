@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FormControl, MenuItem, Select, Dialog, DialogTitle, Button, ListItem, Grid, IconButton, List, Typography, InputLabel } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
-import { createErrorAlert } from '../../common/redux/dispatchers';
+import { createErrorAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
-import { setGroups } from '../../common/redux/groups-slice';
-import { getGroups } from "../../common/apiCalls"
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
+import { setGroups } from '../../../common/redux/groups-slice';
+import { getGroups } from "../../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 
@@ -68,6 +68,19 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
+
+  const handleSubmitAdminStatus = async () => {
+    const { errors } = await changeAdminStatus(user.id, makeAdmin);
+    if (errors.length > 0) {
+      createErrorAlert(errors);
+      setHelpText("Could not change user's admin status");
+      setUser({id: "", name: ""});
+    } else {
+      createSuccessAlert("Successfully changed user admin status");
+      setHelpText("Changed user admin status");
+      setUser({id: "", name: ""});
+    }
+  }
 
   const handleAddGroup = () => {
     let updated = {

@@ -2,15 +2,15 @@ import { Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ACGItem from './ACGItem';
-import { createGroup, deleteGroup, getGroups } from '../../common/apiCalls';
-import { setGroups } from "../../common/redux/groups-slice";
+import { createGroup, deleteGroup, getGroups } from '../../../common/apiCalls';
+import { setGroups } from "../../../common/redux/groups-slice";
 import CreateACGDialogue from './CreateACGDialogue';
 import { useSelector, useDispatch } from "react-redux";
-import { createErrorAlert, createSuccessAlert, loadGroups } from '../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
-import ConfirmationDialogue from './ConfirmationDialogue';
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
+import ConfirmationDialogue from '../common/ConfirmationDialogue';
 
 function ACGPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);

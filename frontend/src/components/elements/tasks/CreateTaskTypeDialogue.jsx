@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FormControl, Dialog, DialogTitle, Button, TextField, MenuItem, Select, Typography, ListItem, Grid, IconButton, List, InputLabel } from '@mui/material';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
-import { getParamTypes } from '../../common/apiCalls';
+import { getParamTypes } from '../../../common/apiCalls';
 
 const CreateTaskTypeDialogue = (props) => {
   const {onClose, open, onSubmit} = props;
