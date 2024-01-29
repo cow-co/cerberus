@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FormControl, MenuItem, Select, Dialog, DialogTitle, Button, ListItem, Grid, IconButton, List, Typography, InputLabel } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
-import { createErrorAlert } from '../../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
 import conf from "../../../common/config/properties";
 import { setGroups } from '../../../common/redux/groups-slice';
-import { getGroups } from "../../../common/apiCalls"
+import { getGroups, changeAdminStatus } from "../../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 
@@ -70,14 +70,12 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
   }, [lastJsonMessage]);
 
   const handleSubmitAdminStatus = async () => {
-    const { errors } = await changeAdminStatus(user.id, makeAdmin);
+    const { errors } = await changeAdminStatus(user.id, makeAdmin); // TODO Pull the new admin status as !user.isAdmin
     if (errors.length > 0) {
       createErrorAlert(errors);
-      setHelpText("Could not change user's admin status");
       setUser({id: "", name: ""});
     } else {
       createSuccessAlert("Successfully changed user admin status");
-      setHelpText("Changed user admin status");
       setUser({id: "", name: ""});
     }
   }
@@ -128,6 +126,11 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     onSubmit(user);
   }
 
+  // TODO Open confirmation dialogue, etc
+  const handleDeleteUser = () => {
+
+  }
+
   const groupSelects = groups.map(group => {
     return <MenuItem value={group.name} key={group.internalId} id={group.internalId}>{group.name}</MenuItem>
   });
@@ -148,11 +151,10 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     </ListItem>
   ));
 
-  // TODO Delete button should open confirmation dialogue
   // TODO The admin button should change between "set" and "unset" depending on if the user is an admin
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
-      <DialogTitle>Update User</DialogTitle>
+      <DialogTitle>Update User {user.name}</DialogTitle>
       <FormControl fullWidth>
         <Typography variant="h6">Groups</Typography>
         <List>
@@ -160,7 +162,7 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
         </List>
         <Button onClick={handleAddGroup}>Add Group</Button>
         <Button onClick={handleDeleteUser}>Delete User</Button>
-        <Button onClick={handleSetAdmin}>Set User as Admin</Button>
+        <Button onClick={handleSubmitAdminStatus}>Set User as Admin</Button>
         <Button onClick={handleSubmit}>Save Changes</Button>
       </FormControl>
     </Dialog>

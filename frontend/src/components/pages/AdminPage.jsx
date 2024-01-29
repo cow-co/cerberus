@@ -1,12 +1,12 @@
-import AlertsBar from "../elements/AlertsBar";
-import LoginDialogue from "../elements/LoginDialogue";
-import RegisterDialogue from "../elements/RegisterDialogue";
-import TaskTypesPane from "../elements/TaskTypesPane";
+import AlertsBar from "../elements/common/AlertsBar";
+import LoginDialogue from "../elements/access/LoginDialogue";
+import RegisterDialogue from "../elements/access/RegisterDialogue";
+import TaskTypesPane from "../elements/tasks/TaskTypesPane";
 import { useState } from 'react';
 import { Box, Grid } from '@mui/material';
-import UsersPane from "../elements/UsersPane";
-import ACGPane from "../elements/ACGPane";
-import HeaderBar from "../elements/HeaderBar";
+import UsersPane from "../elements/users/UsersPane";
+import ACGPane from "../elements/acg/ACGPane";
+import HeaderBar from "../elements/common/HeaderBar";
 
 function AdminPage() {
   const [loginOpen, setLoginOpen] = useState(false);

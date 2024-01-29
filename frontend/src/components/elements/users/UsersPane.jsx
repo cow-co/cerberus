@@ -9,9 +9,10 @@ import ConfirmationDialogue from '../common/ConfirmationDialogue';
 import UserDialogue from './UserDialogue';
 
 const UsersPane = () => {
-  const [user, setUser] = useState({id: "", name: "", acgs: []});
+  const [user, setUser] = useState({id: "", name: "", acgs: []}); // TODO Put an isAdmin field in here too
   const [searchError, setSearchError] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [userEditOpen, setUserEditOpen] = useState(false);
   const [helpText, setHelpText] = useState("");
 
   const handleChange = (event) => {
@@ -48,7 +49,6 @@ const UsersPane = () => {
     }
   }  
 
-  // TODO Edit button
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Manage Users</Typography>
@@ -56,8 +56,9 @@ const UsersPane = () => {
         <TextField className="text-input" variant="outlined" value={user.name} label="User to find" type="search" onChange={handleChange} error={searchError} helperText={helpText} />
         <Typography variant="body1">Selected User ID: {user.id}</Typography>
         <Button onClick={handleSearch}>Search</Button>
+        <Button onClick={() => setUserEditOpen(true)} disabled={user.id === ""}>Edit User</Button>
       </FormGroup>
-      <UserDialogue open={confirmationOpen} onClose={() => setConfirmationOpen(false)} onOK={handleSubmitDelete} />
+      <UserDialogue open={userEditOpen} onClose={() => setUserEditOpen(false)} onSubmit={() => alert("PLACEHOLDER")} providedUser={user} />
       <ConfirmationDialogue open={confirmationOpen} onClose={() => setConfirmationOpen(false)} onOK={handleSubmitDelete} />
     </Container>
   );
