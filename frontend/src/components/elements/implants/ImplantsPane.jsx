@@ -5,7 +5,7 @@ import ImplantItem from './ImplantItem';
 import ImplantACGDialogue from './ImplantACGDialogue';
 import { deleteImplant, fetchImplants, editACGs } from '../../../common/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
-import { setImplants, setSelectedImplant } from "../../../common/redux/implants-slice";
+import { setSelectedImplant } from "../../../common/redux/implants-slice";
 import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/confirmation-slice";
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
@@ -17,8 +17,8 @@ const ImplantsPane = () => {
   const [hasLoggedIn, setHasLoggedIn] = useState(false);
   const [acgEditOpen, setACGEditOpen] = useState(false);
   const [filtered, setFiltered] = useState([]);
+  const [implants, setImplants] = useState([]);
 
-  const implants = useSelector((state) => state.implants.implants);
   const selectedImplant = useSelector((state) => state.implants.selected);
   const username = useSelector((state) => state.users.username);
   const dispatch = useDispatch();
@@ -39,10 +39,10 @@ const ImplantsPane = () => {
   const refresh = async () => {
     const result = await fetchImplants();
     if (result.errors.length === 0) {
-      dispatch(setImplants(result.implants));
+      setImplants(result.implants);
     } else {
       createErrorAlert(result.errors);
-      dispatch(setImplants([]));
+      setImplants([]);
     }
   }
 
@@ -94,7 +94,7 @@ const ImplantsPane = () => {
           break;
       }
       
-      dispatch(setImplants(updated));
+      setImplants(updated);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);

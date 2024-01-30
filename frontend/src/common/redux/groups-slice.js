@@ -6,7 +6,7 @@ export const groupsSlice = createSlice({
   name: "groups",
   initialState: {
     groups: [],
-    selected: { name: "" },
+    selected: { name: "" }, // TODO Set the selected group, use it in ACG-deletion (and editing if we wanna support that)
   },
   reducers: {
     setGroups: (state, action) => {

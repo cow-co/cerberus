@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
 import { setTask, fetchTasks, deleteTask } from '../../../common/apiCalls';
 import TaskDialogue from './TaskDialogue';
-import { useSelector, useDispatch } from "react-redux";
-import { setTasks } from "../../../common/redux/tasks-slice";
+import { useSelector } from "react-redux";
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
@@ -17,10 +16,9 @@ function TasksPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState({_id: "", taskType: {id: "", name: ""}, params: []});
+  const [tasks, setTasks] = useState([]);
 
-  const tasks = useSelector((state) => state.tasks.tasks);
   const selectedImplant = useSelector((state) => state.implants.selected);
-  const dispatch = useDispatch();
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
@@ -39,7 +37,7 @@ function TasksPane() {
     async function callFetcher() {
       if (selectedImplant.id) {
         const received = await fetchTasks(selectedImplant.id);
-        dispatch(setTasks(received.tasks));
+        setTasks(received.tasks);
       }
     }
     callFetcher()
@@ -72,7 +70,7 @@ function TasksPane() {
           break;
       }
       
-      dispatch(setTasks(updated));
+      setTasks(updated);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
@@ -99,7 +97,7 @@ function TasksPane() {
     } else {
       handleFormClose();
       const newList = await fetchTasks(selectedImplant.id, showSent);
-      dispatch(setTasks(newList.tasks));
+      setTasks(newList.tasks);
       createSuccessAlert("Successfully created task");
     }
   }
@@ -116,7 +114,7 @@ function TasksPane() {
       createErrorAlert(res.errors);
     } else {
       const newList = await fetchTasks(selectedImplant.id, showSent);
-      dispatch(setTasks(newList.tasks));
+      setTasks(newList.tasks);
       createSuccessAlert("Successfully deleted task");
     }
 
