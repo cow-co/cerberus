@@ -70,14 +70,14 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
   }, [lastJsonMessage]);
 
   const handleSubmitAdminStatus = async () => {
-    const { errors } = await changeAdminStatus(user.id, makeAdmin); // TODO Pull the new admin status as !user.isAdmin
-    if (errors.length > 0) {
-      createErrorAlert(errors);
-      setUser({id: "", name: ""});
-    } else {
-      createSuccessAlert("Successfully changed user admin status");
-      setUser({id: "", name: ""});
-    }
+    //const { errors } = await changeAdminStatus(user.id, makeAdmin); // TODO Pull the new admin status as !user.isAdmin
+    // if (errors.length > 0) {
+    //   createErrorAlert(errors);
+    //   setUser({id: "", name: ""});
+    // } else {
+    //   createSuccessAlert("Successfully changed user admin status");
+    //   setUser({id: "", name: ""});
+    // }
   }
 
   const handleAddGroup = () => {
@@ -128,7 +128,7 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
 
   // TODO Open confirmation dialogue, etc
   const handleDeleteUser = () => {
-
+    onClose();
   }
 
   const groupSelects = groups.map(group => {

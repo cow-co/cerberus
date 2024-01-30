@@ -2,11 +2,11 @@ import { Box, Checkbox, FormControlLabel, List, Typography } from '@mui/material
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ImplantItem from './ImplantItem';
-import ConfirmationDialogue from '../common/ConfirmationDialogue';
 import ImplantACGDialogue from './ImplantACGDialogue';
 import { deleteImplant, fetchImplants, editACGs } from '../../../common/apiCalls';
 import { useSelector, useDispatch } from "react-redux";
 import { setImplants, setSelectedImplant } from "../../../common/redux/implants-slice";
+import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/confirmation-slice";
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
@@ -15,7 +15,6 @@ import conf from "../../../common/config/properties";
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [hasLoggedIn, setHasLoggedIn] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [acgEditOpen, setACGEditOpen] = useState(false);
   const [filtered, setFiltered] = useState([]);
 
@@ -105,18 +104,21 @@ const ImplantsPane = () => {
   }
 
   const removeImplant = async () => {
-    const res = await deleteImplant(selectedImplant);
+    const res = await deleteImplant();
     if (res.errors.length > 0) {
       createErrorAlert(res.errors);
     } else {
       createSuccessAlert("Successfully deleted implant");
-      setConfirmOpen(false);
     }
+    dispatch(setSelectedImplant({ id: "", readOnlyACGs: [], operatorACGs: [] }))
+    dispatch(setOpen(false));
   }
 
   const openConfirmation = (implant) => {
     dispatch(setSelectedImplant(implant));
-    setConfirmOpen(true);
+    dispatch(setMessage(`Delete Implant ${implant.id}?`));
+    dispatch(setSubmitAction(removeImplant));
+    dispatch(setOpen(true));
   }
 
   const openACGs = (implant) => {
@@ -148,7 +150,6 @@ const ImplantsPane = () => {
       <List>
         {implantsItems}
       </List>
-      <ConfirmationDialogue open={confirmOpen} onClose={ () => setConfirmOpen(false) } onOK={removeImplant} />
       <ImplantACGDialogue open={acgEditOpen} onClose={ () => setACGEditOpen(false) } onSubmit={submitACGs} providedACGs={{readOnlyACGs: [...selectedImplant.readOnlyACGs], operatorACGs: [...selectedImplant.operatorACGs]}} />
     </Container>
   );

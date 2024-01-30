@@ -6,6 +6,7 @@ import TasksPane from "../elements/tasks/TasksPane";
 import { useState } from 'react';
 import { Box, Grid } from '@mui/material';
 import HeaderBar from "../elements/common/HeaderBar";
+import ConfirmationDialogue from "../elements/common/ConfirmationDialogue";
 
 function MainPage() {
   const [loginOpen, setLoginOpen] = useState(false);
@@ -30,6 +31,7 @@ function MainPage() {
         </Grid>
       </Box>
       <AlertsBar />
+      <ConfirmationDialogue />
     </>
   )
 }

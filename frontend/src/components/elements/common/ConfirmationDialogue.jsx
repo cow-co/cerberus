@@ -1,18 +1,22 @@
 import { Dialog, DialogTitle, Button, Stack } from '@mui/material';
+import { useSelector, useDispatch } from "react-redux";
+import { setOpen } from '../../../common/redux/confirmation-slice';
 
-const ConfirmationDialogue = (props) => {
-  const {onClose, open, onOK} = props;
+const ConfirmationDialogue = () => {
+  const message = useSelector((state) => state.confirmation.message);
+  const isOpen = useSelector((state) => state.confirmation.open);
+  const action = useSelector((state) => state.confirmation.onSubmit);
+  const dispatch = useDispatch();
 
-  // TODO Perhaps have only one, central instance of this dialogue, and control its actions via redux state (rather like the alerts)
   return (
-    <Dialog className="form-dialog" onClose={onClose} open={open}>
-      <DialogTitle>Are You Sure?</DialogTitle>
+    <Dialog className="form-dialog" onClose={() => dispatch(setOpen(false))} open={isOpen}>
+      <DialogTitle>{message}</DialogTitle>
       <Stack direction="row" spacing={6}>
-        <Button onClick={onClose} color="error" variant="contained">No</Button>
-        <Button onClick={onOK} color="success" variant="contained">Yes</Button>
+        <Button onClick={() => dispatch(setOpen(false))} color="error" variant="contained">No</Button>
+        <Button onClick={action} color="success" variant="contained">Yes</Button>
       </Stack>
     </Dialog>
   );
-}
+} 
 
 export default ConfirmationDialogue;

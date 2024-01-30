@@ -71,15 +71,18 @@ const fetchImplants = async () => {
   return json;
 };
 
-const deleteImplant = async (implant) => {
+const deleteImplant = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}implants/${implant.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    });
+    const response = await fetch(
+      `${conf.apiURL}implants/${store.getState().implants.selected.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);
