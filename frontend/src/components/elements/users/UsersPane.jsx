@@ -49,6 +49,7 @@ const UsersPane = () => {
     }
   }  
 
+  // TODO Swap to using the externalised confirmation dialogue
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Manage Users</Typography>

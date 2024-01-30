@@ -159,6 +159,7 @@ function TasksPane() {
 
   // TODO disable the create-tasks button entirely if user not in the operator groups
   // TODO Unset selected implant on logout
+  // TODO Swap to using the externalised confirmation dialogue
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>

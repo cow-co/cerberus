@@ -21,3 +21,7 @@ These represent database-backed resources, and are implemented as Mongoose `Mode
 Tests will be written to cover the backend. These tests will aim to cover everything that is non-trivial and of consequence (excpetion paths, error paths, happy paths). Coverage will not be used as a thresholding metric, but will be used as an indicator for where to focus attention on.
 
 Frontend tests will not be written, since I do not think the tradeoff of time vs benefit is worth it.
+
+## Redux/React State
+
+We will tend to keep frontend state local to the components, as long as that state is only used in a single direct component chain (eg in a List and its list-items). When the state needs to be used across multiple chains in the DOM (eg. in a list, its list-items, and a confirmation dialogue), we extract it out to a Redux state, to provide easier sharing across components where we can't easily pass it around via props etc. This makes the Redux store a central repository for stuff that is app-wide: things like lists of implants, tasks, groups, etc.

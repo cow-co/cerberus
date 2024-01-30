@@ -2,6 +2,7 @@ import conf from "./config/properties";
 import store from "./redux/store";
 
 // TODO if receiving a 401, should wipe the login data from redux, and show an alert to request login
+// TODO JSDocs for these
 
 const getToken = () => {
   let token = store.getState().users.token;
@@ -358,15 +359,22 @@ const getGroups = async () => {
   return json;
 };
 
-const deleteGroup = async (groupId) => {
+/**
+ * Deletes the group currently stored in the groups.selected redux state
+ * @returns The JSON from the HTTP response
+ */
+const deleteGroup = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}access/acgs/${groupId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    });
+    const response = await fetch(
+      `${conf.apiURL}access/acgs/${store.getState().groups.selected._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);
