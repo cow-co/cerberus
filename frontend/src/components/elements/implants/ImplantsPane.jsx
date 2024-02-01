@@ -25,7 +25,7 @@ const ImplantsPane = () => {
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
-      console.log("WebSocket opened");
+      
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
@@ -55,6 +55,8 @@ const ImplantsPane = () => {
       callRefresh();
       setHasLoggedIn(true);
     } else if (!username && hasLoggedIn) {
+      setImplants([]);
+      dispatch(setSelectedImplant({ id: "", readOnlyACGs: [], operatorACGs: [] }))
       setHasLoggedIn(false);
     }
 
@@ -115,6 +117,7 @@ const ImplantsPane = () => {
   }
 
   const openConfirmation = (implant) => {
+    console.log(implant)
     dispatch(setSelectedImplant(implant));
     dispatch(setMessage(`Delete Implant ${implant.id}?`));
     dispatch(setSubmitAction(removeImplant));

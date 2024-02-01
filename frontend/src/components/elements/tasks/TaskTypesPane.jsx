@@ -22,7 +22,7 @@ function TaskTypesPane() {
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
-      console.log("WebSocket opened");
+      
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {

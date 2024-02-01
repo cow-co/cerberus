@@ -38,9 +38,6 @@ const HeaderBar = (props) => {
       dispatch(setUsername(""));
       dispatch(setIsAdmin(false));
       dispatch(setToken(""));
-      dispatch(setImplants([]));
-      // TODO Clear out selected implants, groups, etc?
-      // TODO Maybe move this stuff to the components themselves and use useEffect in them to listen to a change in username/token
       localStorage.removeItem("token");
     }
   }

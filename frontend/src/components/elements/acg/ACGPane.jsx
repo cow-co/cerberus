@@ -14,14 +14,14 @@ import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/conf
 
 function ACGPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [selectedACG, setSelectedACG] = useState(null);
 
   const acgs = useSelector((state) => state.groups.groups);
+  const selectedACG = useSelector((state) => state.groups.selected);
   const dispatch = useDispatch();
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
-      console.log("WebSocket opened");
+      
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
@@ -48,10 +48,6 @@ function ACGPane() {
     callFetcher()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    console.log("Changed selected ACG")
-  }, [selectedACG]);
 
   useEffect(() => {
     if (lastJsonMessage) {
@@ -105,7 +101,7 @@ function ACGPane() {
   }
 
   const openConfirmation = (acg) => {
-    setSelectedACG(acg);
+    dispatch(setSelectedGroup(acg));
     dispatch(setMessage(`Delete Group ${acg.name}?`));
     dispatch(setSubmitAction(handleDelete));
     dispatch(setOpen(true));

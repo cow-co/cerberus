@@ -22,7 +22,7 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
-      console.log("WebSocket opened");
+      
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
@@ -45,6 +45,10 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
     getData();
     const ro = providedACGs.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
     const op = providedACGs.operatorACGs.map(acg => groups.find(group => group._id === acg));
+    // console.log("RO:")
+    // console.log(ro)
+    // console.log("OP:")
+    // console.log(op)
     setACGs({
       readOnlyACGs: ro,
       operatorACGs: op
@@ -55,6 +59,10 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   useEffect(() => {
     const ro = selectedImplant.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
     const op = selectedImplant.operatorACGs.map(acg => groups.find(group => group._id === acg));
+    // console.log("RO:")
+    // console.log(ro)
+    // console.log("OP:")
+    // console.log(op)
     setACGs({
       readOnlyACGs: ro,
       operatorACGs: op
@@ -166,7 +174,7 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   const opGroupSelects = groups.map(group => {
     return <MenuItem value={group.name} key={group.internalId} id={group.internalId}>{group.name}</MenuItem>
   });
-  
+  // console.log(acgs)
   const readGroupsSettings = acgs.readOnlyACGs.map((acg) => (
     <ListItem className="listElement" key={acg.internalId} >
       <Grid item xs={11}>

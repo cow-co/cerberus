@@ -22,7 +22,7 @@ function TasksPane() {
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
-      console.log("WebSocket opened");
+      
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
@@ -121,6 +121,7 @@ function TasksPane() {
     setConfirmOpen(false);
   }
 
+  // FIXME Task deletion button doesn't do anything now
   const handleEdit = (task) => {
     const editTask = {
       _id: task._id,
@@ -156,7 +157,6 @@ function TasksPane() {
   }
 
   // TODO disable the create-tasks button entirely if user not in the operator groups
-  // TODO Unset selected implant on logout
   // TODO Swap to using the externalised confirmation dialogue
   return (
     <Container fixed>
