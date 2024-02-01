@@ -11,6 +11,7 @@ import { createErrorAlert, createSuccessAlert } from '../../../common/redux/disp
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
 import conf from "../../../common/config/properties";
+import { EMPTY_IMPLANT } from '../../../common/utils';
 
 const ImplantsPane = () => {
   const [showInactive, setShowInactive] = useState(false);
@@ -56,7 +57,7 @@ const ImplantsPane = () => {
       setHasLoggedIn(true);
     } else if (!username && hasLoggedIn) {
       setImplants([]);
-      dispatch(setSelectedImplant({ id: "", readOnlyACGs: [], operatorACGs: [] }))
+      dispatch(setSelectedImplant(EMPTY_IMPLANT))
       setHasLoggedIn(false);
     }
 
@@ -112,12 +113,11 @@ const ImplantsPane = () => {
     } else {
       createSuccessAlert("Successfully deleted implant");
     }
-    dispatch(setSelectedImplant({ id: "", readOnlyACGs: [], operatorACGs: [] }))
+    dispatch(setSelectedImplant(EMPTY_IMPLANT))
     dispatch(setOpen(false));
   }
 
   const openConfirmation = (implant) => {
-    console.log(implant)
     dispatch(setSelectedImplant(implant));
     dispatch(setMessage(`Delete Implant ${implant.id}?`));
     dispatch(setSubmitAction(removeImplant));
@@ -134,6 +134,7 @@ const ImplantsPane = () => {
     if (response.errors.length > 0) {
       createErrorAlert(response.errors);
     } else {
+      dispatch(setSelectedImplant(EMPTY_IMPLANT));
       setACGEditOpen(false);
       await refresh();
       createSuccessAlert("Successfully updated groups");
@@ -153,7 +154,7 @@ const ImplantsPane = () => {
       <List>
         {implantsItems}
       </List>
-      <ImplantACGDialogue open={acgEditOpen} onClose={ () => setACGEditOpen(false) } onSubmit={submitACGs} providedACGs={{readOnlyACGs: [...selectedImplant.readOnlyACGs], operatorACGs: [...selectedImplant.operatorACGs]}} />
+      <ImplantACGDialogue open={acgEditOpen} onClose={ () => setACGEditOpen(false) } onSubmit={submitACGs} />
     </Container>
   );
 }

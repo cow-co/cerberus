@@ -1,11 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { EMPTY_IMPLANT } from "../utils";
 
 // Central store for keeping track of what implants there are, and which one we
 // are working with (for edit/delete purposes)
 export const implantsSlice = createSlice({
   name: "implants",
   initialState: {
-    selected: { id: "", readOnlyACGs: [], operatorACGs: [] },
+    selected: EMPTY_IMPLANT,
   },
   reducers: {
     setSelectedImplant: (state, action) => {

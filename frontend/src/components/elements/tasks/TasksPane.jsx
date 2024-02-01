@@ -4,21 +4,23 @@ import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
 import { setTask, fetchTasks, deleteTask } from '../../../common/apiCalls';
 import TaskDialogue from './TaskDialogue';
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
+import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/confirmation-slice";
+import { setSelectedTask } from "../../../common/redux/tasks-slice";
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
 import conf from "../../../common/config/properties";
-import ConfirmationDialogue from '../common/ConfirmationDialogue';
+import { EMPTY_TASK } from '../../../common/utils';
 
+// FIXME Basically every dialogue breaks on first opening - I think the selected-items aren't being populated or pulled through correctly
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState({_id: "", taskType: {id: "", name: ""}, params: []});
   const [tasks, setTasks] = useState([]);
 
   const selectedImplant = useSelector((state) => state.implants.selected);
+  const dispatch = useDispatch();
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
@@ -80,7 +82,7 @@ function TasksPane() {
   }
 
   const handleFormOpen = () => {
-    setSelectedTask({_id: "", taskType: {id: "", name: ""}, params: []});
+    dispatch(setSelectedTask({_id: "", implantId: selectedImplant.id, taskType: {id: "", name: ""}, params: []}));
     setDialogueOpen(true);
   }
 
@@ -89,7 +91,7 @@ function TasksPane() {
   }
 
   const handleFormSubmit = async (data) => {
-    data.implantId = selectedImplant.id;
+    console.log(data)
     const response = await setTask(data);
 
     if (response.errors.length > 0) {
@@ -103,12 +105,14 @@ function TasksPane() {
   }
 
   const handleConfirmOpen = (task) => {
-    setSelectedTask(task);
-    setConfirmOpen(true);
+    dispatch(setSelectedTask(task));  
+    dispatch(setMessage(`Delete Task?`));
+    dispatch(setSubmitAction(handleDelete));
+    dispatch(setOpen(true));
   }
 
   const handleDelete = async () => {
-    const res = await deleteTask(selectedTask);
+    const res = await deleteTask();
 
     if (res.errors.length > 0) {
       createErrorAlert(res.errors);
@@ -118,20 +122,13 @@ function TasksPane() {
       createSuccessAlert("Successfully deleted task");
     }
 
-    setConfirmOpen(false);
+    dispatch(setSelectedTask(EMPTY_TASK));  
+    dispatch(setOpen(false));
   }
 
-  // FIXME Task deletion button doesn't do anything now
   const handleEdit = (task) => {
-    const editTask = {
-      _id: task._id,
-      taskType: {
-        id: task.taskType.id,
-        name: task.taskType.name,
-      },
-      params: task.params,
-    };
-    setSelectedTask(editTask);
+    const editTask = structuredClone(task);
+    dispatch(setSelectedTask(editTask));
     setDialogueOpen(true);
   }
 
@@ -157,7 +154,6 @@ function TasksPane() {
   }
 
   // TODO disable the create-tasks button entirely if user not in the operator groups
-  // TODO Swap to using the externalised confirmation dialogue
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
@@ -168,8 +164,7 @@ function TasksPane() {
       <List>
         {tasksItems}
       </List>
-      <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} providedTask={selectedTask} />
-      <ConfirmationDialogue open={confirmOpen} onClose={() => setConfirmOpen(false)} onOK={handleDelete} />
+      <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
     </Container>
   )
 }

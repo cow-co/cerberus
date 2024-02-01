@@ -103,7 +103,7 @@ const setTask = async (task) => {
         "content-type": "application/json",
         authorization: `Bearer ${getToken()}`,
       }),
-      body: JSON.stringify(task),
+      body: JSON.stringify(store.getState().tasks.selected),
     });
     json = await response.json();
   } catch (err) {
@@ -136,15 +136,18 @@ const createTaskType = async (taskType) => {
   return json;
 };
 
-const deleteTask = async (task) => {
+const deleteTask = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}tasks/${task._id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    });
+    const response = await fetch(
+      `${conf.apiURL}tasks/${store.getState().tasks.selected._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);

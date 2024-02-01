@@ -10,7 +10,9 @@ import { getGroups } from "../../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 
-const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
+// FIXME First time opening this after a login, results in an undefined-error (acg(s) undefined?)
+//  Fine after that, however.
+const ImplantACGDialogue = ({open, onClose, onSubmit}) => {
   const groups = useSelector((state) => {
     return state.groups.groups
   });
@@ -43,12 +45,8 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
       }
     };
     getData();
-    const ro = providedACGs.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
-    const op = providedACGs.operatorACGs.map(acg => groups.find(group => group._id === acg));
-    // console.log("RO:")
-    // console.log(ro)
-    // console.log("OP:")
-    // console.log(op)
+    const ro = selectedImplant.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
+    const op = selectedImplant.operatorACGs.map(acg => groups.find(group => group._id === acg));
     setACGs({
       readOnlyACGs: ro,
       operatorACGs: op
@@ -59,10 +57,6 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   useEffect(() => {
     const ro = selectedImplant.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
     const op = selectedImplant.operatorACGs.map(acg => groups.find(group => group._id === acg));
-    // console.log("RO:")
-    // console.log(ro)
-    // console.log("OP:")
-    // console.log(op)
     setACGs({
       readOnlyACGs: ro,
       operatorACGs: op
@@ -174,7 +168,7 @@ const ImplantACGDialogue = ({open, onClose, onSubmit, providedACGs}) => {
   const opGroupSelects = groups.map(group => {
     return <MenuItem value={group.name} key={group.internalId} id={group.internalId}>{group.name}</MenuItem>
   });
-  // console.log(acgs)
+  
   const readGroupsSettings = acgs.readOnlyACGs.map((acg) => (
     <ListItem className="listElement" key={acg.internalId} >
       <Grid item xs={11}>
