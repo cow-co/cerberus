@@ -158,15 +158,18 @@ const deleteTask = async () => {
   return json;
 };
 
-const deleteTaskType = async (taskTypeId) => {
+const deleteTaskType = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}task-types/${taskTypeId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    });
+    const response = await fetch(
+      `${conf.apiURL}task-types/${store.getState().tasks.selectedType._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);

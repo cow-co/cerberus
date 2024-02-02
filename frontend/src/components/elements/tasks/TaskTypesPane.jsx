@@ -3,19 +3,18 @@ import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskTypeItem from './TaskTypeItem';
 import { createTaskType, deleteTaskType } from '../../../common/apiCalls';
-import { setTaskTypes } from "../../../common/redux/tasks-slice";
+import { setSelectedTaskType, setTaskTypes } from "../../../common/redux/tasks-slice";
 import CreateTaskTypeDialogue from './CreateTaskTypeDialogue';
 import { useSelector, useDispatch } from "react-redux";
 import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../../common/redux/dispatchers';
+import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/confirmation-slice";
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
 import conf from "../../../common/config/properties";
-import ConfirmationDialogue from '../common/ConfirmationDialogue';
+import { EMPTY_TASK_TYPE } from '../../../common/utils';
 
 function TaskTypesPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState(false);
 
   const taskTypes = useSelector((state) => state.tasks.taskTypes);
   const dispatch = useDispatch();
@@ -81,7 +80,7 @@ function TaskTypesPane() {
   }
 
   const handleDelete = async () => {
-    const { errors } = await deleteTaskType(selectedType._id);
+    const { errors } = await deleteTaskType();
 
     if (errors.length > 0) {
       createErrorAlert(errors);
@@ -89,12 +88,15 @@ function TaskTypesPane() {
       await loadTaskTypes();
       createSuccessAlert("Successfully deleted task type");
     }
-    setConfirmOpen(false);
+    dispatch(setSelectedTaskType(EMPTY_TASK_TYPE));
+    dispatch(setOpen(false));
   }
 
   const handleConfirmOpen = (taskType) => {
-    setSelectedType(taskType);
-    setConfirmOpen(true);
+    dispatch(setSelectedTaskType(taskType));  
+    dispatch(setMessage(`Delete Task Type ${taskType.name}?`));
+    dispatch(setSubmitAction(handleDelete));
+    dispatch(setOpen(true));
   }
 
   let taskTypesItems = null;
@@ -114,7 +116,6 @@ function TaskTypesPane() {
       </List>
       <Button variant='contained' onClick={handleFormOpen}>Create Task Type</Button>
       <CreateTaskTypeDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
-      <ConfirmationDialogue open={confirmOpen} onClose={() => setConfirmOpen(false)} onOK={handleDelete} />
     </Container>
       
   )
