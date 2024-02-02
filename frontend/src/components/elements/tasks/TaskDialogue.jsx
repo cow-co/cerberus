@@ -134,12 +134,15 @@ const TaskDialogue = ({open, onClose, onSubmit}) => {
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Create/Edit Task</DialogTitle>
       <FormControl fullWidth>
+        <InputLabel id="task-type-label">Task Type</InputLabel>
         <Select className="select-list" labelId="task-type-label" value={task.taskType.name} label="Task Type" onChange={handleChange}>
           {taskTypeSelects}
         </Select>
-        {paramsSettings}
-        <Button onClick={handleSubmit}>Set Task</Button>
       </FormControl>
+      <FormControl fullWidth>
+        {paramsSettings}
+      </FormControl>
+      <Button onClick={handleSubmit}>Set Task</Button>
     </Dialog>
   );
 }

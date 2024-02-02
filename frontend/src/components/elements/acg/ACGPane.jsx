@@ -118,7 +118,6 @@ function ACGPane() {
     });
   }
 
-  // FIXME This is duplicating the groups after creating them (probably the list-refresh and websocket event compounding each other)
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Access Control Groups</Typography>

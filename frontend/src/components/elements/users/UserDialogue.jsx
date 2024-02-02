@@ -90,7 +90,6 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     setUser(updated);
   }
   
-  // FIXME the select-input-label in a slightly iffy place
   const handleChooseGroup = (event) => {
     const {name, value} = event.target;
 

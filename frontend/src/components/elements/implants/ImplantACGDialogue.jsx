@@ -81,7 +81,6 @@ const ImplantACGDialogue = ({open, onClose, onSubmit}) => {
     setACGs(updated);
   }
   
-  // FIXME the select-input-label in a slightly iffy place
   const handleChooseROGroup = (event) => {
     const {name, value} = event.target;
 
@@ -115,7 +114,7 @@ const ImplantACGDialogue = ({open, onClose, onSubmit}) => {
     updated.operatorACGs.push({internalId: uuidv4(), _id: "", name: ""});
     setACGs(updated);
   }
-  // FIXME the select-input-label in a slightly iffy place
+  
   const handleChooseOpGroup = (event) => {
     const {name, value} = event.target;
     let updated = {
