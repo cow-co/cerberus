@@ -21,6 +21,7 @@ describe("Tasks API Tests", () => {
   });
 
   beforeEach(() => {
+    accessManager.authZCheck.mockResolvedValue(true);
     tasksService.getTasksForImplant.mockImplementation(async (id, history) => {
       if (id === "id-1") {
         if (history) {
@@ -68,7 +69,7 @@ describe("Tasks API Tests", () => {
       } else if (id === "id-3") {
         return Promise.resolve([]);
       } else if (id === "id-7") {
-        return Promise.reject(new Error("TypeError"));
+        return Promise.reject(new TypeError("TEST"));
       }
     });
 
@@ -91,10 +92,9 @@ describe("Tasks API Tests", () => {
     });
 
     accessManager.verifyToken.mockImplementation((req, res, next) => {
-      next();
-    });
-
-    accessManager.checkAdmin.mockImplementation((req, res, next) => {
+      req.data = {
+        userId: "id",
+      };
       next();
     });
 
@@ -111,48 +111,56 @@ describe("Tasks API Tests", () => {
     agent = require("supertest").agent(server);
   });
 
-  test("should get all tasks for an implant (empty array)", async () => {
+  test("get all tasks for implant - success - empty array", async () => {
     const res = await agent.get("/api/tasks/id-3");
 
     expect(res.statusCode).toBe(200);
     expect(res.body.tasks).toHaveLength(0);
   });
 
-  test("should get all tasks for an implant (non-empty array)", async () => {
+  test("get all tasks for implant - success - non-empty array", async () => {
     const res = await agent.get("/api/tasks/id-1");
 
     expect(res.statusCode).toBe(200);
     expect(res.body.tasks).toHaveLength(1);
   });
 
-  test("should get all tasks for an implant (including sent)", async () => {
+  test("get all tasks for implant - success - including sent", async () => {
     const res = await agent.get("/api/tasks/id-1?includeSent=true");
 
     expect(res.statusCode).toBe(200);
     expect(res.body.tasks).toHaveLength(2);
   });
 
-  test("should get all tasks for an implant (explicitly excluding sent)", async () => {
+  test("get all tasks for implant - success - explicitly excluding sent", async () => {
     const res = await agent.get("/api/tasks/id-1?includeSent=false");
 
     expect(res.statusCode).toBe(200);
     expect(res.body.tasks).toHaveLength(1);
   });
 
-  test("should get all tasks for a different implant", async () => {
+  test("get all tasks for implant - success - different implant", async () => {
     const res = await agent.get("/api/tasks/id-2");
 
     expect(res.statusCode).toBe(200);
     expect(res.body.tasks).toHaveLength(1);
   });
 
-  test("should fail get all tasks for an implant - exception thrown", async () => {
+  test("get all tasks for an implant - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.get("/api/tasks/id-7");
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  test("get all tasks for an implant - failure - exception thrown", async () => {
     const res = await agent.get("/api/tasks/id-7");
 
     expect(res.statusCode).toBe(500);
   });
 
-  test("should get all task types", async () => {
+  test("get all task types - success", async () => {
     tasksService.getTaskTypes.mockResolvedValue([
       {
         name: "Name",
@@ -170,15 +178,15 @@ describe("Tasks API Tests", () => {
     expect(res.body.taskTypes).toHaveLength(2);
   });
 
-  test("should fail to get all task types - exception thrown", async () => {
-    tasksService.getTaskTypes.mockRejectedValue(new Error("TypeError"));
+  test("get all task types - failure - exception thrown", async () => {
+    tasksService.getTaskTypes.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.get("/api/task-types");
 
     expect(res.statusCode).toBe(500);
   });
 
-  test("should create a task", async () => {
+  test("create task - success", async () => {
     tasksService.getTaskById.mockResolvedValue(null);
     tasksService.getTaskTypes.mockResolvedValue([
       {
@@ -207,7 +215,37 @@ describe("Tasks API Tests", () => {
     expect(tasksService.setTask).toHaveBeenCalledTimes(1);
   });
 
-  test("should fail to create a task - validation error", async () => {
+  test("create task - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+    tasksService.getTaskById.mockResolvedValue(null);
+    tasksService.getTaskTypes.mockResolvedValue([
+      {
+        _id: "tasktypeid1",
+        name: "Name",
+        params: [],
+      },
+      {
+        _id: "tasktypeid2",
+        name: "Name 2",
+        params: ["param1", "param2"],
+      },
+    ]);
+    tasksService.setTask.mockResolvedValue(null);
+
+    const res = await agent.post("/api/tasks").send({
+      type: {
+        id: "tasktypeid1",
+        name: "Name",
+      },
+      implantId: "id-1",
+      params: [],
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(tasksService.setTask).toHaveBeenCalledTimes(0);
+  });
+
+  test("create task - failure - validation error", async () => {
     validation.validateTask.mockResolvedValue({
       isValid: false,
       errors: ["error"],
@@ -268,7 +306,7 @@ describe("Tasks API Tests", () => {
         params: ["param1", "param2"],
       },
     ]);
-    tasksService.setTask.mockRejectedValue(new Error("TypeError"));
+    tasksService.setTask.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.post("/api/tasks").send({
       type: {
@@ -284,7 +322,7 @@ describe("Tasks API Tests", () => {
     expect(tasksService.setTask).toHaveBeenCalledTimes(1);
   });
 
-  test("should edit a task", async () => {
+  test("edit task - success", async () => {
     tasksService.setTask.mockResolvedValue(null);
 
     const res = await agent.post("/api/tasks").send({
@@ -301,7 +339,7 @@ describe("Tasks API Tests", () => {
     expect(tasksService.setTask).toHaveBeenCalledTimes(1);
   });
 
-  test("should create a task type", async () => {
+  test("create task type - success", async () => {
     tasksService.createTaskType.mockResolvedValue({
       _id: "some-mongo-tasktype-id",
       name: "tasktype",
@@ -317,8 +355,20 @@ describe("Tasks API Tests", () => {
     expect(tasksService.createTaskType).toHaveBeenCalledTimes(1);
   });
 
-  test("should fail to create a task type - exception thrown", async () => {
-    tasksService.createTaskType.mockRejectedValue(new Error("TypeError"));
+  test("create task type - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.post("/api/task-types").send({
+      name: "tasktype",
+      params: ["param 1"],
+    });
+
+    expect(res.statusCode).toBe(403);
+    expect(tasksService.createTaskType).toHaveBeenCalledTimes(0);
+  });
+
+  test("create task type - failure - exception thrown", async () => {
+    tasksService.createTaskType.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.post("/api/task-types").send({
       name: "tasktype",
@@ -328,7 +378,7 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).toBe(500);
   });
 
-  test("should fail to create a task type - validation error", async () => {
+  test("create task type - failure - validation error", async () => {
     validation.validateTaskType.mockReturnValue({
       isValid: false,
       errors: ["error"],
@@ -356,6 +406,22 @@ describe("Tasks API Tests", () => {
     expect(res.statusCode).toBe(200);
   });
 
+  test("delete task - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+    tasksService.getTaskById.mockResolvedValue({
+      _id: "some-mongo-id",
+      order: 0,
+      implantId: "id-1",
+      taskType: "Task",
+      params: ["param1"],
+      sent: false,
+    });
+
+    const res = await agent.delete("/api/tasks/some-mongo-id");
+
+    expect(res.statusCode).toBe(403);
+  });
+
   test("delete task - success - ID does not exist", async () => {
     tasksService.getTaskById.mockResolvedValue(null);
 
@@ -365,6 +431,8 @@ describe("Tasks API Tests", () => {
   });
 
   test("delete task - failure - task already sent", async () => {
+    accessManager.authZCheck.mockResolvedValue(true);
+
     tasksService.getTaskById.mockResolvedValue({
       _id: "some-mongo-id",
       order: 0,
@@ -380,7 +448,7 @@ describe("Tasks API Tests", () => {
   });
 
   test("delete task - failure - exception", async () => {
-    tasksService.getTaskById.mockRejectedValue(new Error("TypeError"));
+    tasksService.getTaskById.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/tasks/some-mongo-id");
 
@@ -401,8 +469,17 @@ describe("Tasks API Tests", () => {
     expect(tasksService.deleteTaskType).toHaveBeenCalledTimes(0);
   });
 
+  test("delete task type - failure - unauthorised", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent.delete("/api/task-types/tasktypeid3");
+
+    expect(res.statusCode).toBe(403);
+    expect(tasksService.deleteTaskType).toHaveBeenCalledTimes(0);
+  });
+
   test("delete task type - failure - exception", async () => {
-    tasksService.deleteTaskType.mockRejectedValue(new Error("TypeError"));
+    tasksService.deleteTaskType.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent.delete("/api/task-types/tasktypeid1");
 

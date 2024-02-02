@@ -16,3 +16,8 @@ C2/UI server for administering implants as part of the RICE BOWL suite.
 ## Notes for Supporting the System
 
 See [docs/support-notes.md](docs/support-notes.md) for information that can help those who need to support and maintain live instances of CERBERUS.
+
+## Assorted TODO items
+
+- [ ] Got to keep the openapi docs up to date
+- [ ] Got to clean up some interfaces

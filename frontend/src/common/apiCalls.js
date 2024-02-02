@@ -1,6 +1,16 @@
 import conf from "./config/properties";
+import store from "./redux/store";
 
 // TODO if receiving a 401, should wipe the login data from redux, and show an alert to request login
+// TODO JSDocs for these
+
+const getToken = () => {
+  let token = store.getState().users.token;
+  if (!token) {
+    token = localStorage.getItem("token");
+  }
+  return token;
+};
 
 const fetchTasks = async (implantId, showSent) => {
   let json = null;
@@ -9,7 +19,12 @@ const fetchTasks = async (implantId, showSent) => {
       showSent = true;
     }
     const response = await fetch(
-      `${conf.apiURL}tasks/${implantId}?includeSent=${showSent}`
+      `${conf.apiURL}tasks/${implantId}?includeSent=${showSent}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
     );
     json = await response.json();
   } catch (err) {
@@ -24,7 +39,11 @@ const fetchTasks = async (implantId, showSent) => {
 const fetchTaskTypes = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}task-types`);
+    const response = await fetch(`${conf.apiURL}task-types`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -38,7 +57,11 @@ const fetchTaskTypes = async () => {
 const fetchImplants = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}implants`);
+    const response = await fetch(`${conf.apiURL}implants`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -49,12 +72,18 @@ const fetchImplants = async () => {
   return json;
 };
 
-const deleteImplant = async (implant) => {
+const deleteImplant = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}implants/${implant.id}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `${conf.apiURL}implants/${store.getState().implants.selected.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -70,8 +99,11 @@ const setTask = async (task) => {
   try {
     const response = await fetch(`${conf.apiURL}tasks`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json" }),
-      body: JSON.stringify(task),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
+      body: JSON.stringify(store.getState().tasks.selected),
     });
     json = await response.json();
   } catch (err) {
@@ -88,7 +120,10 @@ const createTaskType = async (taskType) => {
   try {
     const response = await fetch(`${conf.apiURL}task-types`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json" }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify(taskType),
     });
     json = await response.json();
@@ -101,12 +136,18 @@ const createTaskType = async (taskType) => {
   return json;
 };
 
-const deleteTask = async (task) => {
+const deleteTask = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}tasks/${task._id}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `${conf.apiURL}tasks/${store.getState().tasks.selected._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -122,6 +163,9 @@ const deleteTaskType = async (taskTypeId) => {
   try {
     const response = await fetch(`${conf.apiURL}task-types/${taskTypeId}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -133,15 +177,19 @@ const deleteTaskType = async (taskTypeId) => {
   return json;
 };
 
-const register = async (username, password) => {
+const register = async (username, password, confirmPassword) => {
   let json = null;
   try {
     const response = await fetch(`${conf.apiURL}access/register`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json" }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify({
         username,
         password,
+        confirmPassword,
       }),
     });
     json = await response.json();
@@ -159,7 +207,10 @@ const login = async (username, password) => {
   try {
     const response = await fetch(`${conf.apiURL}access/login`, {
       method: "POST",
-      headers: new Headers({ "content-type": "application/json" }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify({
         username,
         password,
@@ -180,6 +231,9 @@ const logout = async () => {
   try {
     const response = await fetch(`${conf.apiURL}access/logout`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -194,7 +248,11 @@ const logout = async () => {
 const findUserByName = async (username) => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}users/user/${username}`);
+    const response = await fetch(`${conf.apiURL}users/user/${username}`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -210,7 +268,10 @@ const changeAdminStatus = async (userId, makeAdmin) => {
   try {
     const response = await fetch(`${conf.apiURL}access/admin`, {
       method: "PUT",
-      headers: new Headers({ "content-type": "application/json" }),
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
       body: JSON.stringify({
         userId,
         makeAdmin,
@@ -231,6 +292,9 @@ const deleteUser = async (userId) => {
   try {
     const response = await fetch(`${conf.apiURL}users/user/${userId}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
     });
     json = await response.json();
   } catch (err) {
@@ -242,10 +306,15 @@ const deleteUser = async (userId) => {
   return json;
 };
 
-const checkSessionCookie = async () => {
+const checkToken = async () => {
   let json = null;
+
   try {
-    const response = await fetch(`${conf.apiURL}users/whoami`);
+    const response = await fetch(`${conf.apiURL}users/whoami`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -259,7 +328,101 @@ const checkSessionCookie = async () => {
 const getParamTypes = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}task-types/param-data-types`);
+    const response = await fetch(`${conf.apiURL}task-types/param-data-types`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
+const getGroups = async () => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/acgs`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      groups: [],
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
+/**
+ * Deletes the group currently stored in the groups.selected redux state
+ * @returns The JSON from the HTTP response
+ */
+const deleteGroup = async () => {
+  let json = null;
+  try {
+    const response = await fetch(
+      `${conf.apiURL}access/acgs/${store.getState().groups.selected._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
+const createGroup = async (acg) => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/acgs`, {
+      method: "POST",
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
+      body: JSON.stringify(acg),
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
+const editACGs = async (implantId, acgs) => {
+  let json = null;
+  try {
+    const response = await fetch(
+      `${conf.apiURL}access/implants/${implantId}/acgs`,
+      {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json",
+          authorization: `Bearer ${getToken()}`,
+        }),
+        body: JSON.stringify(acgs),
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -285,6 +448,10 @@ export {
   findUserByName,
   changeAdminStatus,
   deleteUser,
-  checkSessionCookie,
+  checkToken,
   getParamTypes,
+  getGroups,
+  createGroup,
+  deleteGroup,
+  editACGs,
 };

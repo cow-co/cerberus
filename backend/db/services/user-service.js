@@ -69,12 +69,10 @@ const createUser = async (username, hashedPassword) => {
 const deleteUser = async (userId) => {
   log("deleteUser", `Deleting user with ID ${userId}`, levels.INFO);
   const user = await User.findById(userId);
-  // HashedPassword collection only populated when DB auth
   if (user) {
     await HashedPassword.findByIdAndDelete(user.password);
     await user.deleteOne();
   }
-  // Token validity is set for all auth types
   await TokenValidity.findOneAndDelete({ userId: userId });
 };
 
@@ -93,6 +91,19 @@ const getMinTokenTimestamp = async (userId) => {
   return timestamp;
 };
 
+const generateTokenValidityEntry = async (userId) => {
+  const existing = await TokenValidity.findOne({ userId: userId });
+  if (existing) {
+    existing.minTokenValidity = Date.now();
+    await existing.save();
+  } else {
+    await TokenValidity.create({
+      userId: userId,
+      minTokenValidity: Date.now(),
+    });
+  }
+};
+
 module.exports = {
   findUserByName,
   findUserById,
@@ -100,4 +111,5 @@ module.exports = {
   deleteUser,
   getUserAndPasswordByUsername,
   getMinTokenTimestamp,
+  generateTokenValidityEntry,
 };

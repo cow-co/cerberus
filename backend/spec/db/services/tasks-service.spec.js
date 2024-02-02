@@ -147,7 +147,7 @@ describe("Task service tests", () => {
     });
 
     expect(error).toBeNull();
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
     expect(calledWith.order).toBe(1);
     expect(calledWith.params[0]).toBe("hi");
   });

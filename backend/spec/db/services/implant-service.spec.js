@@ -10,6 +10,15 @@ describe("Implant service tests", () => {
   });
 
   test("add implant - success", async () => {
+    Implant.create.mockResolvedValue({
+      _id: "mongo-id",
+      id: "details.id",
+      ip: "details.ip",
+      os: "details.os",
+      beaconIntervalSeconds: 500,
+      lastCheckinTime: 1,
+    });
+
     await implantService.addImplant({
       id: "details.id",
       ip: "details.ip",
@@ -20,10 +29,19 @@ describe("Implant service tests", () => {
 
     const args = Implant.create.mock.calls[0];
     expect(Implant.create).toHaveBeenCalledTimes(1);
-    expect(args[0].isActive).toBe(true);
+    expect(args[0].isActive).toBeTruthy();
   });
 
   test("update implant - success", async () => {
+    Implant.findOneAndUpdate.mockResolvedValue({
+      _id: "mongo-id",
+      id: "details.id",
+      ip: "details.ip",
+      os: "details.os",
+      beaconIntervalSeconds: 500,
+      lastCheckinTime: 1,
+    });
+
     await implantService.updateImplant({
       id: "details.id",
       ip: "details.ip",
@@ -35,7 +53,7 @@ describe("Implant service tests", () => {
     const args = Implant.findOneAndUpdate.mock.calls[0];
     expect(Implant.findOneAndUpdate).toHaveBeenCalledTimes(1);
     expect(args[0].id).toBe("details.id");
-    expect(args[1].isActive).toBe(true);
+    expect(args[1].isActive).toBeTruthy();
   });
 
   test("find implant - success", async () => {
@@ -55,6 +73,12 @@ describe("Implant service tests", () => {
     expect(imp.lastCheckinTime).toBe(1);
   });
 
+  test("find implant - failure - no ID provided", async () => {
+    const imp = await implantService.findImplantById("");
+
+    expect(imp).toBeNull();
+  });
+
   test("get all implants - success", async () => {
     Implant.find.mockResolvedValue([
       {
@@ -71,6 +95,16 @@ describe("Implant service tests", () => {
 
     expect(Implant.find).toHaveBeenCalledTimes(1);
     expect(imps).toHaveLength(1);
+  });
+
+  test("delete implant - success", async () => {
+    Implant.findOneAndDelete.mockResolvedValue(null);
+
+    await implantService.deleteImplant("id");
+
+    const args = Implant.findOneAndDelete.mock.calls[0];
+    expect(Implant.findOneAndDelete).toHaveBeenCalledTimes(1);
+    expect(args[0]).toEqual({ id: "id" });
   });
 
   test("activity checker - should deactivate an implant", async () => {
@@ -118,8 +152,32 @@ describe("Implant service tests", () => {
 
     await implantService.checkActivity();
 
-    expect(updates.id1).toBe(true);
-    expect(updates.id2).toBe(false);
-    expect(updates.id3).toBe(false);
+    expect(updates.id1).toBeTruthy();
+    expect(updates.id2).toBeFalsy();
+    expect(updates.id3).toBeFalsy();
+  });
+
+  test("Update ACGs", async () => {
+    let called = false;
+    Implant.findOne.mockResolvedValue({
+      _id: "id",
+      id: "implantId",
+      readOnlyACGs: ["group 1"],
+      operatorACGs: ["group 2"],
+      save: async function () {
+        called = true;
+      },
+    });
+
+    const result = await implantService.updateACGs(
+      "implantId",
+      ["group 3"],
+      ["group 2", "group 4"]
+    );
+
+    expect(result.readOnlyACGs).toHaveLength(1);
+    expect(result.operatorACGs).toHaveLength(2);
+    expect(result.readOnlyACGs[0]).toBe("group 3");
+    expect(called).toBeTruthy();
   });
 });

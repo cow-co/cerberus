@@ -16,7 +16,7 @@ describe("Admin service tests", () => {
 
     const result = await adminService.isUserAdmin("id");
 
-    expect(result).toBe(true);
+    expect(result).toBeTruthy();
   });
 
   test("check admin - false - admin record does not exist", async () => {
@@ -24,19 +24,19 @@ describe("Admin service tests", () => {
 
     const result = await adminService.isUserAdmin("id");
 
-    expect(result).toBe(false);
+    expect(result).toBeFalsy();
   });
 
   test("check admin - false - userId null", async () => {
     const result = await adminService.isUserAdmin(null);
 
-    expect(result).toBe(false);
+    expect(result).toBeFalsy();
   });
 
   test("add admin - success", async () => {
     Admin.findOne.mockResolvedValue(null);
 
-    await adminService.addAdmin("id");
+    await adminService.changeAdminStatus("id", true);
 
     expect(Admin.create).toHaveBeenCalledTimes(1);
   });
@@ -46,7 +46,7 @@ describe("Admin service tests", () => {
       userId: "id",
     });
 
-    await adminService.addAdmin("id");
+    await adminService.changeAdminStatus("id", true);
 
     expect(Admin.create).toHaveBeenCalledTimes(0);
   });
@@ -54,7 +54,7 @@ describe("Admin service tests", () => {
   test("add admin - noop - user ID is null", async () => {
     jest.spyOn(adminService, "isUserAdmin").mockResolvedValue(false);
 
-    await adminService.addAdmin(null);
+    await adminService.changeAdminStatus(null, true);
 
     expect(Admin.create).toHaveBeenCalledTimes(0);
   });
@@ -68,21 +68,21 @@ describe("Admin service tests", () => {
       },
     });
 
-    await adminService.removeAdmin("id");
+    await adminService.changeAdminStatus("id", false);
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
   });
 
   test("delete admin - noop - admin does not exist", async () => {
     Admin.findOne.mockResolvedValue(null);
 
-    await adminService.removeAdmin("id");
+    await adminService.changeAdminStatus("id", false);
 
     expect(Admin.deleteOne).toHaveBeenCalledTimes(0);
   });
 
   test("delete admin - noop - user ID is null", async () => {
-    await adminService.removeAdmin(null);
+    await adminService.changeAdminStatus(null, false);
 
     expect(Admin.findOne).toHaveBeenCalledTimes(0);
   });

@@ -17,13 +17,13 @@ describe("Password validation tests", () => {
     purgeCache();
   });
 
-  test("should be valid - default config", () => {
+  test("Password validation - success - default config", () => {
     const pw = "abcABC123123ABCabc";
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
-  test("should be valid - no-lowercase config", () => {
+  test("Password validation - success - no-lowercase config", () => {
     const reqs = {
       requireUppercase: true,
       requireLowercase: false,
@@ -32,10 +32,10 @@ describe("Password validation tests", () => {
     };
     const pw = "ABC123123ABCABC";
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
-  test("should be valid - no-uppercase config", () => {
+  test("Password validation - success - no-uppercase config", () => {
     const pw = "abc123123abcabc";
     const reqs = {
       requireUppercase: false,
@@ -44,10 +44,10 @@ describe("Password validation tests", () => {
       minLength: 15,
     };
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
-  test("should be valid - no-numbers config", () => {
+  test("Password validation - success - no-numbers config", () => {
     const pw = "abcABCabcabcabc";
     const reqs = {
       requireUppercase: true,
@@ -56,10 +56,10 @@ describe("Password validation tests", () => {
       minLength: 15,
     };
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
-  test("should be valid - shorter length config", () => {
+  test("Password validation - success - shorter length config", () => {
     const pw = "aB1";
     const reqs = {
       requireUppercase: true,
@@ -68,26 +68,104 @@ describe("Password validation tests", () => {
       minLength: 2,
     };
 
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(0);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(0);
   });
 
-  test("should be invalid - no lower", () => {
+  test("Password validation - failure - confirmation does not match", () => {
+    const pw = "ABCABC123123ABcABC";
+    expect(validation.validatePassword(pw, "skdjhaskjdhf", reqs)).toHaveLength(
+      1
+    );
+  });
+
+  test("Password validation - failure - confirmation null", () => {
+    const pw = "ABCABC123123ABcABC";
+    expect(validation.validatePassword(pw, null, reqs)).toHaveLength(1);
+  });
+
+  test("Password validation - failure - no lower", () => {
     const pw = "ABCABC123123ABCABC";
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(1);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(1);
   });
 
-  test("should be invalid - no upper", () => {
+  test("Password validation - failure - no upper", () => {
     const pw = "abc123123abcabc";
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(1);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(1);
   });
 
-  test("should be invalid - no numbers", () => {
+  test("Password validation - failure - no numbers", () => {
     const pw = "abcABCABCabcabc";
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(1);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(1);
   });
 
-  test("should be invalid - too short", () => {
+  test("Password validation - failure - too short", () => {
     const pw = "abcABC111abc";
-    expect(validation.validatePassword(pw, reqs)).toHaveLength(1);
+    expect(validation.validatePassword(pw, pw, reqs)).toHaveLength(1);
+  });
+});
+
+describe("Username validation tests", () => {
+  afterAll(() => {
+    purgeCache();
+  });
+
+  test("Username validation - success - all letters", () => {
+    const name = "aAaAa";
+
+    expect(validation.validateUsername(name)).toHaveLength(0);
+  });
+
+  test("Username validation - success - all numbers", () => {
+    const name = "12345";
+
+    expect(validation.validateUsername(name)).toHaveLength(0);
+  });
+
+  test("Username validation - success - all hyphens", () => {
+    const name = "-----";
+
+    expect(validation.validateUsername(name)).toHaveLength(0);
+  });
+
+  test("Username validation - success - all underscores", () => {
+    const name = "_____";
+
+    expect(validation.validateUsername(name)).toHaveLength(0);
+  });
+
+  test("Username validation - failure - a space", () => {
+    const name = "user name";
+
+    expect(validation.validateUsername(name)).toHaveLength(1);
+  });
+
+  test("Username validation - failure - a disallowed symbol", () => {
+    const name = "user^name";
+
+    expect(validation.validateUsername(name)).toHaveLength(1);
+  });
+
+  test("Username validation - failure - a non-latin character", () => {
+    const name = "ГhelloГ";
+
+    expect(validation.validateUsername(name)).toHaveLength(1);
+  });
+
+  test("Username validation - failure - an accented character", () => {
+    const name = "aaéaa";
+
+    expect(validation.validateUsername(name)).toHaveLength(1);
+  });
+
+  test("Username validation - failure - too long", () => {
+    const name = "A".repeat(65);
+
+    expect(validation.validateUsername(name)).toHaveLength(1);
+  });
+
+  test("Username validation - failure - zero length", () => {
+    const name = "";
+
+    expect(validation.validateUsername(name)).toHaveLength(1);
   });
 });

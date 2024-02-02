@@ -19,19 +19,22 @@ const seedTaskTypes = async () => {
 };
 
 const seedInitialAdmin = async () => {
+  log("seedInitialAdmin", "Seeding admin", levels.INFO);
   const adminCount = await adminService.numAdmins();
   if (adminCount === 0) {
     let existing = await accessManager.findUserByName(
       securityConfig.initialAdmin.username
     );
-    if (!existing.user) {
+    if (!existing.user.id) {
       existing = await accessManager.register(
         securityConfig.initialAdmin.username,
         securityConfig.initialAdmin.password
       );
 
       if (existing.errors.length === 0) {
-        await adminService.addAdmin(existing._id);
+        log("seedInitialAdmin", "Initial admin user created", levels.DEBUG);
+        await adminService.changeAdminStatus(existing._id, true);
+        log("seedInitialAdmin", "Initial admin set to admin", levels.INFO);
       } else {
         log(
           "seedInitialAdmin",
@@ -42,7 +45,13 @@ const seedInitialAdmin = async () => {
         );
       }
     } else {
-      await adminService.addAdmin(existing._id);
+      log(
+        "seedInitialAdmin",
+        `setting ${existing.user.id} to admin`,
+        levels.DEBUG
+      );
+      await adminService.changeAdminStatus(existing.user.id, true);
+      log("seedInitialAdmin", "Initial admin set to admin", levels.INFO);
     }
   }
 };

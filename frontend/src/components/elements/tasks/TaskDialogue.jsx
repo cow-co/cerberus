@@ -1,24 +1,24 @@
 import { useState, useEffect } from 'react';
-import { fetchTaskTypes } from '../../common/apiCalls';
+import { fetchTaskTypes } from '../../../common/apiCalls';
 import { InputLabel, FormControl, MenuItem, Select, Dialog, DialogTitle, Button, TextField } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
-import { setTaskTypes } from "../../common/redux/tasks-slice";
-import { createErrorAlert } from '../../common/redux/dispatchers';
+import { setSelectedTask, setTaskTypes } from "../../../common/redux/tasks-slice";
+import { createErrorAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
 
-const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
+const TaskDialogue = ({open, onClose, onSubmit}) => {
   const taskTypes = useSelector((state) => {
     return state.tasks.taskTypes
   });
+  const selectedTask = useSelector((state) => {
+    return state.tasks.selected
+  });
   const dispatch = useDispatch();
-  const [task, setTask] = useState({_id: "", taskType: {id: "", name: ""}, params: []});
+  const [task, setTask] = useState(selectedTask);
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
-    onOpen: () => {
-      console.log("WebSocket opened");
-    },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
       const data = JSON.parse(message.data);
@@ -39,9 +39,9 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
       }
     };
     getData();
-    setTask(providedTask);
+    setTask(selectedTask);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedTask]);
 
   useEffect(() => {
     if (lastJsonMessage) {
@@ -66,11 +66,7 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
   const handleChange = (event) => {
     const selectedTaskTypes = taskTypes.filter(val => val.name === event.target.value);
     // Needs to be a new object, else React does not realise a change has been made, it seems
-    let updated = {
-      _id: task._id,
-      taskType: task.taskType,
-      params: task.params
-    };
+    let updated = structuredClone(task);
 
     // The length *should* be precisely 1, but we cover off the scenario where we might have accidentally 
     // seeded multiple identical task types.
@@ -92,11 +88,12 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
   }
 
   const handleClose = () => {
-    setTask({_id: "", taskType: {id: "", name: ""}, params: []});
+    setTask({_id: "", implantId: "", taskType: {id: "", name: ""}, params: []});
     onClose();
   }
 
   const handleSubmit = () => {
+    dispatch(setSelectedTask(task));
     onSubmit(task);
   }
 
@@ -116,6 +113,7 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
 
     const updated = {
       _id: task._id,
+      implantId: task.implantId,
       taskType: {
         id: task.taskType.id,
         name: task.taskType.name
@@ -140,9 +138,11 @@ const TaskDialogue = ({open, onClose, onSubmit, providedTask}) => {
         <Select className="select-list" labelId="task-type-label" value={task.taskType.name} label="Task Type" onChange={handleChange}>
           {taskTypeSelects}
         </Select>
-        {paramsSettings}
-        <Button onClick={handleSubmit}>Set Task</Button>
       </FormControl>
+      <FormControl fullWidth>
+        {paramsSettings}
+      </FormControl>
+      <Button onClick={handleSubmit}>Set Task</Button>
     </Dialog>
   );
 }
