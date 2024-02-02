@@ -10,16 +10,18 @@ There will be a controller for each type of resource, basically (beacon, active 
 
 ### Services
 
-There will be a service for each type of resource. These will provide a light layer of abstraction between the data layer (repositories) and the controller layer; allowing us to swap out backends a little more easily. The services will also contain most of the business logic, around validation and so on. In comparison, the controllers and repositories will be fairly "dumb".
+There will be a service for each type of resource. These will provide a light layer of abstraction between the data layer (mongoose Models) and the controller layer; allowing us to swap out backends a little more easily. These will have pretty shallow interfaces, but I think they are useful to ensure the controllers etc. don't need to directly touch the database models. Example of one of the shallow interfaces is the `acg-service`, which I still implement as a service in order to have that level of abstration, as well as to keep ACGs consistent with the other database entity types.
 
-### Repositories
+### Models
 
-There will be a repository for each database-backed resource. These will interface with the database itself, and therefore we will need a new set if we choose to change database system.
+These represent database-backed resources, and are implemented as Mongoose `Model`s
 
-### Entities
+## Testing
 
-These represent database-backed resources.
+Tests will be written to cover the backend. These tests will aim to cover everything that is non-trivial and of consequence (excpetion paths, error paths, happy paths). Coverage will not be used as a thresholding metric, but will be used as an indicator for where to focus attention on.
 
-### Data Transfer Objects (DTOs)
+Frontend tests will not be written, since I do not think the tradeoff of time vs benefit is worth it.
 
-These are the forms of object that will be sent around over the network. These may often differ from their equivalent entity, by addition or omission of certain fields, formatting of certain fields, or simply because there is no corresponding entity (in the case of the `beacon` for example).
+## Redux/React State
+
+We will tend to keep frontend state local to the components, as long as that state is only used in a single direct component chain (eg in a List and its list-items). When the state needs to be used across multiple chains in the DOM (eg. in a list, its list-items, and a confirmation dialogue), we extract it out to a Redux state, to provide easier sharing across components where we can't easily pass it around via props etc. This makes the Redux store a central repository for stuff that is app-wide: things like lists of implants, tasks, groups, etc.

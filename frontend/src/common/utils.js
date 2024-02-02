@@ -19,4 +19,12 @@ const isLoggedIn = () => {
   return isLoggedIn;
 };
 
-export { generateAlert, isLoggedIn };
+const EMPTY_IMPLANT = { id: "", readOnlyACGs: [], operatorACGs: [] };
+const EMPTY_TASK = {
+  _id: "",
+  implantId: "",
+  taskType: { id: "", name: "" },
+  params: [],
+};
+
+export { generateAlert, isLoggedIn, EMPTY_IMPLANT, EMPTY_TASK };

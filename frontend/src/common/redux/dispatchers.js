@@ -2,7 +2,7 @@ import { addAlert, removeAlert } from "./alerts-slice";
 import { generateAlert } from "../utils";
 import conf from "../config/properties";
 import store from "./store";
-import { fetchTaskTypes } from "../apiCalls";
+import { fetchTaskTypes, getGroups } from "../apiCalls";
 import { setTaskTypes } from "./tasks-slice";
 
 const createErrorAlert = (errors) => {
@@ -24,4 +24,9 @@ const loadTaskTypes = async () => {
   store.dispatch(setTaskTypes(results.taskTypes));
 };
 
-export { createErrorAlert, createSuccessAlert, loadTaskTypes };
+const loadGroups = async () => {
+  const results = await getGroups();
+  store.dispatch(setTaskTypes(results.acgs));
+};
+
+export { createErrorAlert, createSuccessAlert, loadTaskTypes, loadGroups };

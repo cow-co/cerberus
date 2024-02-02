@@ -26,13 +26,15 @@ const addImplant = async (details) => {
     lastCheckinTime: details.lastCheckinTime,
     isActive: true,
   };
-  await Implant.create(entity);
-  sendMessage(entityTypes.IMPLANTS, eventTypes.CREATE, entity);
+  const created = await Implant.create(entity);
+  delete created["_id"];
+  sendMessage(entityTypes.IMPLANTS, eventTypes.CREATE, created);
 };
 
 /**
  * @param {Implant} details The implant to update with
  */
+// TODO Verify that we are passing the ACGs when calling this
 const updateImplant = async (details) => {
   log("updateImplant", `Updating implant ${details.id}`, levels.DEBUG);
   const updatedEntity = {
@@ -42,9 +44,15 @@ const updateImplant = async (details) => {
     beaconIntervalSeconds: details.beaconIntervalSeconds,
     lastCheckinTime: details.lastCheckinTime,
     isActive: true,
+    readOnlyACGs: details.readOnlyACGs,
+    operatorACGs: details.operatorACGs,
   };
-  await Implant.findOneAndUpdate({ id: details.id }, updatedEntity);
-  sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, updatedEntity);
+  const updated = await Implant.findOneAndUpdate(
+    { id: details.id },
+    updatedEntity
+  );
+  delete updated["_id"];
+  sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, updated);
 };
 
 /**
@@ -52,20 +60,18 @@ const updateImplant = async (details) => {
  * @returns The implant (or null)
  */
 const findImplantById = async (id) => {
-  let implant = null;
   if (id) {
-    implant = await Implant.findOne({ id: id });
+    return await Implant.findOne({ id: id });
+  } else {
+    return null;
   }
-  return implant;
 };
 
 /**
- * @returns All the implant records
+ * @returns All the implant records that the user is permitted to view
  */
 const getAllImplants = async () => {
-  let implants = [];
-  implants = await Implant.find();
-  return implants;
+  return await Implant.find();
 };
 
 const checkActivity = async () => {
@@ -95,6 +101,17 @@ const deleteImplant = async (implantId) => {
   });
 };
 
+const updateACGs = async (implantId, readOnlyACGs, operatorACGs) => {
+  log("updateACGs", `Updating implant ${implantId}'s ACGs`, levels.INFO);
+  const implant = await findImplantById(implantId);
+  if (implant) {
+    implant.readOnlyACGs = readOnlyACGs;
+    implant.operatorACGs = operatorACGs;
+    await implant.save();
+  }
+  return implant;
+};
+
 module.exports = {
   addImplant,
   updateImplant,
@@ -102,4 +119,5 @@ module.exports = {
   getAllImplants,
   checkActivity,
   deleteImplant,
+  updateACGs,
 };

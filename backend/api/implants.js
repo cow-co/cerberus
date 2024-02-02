@@ -5,60 +5,81 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const { log, levels } = require("../utils/logger");
 
+/**
+ * Retrieves all the implants that the user is authorised to view.
+ */
 router.get("", accessManager.verifyToken, async (req, res) => {
   log("GET /implants/", "Request to get all implants", levels.DEBUG);
-  let responseJSON = {
-    implants: null,
+  let response = {
+    implants: [],
     errors: [],
   };
   let status = statusCodes.OK;
   try {
-    responseJSON.implants = await implantService.getAllImplants();
+    const allImplants = await implantService.getAllImplants();
+    const { filtered, errors } = await accessManager.filterImplantsForView(
+      allImplants,
+      req.data.userId
+    );
+    if (errors.length > 0) {
+      response.errors = errors;
+    } else {
+      response.implants = filtered;
+    }
   } catch (err) {
     log("GET /implants/", err, levels.ERROR);
-    responseJSON.errors = ["Internal Server Error"];
+    response.errors = ["Internal Server Error"];
     status = statusCodes.INTERNAL_SERVER_ERROR;
   }
-  res.status(status).json(responseJSON);
+
+  res.status(status).json(response);
 });
 
-router.delete(
-  "/:implantId",
-  accessManager.verifyToken,
-  accessManager.checkAdmin,
-  async (req, res) => {
-    log(
-      `DELETE /implants/${req.params.implantId}`,
-      `Implant ${req.params.implantId}`,
-      levels.INFO
+router.delete("/:implantId", accessManager.verifyToken, async (req, res) => {
+  const implantId = req.paramString("implantId");
+  log(`DELETE /implants/${implantId}`, `Implant ${implantId}`, levels.INFO);
+
+  let response = {
+    errors: [],
+  };
+  let status = statusCodes.OK;
+
+  try {
+    const isAuthed = await accessManager.authZCheck(
+      accessManager.operationType.EDIT,
+      accessManager.targetEntityType.IMPLANT,
+      implantId,
+      accessManager.accessControlType.ADMIN,
+      req.data.userId
     );
 
-    let responseJSON = {
-      errors: [],
-    };
-    let returnStatus = statusCodes.OK;
-
-    try {
-      const implant = await implantService.findImplantById(
-        req.params.implantId
-      );
+    if (isAuthed) {
+      const implant = await implantService.findImplantById(implantId);
       if (implant) {
-        await implantService.deleteImplant(req.params.implantId);
+        await implantService.deleteImplant(implantId);
       } else {
         log(
-          `DELETE /implants/${req.params.implantId}`,
-          `Implant with ID ${req.params.implantId} does not exist`,
+          `DELETE /implants/${implantId}`,
+          `Implant with ID ${implantId} does not exist`,
           levels.WARN
         );
       }
-    } catch (err) {
-      returnStatus = statusCodes.INTERNAL_SERVER_ERROR;
-      responseJSON.errors.push("Internal Server Error");
-      log(`DELETE /implants/${req.params.implantId}`, err, levels.ERROR);
+    } else {
+      status = statusCodes.FORBIDDEN;
+      response.errors.push("Not authorised to delete implant");
+      log(
+        `DELETE /implants/${implantId}`,
+        `Non-admin user ${req.data.userId} attempted to delete an implant`,
+        levels.SECURITY
+      );
     }
-
-    return res.status(returnStatus).json(responseJSON);
+  } catch (err) {
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response.errors.push("Internal Server Error");
+    log(`DELETE /implants/${implantId}`, err, levels.ERROR);
   }
-);
+
+  res.status(status).json(response);
+});
 
 module.exports = router;

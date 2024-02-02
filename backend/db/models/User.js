@@ -13,6 +13,7 @@ const userSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "HashedPassword",
   },
+  acgs: [mongoose.SchemaTypes.ObjectId],
 });
 
 module.exports = User = mongoose.model("User", userSchema);

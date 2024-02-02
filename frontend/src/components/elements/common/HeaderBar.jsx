@@ -1,12 +1,10 @@
-import { AppBar, Toolbar, Button, Typography, Link } from "@mui/material";
-import { checkSessionCookie, logout } from "../../common/apiCalls";
-import { setIsAdmin, setUsername } from "../../common/redux/users-slice";
+import { AppBar, Toolbar, Button, Typography } from "@mui/material";
+import { checkToken, logout } from "../../../common/apiCalls";
+import { setIsAdmin, setUsername, setToken } from "../../../common/redux/users-slice";
 import { useDispatch, useSelector } from "react-redux";
-import Cookies from "js-cookie";
 import { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
-import { setImplants } from "../../common/redux/implants-slice";
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
@@ -15,12 +13,15 @@ const HeaderBar = (props) => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const res = await checkSessionCookie();
+      const res = await checkToken();
       if (res.errors.length > 0) {
         createErrorAlert(res.errors);
+        dispatch(setUsername(""));
+        dispatch(setIsAdmin(false));
+        dispatch(setToken(""));
       } else {
-        dispatch(setUsername(res.username));
-        dispatch(setIsAdmin(res.isAdmin));
+        dispatch(setUsername(res.user.name));
+        dispatch(setIsAdmin(res.user.isAdmin));
       }      
     }
     checkSession();
@@ -35,8 +36,8 @@ const HeaderBar = (props) => {
       createSuccessAlert("Successfully logged out");
       dispatch(setUsername(""));
       dispatch(setIsAdmin(false));
-      dispatch(setImplants([]));
-      Cookies.remove("connect.sid");
+      dispatch(setToken(""));
+      localStorage.removeItem("token");
     }
   }
 
@@ -49,14 +50,16 @@ const HeaderBar = (props) => {
 
   let adminButton = null;
   if (isAdmin) {
-    adminButton = <Link underline="none" component={RouterLink} to={"admin"}>Admin</Link>;
+    adminButton = <Button component={RouterLink} to={"/admin"}>Admin</Button>;
   }
 
   return (
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-            Cerberus
+            <Button component={RouterLink} to={"/"}>
+                Cerberus
+            </Button>
           </Typography>
           <Button onClick={props.handleRegisterFormOpen}>Register</Button>
           {loginoutButton}

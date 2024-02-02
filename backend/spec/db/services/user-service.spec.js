@@ -56,7 +56,7 @@ describe("User service tests", () => {
 
     expect(userArgs[0].name).toBe("user");
     expect(passArgs[0].hashedPassword).toBe("pass");
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
   });
 
   test("delete user", async () => {
@@ -70,7 +70,7 @@ describe("User service tests", () => {
     });
     await userService.deleteUser("id");
 
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
     expect(HashedPassword.findByIdAndDelete).toHaveBeenCalledTimes(1);
     expect(TokenValidity.findOneAndDelete).toHaveBeenCalledTimes(1);
   });

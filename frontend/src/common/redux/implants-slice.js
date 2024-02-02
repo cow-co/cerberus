@@ -1,20 +1,19 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { EMPTY_IMPLANT } from "../utils";
 
+// Central store for keeping track of what implants there are, and which one we
+// are working with (for edit/delete purposes)
 export const implantsSlice = createSlice({
   name: "implants",
   initialState: {
-    implants: [],
-    selected: { id: "" },
+    selected: EMPTY_IMPLANT,
   },
   reducers: {
-    setImplants: (state, action) => {
-      state.implants = action.payload;
-    },
     setSelectedImplant: (state, action) => {
       state.selected = action.payload;
     },
   },
 });
 
-export const { setImplants, setSelectedImplant } = implantsSlice.actions;
+export const { setSelectedImplant } = implantsSlice.actions;
 export default implantsSlice.reducer;

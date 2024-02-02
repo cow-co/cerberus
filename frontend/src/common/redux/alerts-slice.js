@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// Central store for our alerts-related items
 export const alertsSlice = createSlice({
   name: "alerts",
   initialState: {

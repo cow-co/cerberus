@@ -19,6 +19,8 @@ const implantSchema = new Schema({
     min: 1,
   },
   isActive: Boolean,
+  readOnlyACGs: [String],
+  operatorACGs: [String],
 });
 
 module.exports = Implant = mongoose.model("Implant", implantSchema);
