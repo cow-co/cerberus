@@ -16,7 +16,6 @@ function ACGPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
 
   const acgs = useSelector((state) => state.groups.groups);
-  const selectedACG = useSelector((state) => state.groups.selected);
   const dispatch = useDispatch();
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
@@ -33,6 +32,7 @@ function ACGPane() {
   });
 
   const refresh = async () => {
+    console.log("Refresh called")
     const json = await getGroups();
     if (json.errors.length === 0) {
       dispatch(setGroups(json.acgs));
@@ -46,6 +46,7 @@ function ACGPane() {
       await refresh();
     }
     callFetcher()
+    console.log("refreshed")
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -55,7 +56,9 @@ function ACGPane() {
 
       switch (lastJsonMessage.eventType) {
         case eventTypes.CREATE:
-          updated.push(lastJsonMessage.entity);
+          if (!updated.find(acg => acg._id === lastJsonMessage.entity._id)) {
+            updated.push(lastJsonMessage.entity);
+          }
           break;
         case eventTypes.DELETE:
           updated = updated.filter(acg => acg._id !== lastJsonMessage.entity._id);
@@ -115,6 +118,7 @@ function ACGPane() {
     });
   }
 
+  // FIXME This is duplicating the groups after creating them (probably the list-refresh and websocket event compounding each other)
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Access Control Groups</Typography>

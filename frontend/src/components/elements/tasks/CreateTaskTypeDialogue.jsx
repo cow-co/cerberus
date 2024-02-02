@@ -124,6 +124,7 @@ const CreateTaskTypeDialogue = (props) => {
     </ListItem>
   ));
 
+  // TODO The name input should have a label/placeholder
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Create New Task Type</DialogTitle>
