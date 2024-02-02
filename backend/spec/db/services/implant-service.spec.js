@@ -10,6 +10,15 @@ describe("Implant service tests", () => {
   });
 
   test("add implant - success", async () => {
+    Implant.create.mockResolvedValue({
+      _id: "mongo-id",
+      id: "details.id",
+      ip: "details.ip",
+      os: "details.os",
+      beaconIntervalSeconds: 500,
+      lastCheckinTime: 1,
+    });
+
     await implantService.addImplant({
       id: "details.id",
       ip: "details.ip",
@@ -24,6 +33,15 @@ describe("Implant service tests", () => {
   });
 
   test("update implant - success", async () => {
+    Implant.findOneAndUpdate.mockResolvedValue({
+      _id: "mongo-id",
+      id: "details.id",
+      ip: "details.ip",
+      os: "details.os",
+      beaconIntervalSeconds: 500,
+      lastCheckinTime: 1,
+    });
+
     await implantService.updateImplant({
       id: "details.id",
       ip: "details.ip",
