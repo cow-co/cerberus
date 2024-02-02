@@ -10,8 +10,6 @@ import { getGroups } from "../../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 
-// FIXME First time opening this after a login, results in an undefined-error (acg(s) undefined?)
-//  Fine after that, however.
 const ImplantACGDialogue = ({open, onClose, onSubmit}) => {
   const groups = useSelector((state) => {
     return state.groups.groups
@@ -40,27 +38,17 @@ const ImplantACGDialogue = ({open, onClose, onSubmit}) => {
       const groups = await getGroups();
       if (groups.errors.length === 0) {
         dispatch(setGroups(groups.acgs));
+        const ro = selectedImplant.readOnlyACGs.map(acg => groups.acgs.find(group => group._id === acg));
+        const op = selectedImplant.operatorACGs.map(acg => groups.acgs.find(group => group._id === acg));
+        setACGs({
+          readOnlyACGs: ro,
+          operatorACGs: op
+        });
       } else {
         createErrorAlert(groups.errors);
       }
     };
     getData();
-    const ro = selectedImplant.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
-    const op = selectedImplant.operatorACGs.map(acg => groups.find(group => group._id === acg));
-    setACGs({
-      readOnlyACGs: ro,
-      operatorACGs: op
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const ro = selectedImplant.readOnlyACGs.map(acg => groups.find(group => group._id === acg));
-    const op = selectedImplant.operatorACGs.map(acg => groups.find(group => group._id === acg));
-    setACGs({
-      readOnlyACGs: ro,
-      operatorACGs: op
-    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedImplant]);
 
