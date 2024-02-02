@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
-import { register } from "../../common/apiCalls";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { register } from "../../../common/apiCalls";
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 
 // TODO If PKI enabled (how will the frontend know this?) just have this be a simple button, and the backend pulls the username from the CN
 const RegisterDialogue = (props) => {

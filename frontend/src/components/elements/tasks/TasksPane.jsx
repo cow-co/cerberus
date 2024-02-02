@@ -2,29 +2,28 @@ import { Box, Button, Checkbox, FormControlLabel, List, Typography } from '@mui/
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import TaskItem from './TaskItem';
-import { setTask, fetchTasks, deleteTask } from '../../common/apiCalls';
+import { setTask, fetchTasks, deleteTask } from '../../../common/apiCalls';
 import TaskDialogue from './TaskDialogue';
 import { useSelector, useDispatch } from "react-redux";
-import { setTasks } from "../../common/redux/tasks-slice";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
+import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/confirmation-slice";
+import { setSelectedTask } from "../../../common/redux/tasks-slice";
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
-import ConfirmationDialogue from './ConfirmationDialogue';
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
+import { EMPTY_TASK } from '../../../common/utils';
 
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState({_id: "", taskType: {id: "", name: ""}, params: []});
+  const [tasks, setTasks] = useState([]);
 
-  const tasks = useSelector((state) => state.tasks.tasks);
   const selectedImplant = useSelector((state) => state.implants.selected);
   const dispatch = useDispatch();
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
-      console.log("WebSocket opened");
+      
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
@@ -39,7 +38,7 @@ function TasksPane() {
     async function callFetcher() {
       if (selectedImplant.id) {
         const received = await fetchTasks(selectedImplant.id);
-        dispatch(setTasks(received.tasks));
+        setTasks(received.tasks);
       }
     }
     callFetcher()
@@ -72,7 +71,7 @@ function TasksPane() {
           break;
       }
       
-      dispatch(setTasks(updated));
+      setTasks(updated);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
@@ -82,7 +81,7 @@ function TasksPane() {
   }
 
   const handleFormOpen = () => {
-    setSelectedTask({_id: "", taskType: {id: "", name: ""}, params: []});
+    dispatch(setSelectedTask({_id: "", implantId: selectedImplant.id, taskType: {id: "", name: ""}, params: []}));
     setDialogueOpen(true);
   }
 
@@ -91,7 +90,7 @@ function TasksPane() {
   }
 
   const handleFormSubmit = async (data) => {
-    data.implantId = selectedImplant.id;
+    console.log(data)
     const response = await setTask(data);
 
     if (response.errors.length > 0) {
@@ -99,40 +98,36 @@ function TasksPane() {
     } else {
       handleFormClose();
       const newList = await fetchTasks(selectedImplant.id, showSent);
-      dispatch(setTasks(newList.tasks));
+      setTasks(newList.tasks);
       createSuccessAlert("Successfully created task");
     }
   }
 
   const handleConfirmOpen = (task) => {
-    setSelectedTask(task);
-    setConfirmOpen(true);
+    dispatch(setSelectedTask(task));  
+    dispatch(setMessage(`Delete Task?`));
+    dispatch(setSubmitAction(handleDelete));
+    dispatch(setOpen(true));
   }
 
   const handleDelete = async () => {
-    const res = await deleteTask(selectedTask);
+    const res = await deleteTask();
 
     if (res.errors.length > 0) {
       createErrorAlert(res.errors);
     } else {
       const newList = await fetchTasks(selectedImplant.id, showSent);
-      dispatch(setTasks(newList.tasks));
+      setTasks(newList.tasks);
       createSuccessAlert("Successfully deleted task");
     }
 
-    setConfirmOpen(false);
+    dispatch(setSelectedTask(EMPTY_TASK));  
+    dispatch(setOpen(false));
   }
 
   const handleEdit = (task) => {
-    const editTask = {
-      _id: task._id,
-      taskType: {
-        id: task.taskType.id,
-        name: task.taskType.name,
-      },
-      params: task.params,
-    };
-    setSelectedTask(editTask);
+    const editTask = structuredClone(task);
+    dispatch(setSelectedTask(editTask));
     setDialogueOpen(true);
   }
 
@@ -157,6 +152,7 @@ function TasksPane() {
     createButton = <Button variant='contained' onClick={handleFormOpen}>Create Task</Button>;
   }
 
+  // TODO disable the create-tasks button entirely if user not in the operator groups
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
@@ -167,8 +163,7 @@ function TasksPane() {
       <List>
         {tasksItems}
       </List>
-      <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} providedTask={selectedTask} />
-      <ConfirmationDialogue open={confirmOpen} onClose={() => setConfirmOpen(false)} onOK={handleDelete} />
+      <TaskDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
     </Container>
   )
 }

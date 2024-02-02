@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
-import { login } from "../../common/apiCalls";
+import { login } from "../../../common/apiCalls";
 import { useDispatch } from "react-redux";
-import { setIsAdmin, setUsername, setToken } from "../../common/redux/users-slice";
-import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../common/redux/dispatchers';
+import { setIsAdmin, setUsername, setToken } from "../../../common/redux/users-slice";
+import { createErrorAlert, createSuccessAlert, loadTaskTypes } from '../../../common/redux/dispatchers';
 
 const LoginDialogue = (props) => {
   const {onClose, open} = props;
@@ -28,6 +28,7 @@ const LoginDialogue = (props) => {
         dispatch(setIsAdmin(response.user.isAdmin));
         localStorage.setItem("token", response.token);
         await loadTaskTypes();
+        // TODO Also load ACGs
         handleClose();
     }
   }

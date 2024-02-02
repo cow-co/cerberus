@@ -26,13 +26,15 @@ const addImplant = async (details) => {
     lastCheckinTime: details.lastCheckinTime,
     isActive: true,
   };
-  await Implant.create(entity);
-  sendMessage(entityTypes.IMPLANTS, eventTypes.CREATE, entity);
+  const created = await Implant.create(entity);
+  delete created["_id"];
+  sendMessage(entityTypes.IMPLANTS, eventTypes.CREATE, created);
 };
 
 /**
  * @param {Implant} details The implant to update with
  */
+// TODO Verify that we are passing the ACGs when calling this
 const updateImplant = async (details) => {
   log("updateImplant", `Updating implant ${details.id}`, levels.DEBUG);
   const updatedEntity = {
@@ -42,9 +44,15 @@ const updateImplant = async (details) => {
     beaconIntervalSeconds: details.beaconIntervalSeconds,
     lastCheckinTime: details.lastCheckinTime,
     isActive: true,
+    readOnlyACGs: details.readOnlyACGs,
+    operatorACGs: details.operatorACGs,
   };
-  await Implant.findOneAndUpdate({ id: details.id }, updatedEntity);
-  sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, updatedEntity);
+  const updated = await Implant.findOneAndUpdate(
+    { id: details.id },
+    updatedEntity
+  );
+  delete updated["_id"];
+  sendMessage(entityTypes.IMPLANTS, eventTypes.EDIT, updated);
 };
 
 /**

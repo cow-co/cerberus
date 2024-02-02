@@ -5,6 +5,9 @@ const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
+// FIXME Make-admin broken
+// TODO Allow admin to add user to group
+
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   const username = req.paramString("username");
   log(`GET /users/user/${username}`, `Getting user ${username}`, levels.INFO);
@@ -21,28 +24,28 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 
   try {
     const result = await accessManager.findUserByName(chosenUser);
-    if (result.errors.length === 0) {
+    if (result.id) {
       const permitted = await accessManager.authZCheck(
         accessManager.operationType.READ,
         accessManager.targetEntityType.USER,
-        result.user.id,
+        result.id,
         accessManager.accessControlType.READ,
         req.data.userId
       );
 
       if (permitted) {
         response.user = {
-          id: result.user.id,
-          name: result.user.name,
+          id: result.id,
+          name: result.name,
         };
       } else {
         response.errors.push("Not permitted");
         status = statusCodes.FORBIDDEN;
       }
     } else {
-      log("GET /user/:username", JSON.stringify(result.errors), levels.WARN);
+      log("GET /user/:username", "Could not find user!", levels.WARN);
       status = statusCodes.BAD_REQUEST;
-      response.errors = result.errors;
+      response.errors = ["Could not find user!"];
     }
   } catch (err) {
     log("GET /user/:username", err, levels.ERROR);
@@ -64,7 +67,7 @@ router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
   try {
     const result = await accessManager.findUserById(userId);
 
-    if (!result.user.id) {
+    if (!result.id) {
       log(
         `DELETE /users/user/${userId}`,
         `User with ID ${userId} does not exist`,
@@ -162,6 +165,49 @@ router.get(
         const { groups, errors } = await accessManager.getGroupsForUser(userId);
         response.errors = errors;
         response.groups = groups;
+      } else {
+        status = statusCodes.FORBIDDEN;
+        response.errors.push("Not permitted");
+      }
+    } catch (err) {
+      log("GET /users/user/:userId/groups", err, levels.ERROR);
+      status = statusCodes.INTERNAL_SERVER_ERROR;
+      response.errors = ["Internal Server Error"];
+    }
+
+    res.status(status).json(response);
+  }
+);
+
+// TODO Write tests
+router.post(
+  "/user/:userId/groups",
+  accessManager.verifyToken,
+  async (req, res) => {
+    log(
+      "POST /users/user/:userId/groups",
+      "Adding user groups...",
+      levels.DEBUG
+    );
+
+    const userId = req.paramString("userId");
+    let response = {
+      groups: [],
+      errors: [],
+    };
+    let status = statusCodes.OK;
+
+    try {
+      const permitted = await accessManager.authZCheck(
+        accessManager.operationType.EDIT,
+        accessManager.targetEntityType.USER,
+        userId,
+        accessManager.accessControlType.ADMIN,
+        req.data.userId
+      );
+
+      if (permitted) {
+        await accessManager.editUserGroups(req.body.groups, userId);
       } else {
         status = statusCodes.FORBIDDEN;
         response.errors.push("Not permitted");

@@ -1,28 +1,26 @@
-import { Button, List, Typography } from '@mui/material';
+import { Box, Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ACGItem from './ACGItem';
-import { createGroup, deleteGroup, getGroups } from '../../common/apiCalls';
-import { setGroups } from "../../common/redux/groups-slice";
+import { createGroup, deleteGroup, getGroups } from '../../../common/apiCalls';
+import { setGroups, setSelectedGroup } from "../../../common/redux/groups-slice";
 import CreateACGDialogue from './CreateACGDialogue';
 import { useSelector, useDispatch } from "react-redux";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
-import { entityTypes, eventTypes } from "../../common/web-sockets";
-import conf from "../../common/config/properties";
-import ConfirmationDialogue from './ConfirmationDialogue';
+import { entityTypes, eventTypes } from "../../../common/web-sockets";
+import conf from "../../../common/config/properties";
+import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/confirmation-slice";
 
 function ACGPane() {
   const [dialogueOpen, setDialogueOpen] = useState(false);
-  const [selectedACG, setSelectedACG] = useState(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const acgs = useSelector((state) => state.groups.groups);
   const dispatch = useDispatch();
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
-      console.log("WebSocket opened");
+      
     },
     share: true,  // This ensures we don't have a new connection for each component etc. 
     filter: (message) => {
@@ -34,6 +32,7 @@ function ACGPane() {
   });
 
   const refresh = async () => {
+    console.log("Refresh called")
     const json = await getGroups();
     if (json.errors.length === 0) {
       dispatch(setGroups(json.acgs));
@@ -47,6 +46,7 @@ function ACGPane() {
       await refresh();
     }
     callFetcher()
+    console.log("refreshed")
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -56,7 +56,9 @@ function ACGPane() {
 
       switch (lastJsonMessage.eventType) {
         case eventTypes.CREATE:
-          updated.push(lastJsonMessage.entity);
+          if (!updated.find(acg => acg._id === lastJsonMessage.entity._id)) {
+            updated.push(lastJsonMessage.entity);
+          }
           break;
         case eventTypes.DELETE:
           updated = updated.filter(acg => acg._id !== lastJsonMessage.entity._id);
@@ -86,10 +88,11 @@ function ACGPane() {
       handleFormClose();
       createSuccessAlert("Successfully created ACG");
     }
+    // TODO Also load groups
   }
 
   const handleDelete = async () => {
-    const { errors } = await deleteGroup(selectedACG._id);
+    const { errors } = await deleteGroup();
 
     if (errors.length > 0) {
       createErrorAlert(errors);
@@ -97,12 +100,14 @@ function ACGPane() {
       createSuccessAlert("Successfully deleted ACG");
     }
 
-    setConfirmOpen(false);
+    dispatch(setOpen(false));
   }
 
   const openConfirmation = (acg) => {
-    setSelectedACG(acg);
-    setConfirmOpen(true);
+    dispatch(setSelectedGroup(acg));
+    dispatch(setMessage(`Delete Group ${acg.name}?`));
+    dispatch(setSubmitAction(handleDelete));
+    dispatch(setOpen(true));
   }
 
   let acgsItems = null;
@@ -113,16 +118,16 @@ function ACGPane() {
     });
   }
 
-  // FIXME The title gets pushed up into the header, by the create-button
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Access Control Groups</Typography>
-      <Button variant='contained' onClick={handleFormOpen}>Create Access Control Group</Button>
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <Button variant='contained' onClick={handleFormOpen}>Create Access Control Group</Button>
+      </Box>
       <List>
         {acgsItems}
       </List>
       <CreateACGDialogue open={dialogueOpen} onClose={handleFormClose} onSubmit={handleFormSubmit} />
-      <ConfirmationDialogue open={confirmOpen} onClose={ () => setConfirmOpen(false) } onOK={handleDelete} />
     </Container>
       
   )

@@ -389,6 +389,12 @@ const getGroupsForUser = async (userId) => {
   return acgs;
 };
 
+const editUserGroups = async (groups, id) => {
+  const user = await userService.findUserById(id);
+  user.acgs = groups;
+  await user.save();
+};
+
 const getAllGroups = async () => {
   let errors = [];
   let acgs = null;
@@ -573,6 +579,7 @@ module.exports = {
   findUserById,
   filterImplantsForView,
   getGroupsForUser,
+  editUserGroups,
   getAllGroups,
   createGroup,
   deleteGroup,

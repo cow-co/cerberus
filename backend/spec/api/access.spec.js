@@ -153,9 +153,9 @@ describe("Access tests", () => {
 
   test("add admin - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: {
-        id: "650a3a2a7dcd3241ecee2d70",
-      },
+      id: "650a3a2a7dcd3241ecee2d70",
+      name: "user",
+      acgs: [],
     });
 
     const res = await agent
@@ -168,9 +168,9 @@ describe("Access tests", () => {
 
   test("remove admin - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: {
-        id: "650a3a2a7dcd3241ecee2d70",
-      },
+      id: "650a3a2a7dcd3241ecee2d70",
+      name: "user",
+      acgs: [],
     });
 
     const res = await agent
@@ -183,8 +183,9 @@ describe("Access tests", () => {
 
   test("add admin - failure - user does not exist", async () => {
     accessManager.findUserById.mockResolvedValue({
-      user: null,
-      errors: [],
+      id: "",
+      name: "",
+      acgs: [],
     });
 
     const res = await agent

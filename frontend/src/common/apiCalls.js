@@ -2,6 +2,7 @@ import conf from "./config/properties";
 import store from "./redux/store";
 
 // TODO if receiving a 401, should wipe the login data from redux, and show an alert to request login
+// TODO JSDocs for these
 
 const getToken = () => {
   let token = store.getState().users.token;
@@ -71,15 +72,18 @@ const fetchImplants = async () => {
   return json;
 };
 
-const deleteImplant = async (implant) => {
+const deleteImplant = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}implants/${implant.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    });
+    const response = await fetch(
+      `${conf.apiURL}implants/${store.getState().implants.selected.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -99,7 +103,7 @@ const setTask = async (task) => {
         "content-type": "application/json",
         authorization: `Bearer ${getToken()}`,
       }),
-      body: JSON.stringify(task),
+      body: JSON.stringify(store.getState().tasks.selected),
     });
     json = await response.json();
   } catch (err) {
@@ -132,15 +136,18 @@ const createTaskType = async (taskType) => {
   return json;
 };
 
-const deleteTask = async (task) => {
+const deleteTask = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}tasks/${task._id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    });
+    const response = await fetch(
+      `${conf.apiURL}tasks/${store.getState().tasks.selected._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -355,15 +362,22 @@ const getGroups = async () => {
   return json;
 };
 
-const deleteGroup = async (groupId) => {
+/**
+ * Deletes the group currently stored in the groups.selected redux state
+ * @returns The JSON from the HTTP response
+ */
+const deleteGroup = async () => {
   let json = null;
   try {
-    const response = await fetch(`${conf.apiURL}access/acgs/${groupId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    });
+    const response = await fetch(
+      `${conf.apiURL}access/acgs/${store.getState().groups.selected._id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
     json = await response.json();
   } catch (err) {
     console.error(err);
@@ -395,6 +409,30 @@ const createGroup = async (acg) => {
   return json;
 };
 
+const editACGs = async (implantId, acgs) => {
+  let json = null;
+  try {
+    const response = await fetch(
+      `${conf.apiURL}access/implants/${implantId}/acgs`,
+      {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json",
+          authorization: `Bearer ${getToken()}`,
+        }),
+        body: JSON.stringify(acgs),
+      }
+    );
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
 export {
   fetchImplants,
   deleteImplant,
@@ -415,4 +453,5 @@ export {
   getGroups,
   createGroup,
   deleteGroup,
+  editACGs,
 };

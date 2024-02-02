@@ -1,11 +1,10 @@
 import { AppBar, Toolbar, Button, Typography } from "@mui/material";
-import { checkToken, logout } from "../../common/apiCalls";
-import { setIsAdmin, setUsername, setToken } from "../../common/redux/users-slice";
+import { checkToken, logout } from "../../../common/apiCalls";
+import { setIsAdmin, setUsername, setToken } from "../../../common/redux/users-slice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { createErrorAlert, createSuccessAlert } from '../../common/redux/dispatchers';
-import { setImplants } from "../../common/redux/implants-slice";
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 
 const HeaderBar = (props) => {
   const dispatch = useDispatch();
@@ -38,7 +37,6 @@ const HeaderBar = (props) => {
       dispatch(setUsername(""));
       dispatch(setIsAdmin(false));
       dispatch(setToken(""));
-      dispatch(setImplants([]));
       localStorage.removeItem("token");
     }
   }
