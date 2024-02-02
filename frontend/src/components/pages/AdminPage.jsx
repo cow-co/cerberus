@@ -28,7 +28,7 @@ function AdminPage() {
           <Grid item xs={4}>
             <UsersPane />
           </Grid>
-          <Grid>
+          <Grid item xs={4}>
             <ACGPane />
           </Grid>
         </Grid>

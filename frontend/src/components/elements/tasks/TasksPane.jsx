@@ -13,7 +13,6 @@ import { entityTypes, eventTypes } from "../../../common/web-sockets";
 import conf from "../../../common/config/properties";
 import { EMPTY_TASK } from '../../../common/utils';
 
-// FIXME Basically every dialogue breaks on first opening - I think the selected-items aren't being populated or pulled through correctly
 function TasksPane() {
   const [showSent, setShowSent] = useState(false);
   const [dialogueOpen, setDialogueOpen] = useState(false);

@@ -116,7 +116,6 @@ const ImplantACGDialogue = ({open, onClose, onSubmit}) => {
     setACGs(updated);
   }
   // FIXME the select-input-label in a slightly iffy place
-  // FIXME the ACGs don't load until go into admin page - move that to the implant-pane load?
   const handleChooseOpGroup = (event) => {
     const {name, value} = event.target;
     let updated = {

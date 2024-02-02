@@ -1,4 +1,4 @@
-import { Button, List, Typography } from '@mui/material';
+import { Box, Button, List, Typography } from '@mui/material';
 import Container from '@mui/material/Container';
 import { useEffect, useState } from 'react';
 import ACGItem from './ACGItem';
@@ -115,11 +115,12 @@ function ACGPane() {
     });
   }
 
-  // FIXME The title gets pushed up into the header, by the create-button
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Access Control Groups</Typography>
-      <Button variant='contained' onClick={handleFormOpen}>Create Access Control Group</Button>
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <Button variant='contained' onClick={handleFormOpen}>Create Access Control Group</Button>
+      </Box>
       <List>
         {acgsItems}
       </List>
