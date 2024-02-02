@@ -107,7 +107,6 @@ function TaskTypesPane() {
     });
   }
 
-  // TODO Swap to using the externalised confirmation dialogue
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Task Types</Typography>

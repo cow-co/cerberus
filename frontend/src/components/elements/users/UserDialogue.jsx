@@ -9,13 +9,14 @@ import { setGroups } from '../../../common/redux/groups-slice';
 import { getGroups } from "../../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
+import { EMPTY_USER } from '../../../common/utils';
 
 const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
   const groups = useSelector((state) => {
     return state.groups.groups
   });
   const dispatch = useDispatch();
-  const [user, setUser] = useState({id: "", name: "", acgs: []});
+  const [user, setUser] = useState(EMPTY_USER);
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
@@ -84,6 +85,7 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     let updated = {
       id: user.id,
       name: user.name,
+      isAdmin: user.isAdmin,
       acgs: user.acgs,
     };
     updated.acgs.push({internalId: uuidv4(), _id: "", name: ""});
@@ -150,7 +152,11 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     </ListItem>
   ));
 
-  // TODO The admin button should change between "set" and "unset" depending on if the user is an admin
+  // We don't want admins to be able to unset other admins, since that could be open to abuse by bad actors
+  // TODO Should also prevent deletion of admin users via the UI/REST API. Make it require DB change - 
+  //  that way it could be controlled by a business process (DBA should be different than the app admins)
+  const adminButton = user.isAdmin ? null : (<Button onClick={handleSubmitAdminStatus}>Set User as Admin</Button>);
+
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Update User {user.name}</DialogTitle>
@@ -161,7 +167,7 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
         </List>
         <Button onClick={handleAddGroup}>Add Group</Button>
         <Button onClick={handleDeleteUser}>Delete User</Button>
-        <Button onClick={handleSubmitAdminStatus}>Set User as Admin</Button>
+        {adminButton}
         <Button onClick={handleSubmit}>Save Changes</Button>
       </FormControl>
     </Dialog>
