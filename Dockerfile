@@ -24,6 +24,7 @@ COPY frontend/ .
 #COPY powershellcert.pfx .
 
 WORKDIR /opt/cerberus/frontend
+RUN ls -R
 RUN npm run build
 RUN mv build ../backend/
 WORKDIR /opt/cerberus/backend

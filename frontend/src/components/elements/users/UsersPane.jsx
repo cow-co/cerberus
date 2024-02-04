@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Button, TextField, Typography, FormGroup, Container } from '@mui/material';
-import { deleteUser, findUserByName } from '../../../common/apiCalls';
+import { findUserByName } from '../../../common/apiCalls';
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import UserDialogue from './UserDialogue';
 import { EMPTY_USER } from '../../../common/utils';
