@@ -73,14 +73,14 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
   }, [lastJsonMessage]);
 
   const handleSubmitAdminStatus = async () => {
-    const { errors } = await changeAdminStatus(user.id, !user.isAdmin); // TODO Pull the new admin status as !user.isAdmin
-    if (errors.length > 0) {
-      createErrorAlert(errors);
-      setUser(EMPTY_USER);
-    } else {
-      createSuccessAlert("Successfully changed user admin status");
-      setUser(EMPTY_USER);
-    }
+    // const { errors } = await changeAdminStatus(user.id, !user.isAdmin); // TODO Pull the new admin status as !user.isAdmin
+    // if (errors.length > 0) {
+    //   createErrorAlert(errors);
+    //   setUser(EMPTY_USER);
+    // } else {
+    //   createSuccessAlert("Successfully changed user admin status");
+    //   setUser(EMPTY_USER);
+    // }
   }
 
   const handleAddGroup = () => {
