@@ -5,14 +5,12 @@ import { useState } from 'react';
 import { Button, TextField, Typography, FormGroup, Container } from '@mui/material';
 import { deleteUser, findUserByName } from '../../../common/apiCalls';
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
-import ConfirmationDialogue from '../common/ConfirmationDialogue';
 import UserDialogue from './UserDialogue';
 import { EMPTY_USER } from '../../../common/utils';
 
 const UsersPane = () => {
-  const [user, setUser] = useState(EMPTY_USER);
+  const [user, setUser] = useState(EMPTY_USER); // TODO Set the redux-state selectedUser to manage all the stuffs instead of this local state
   const [searchError, setSearchError] = useState(false);
-  const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [userEditOpen, setUserEditOpen] = useState(false);
   const [helpText, setHelpText] = useState("");
 
@@ -48,9 +46,8 @@ const UsersPane = () => {
       setSearchError(true);
       setHelpText("Could not find user");
     }
-  }  
-
-  // TODO Swap to using the externalised confirmation dialogue
+  }
+  
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Manage Users</Typography>
@@ -61,7 +58,6 @@ const UsersPane = () => {
         <Button onClick={() => setUserEditOpen(true)} disabled={user.id === ""}>Edit User</Button>
       </FormGroup>
       <UserDialogue open={userEditOpen} onClose={() => setUserEditOpen(false)} onSubmit={() => alert("PLACEHOLDER")} providedUser={user} />
-      <ConfirmationDialogue open={confirmationOpen} onClose={() => setConfirmationOpen(false)} onOK={handleSubmitDelete} />
     </Container>
   );
 }

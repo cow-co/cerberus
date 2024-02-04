@@ -21,7 +21,7 @@ COPY frontend/ .
 #############################
 # REPLACE WITH YOUR OWN CERT
 #############################
-COPY powershellcert.pfx .
+#COPY powershellcert.pfx .
 
 WORKDIR /opt/cerberus/frontend
 RUN npm run build

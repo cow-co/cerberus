@@ -6,10 +6,11 @@ import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
 import conf from "../../../common/config/properties";
 import { setGroups } from '../../../common/redux/groups-slice';
-import { getGroups } from "../../../common/apiCalls"
+import { deleteUser, getGroups } from "../../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 import { EMPTY_USER } from '../../../common/utils';
+import { setSelectedUser } from '../../../common/redux/users-slice';
 
 const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
   const groups = useSelector((state) => {
@@ -45,6 +46,7 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     setUser({
       id: providedUser.id,
       name: providedUser.name,
+      isAdmin: providedUser.isAdmin,
       acgs: userAcgs
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,14 +73,14 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
   }, [lastJsonMessage]);
 
   const handleSubmitAdminStatus = async () => {
-    //const { errors } = await changeAdminStatus(user.id, makeAdmin); // TODO Pull the new admin status as !user.isAdmin
-    // if (errors.length > 0) {
-    //   createErrorAlert(errors);
-    //   setUser({id: "", name: ""});
-    // } else {
-    //   createSuccessAlert("Successfully changed user admin status");
-    //   setUser({id: "", name: ""});
-    // }
+    const { errors } = await changeAdminStatus(user.id, !user.isAdmin); // TODO Pull the new admin status as !user.isAdmin
+    if (errors.length > 0) {
+      createErrorAlert(errors);
+      setUser(EMPTY_USER);
+    } else {
+      createSuccessAlert("Successfully changed user admin status");
+      setUser(EMPTY_USER);
+    }
   }
 
   const handleAddGroup = () => {
@@ -127,9 +129,24 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     onSubmit(user);
   }
 
-  // TODO Open confirmation dialogue, etc
-  const handleDeleteUser = () => {
-    onClose();
+  const handleDelete = async () => {
+    const { errors } = await deleteUser();
+
+    if (errors.length > 0) {
+      createErrorAlert(errors);
+    } else {
+      await loadTaskTypes();
+      createSuccessAlert("Successfully deleted user");
+    }
+    dispatch(setSelectedTaskType(EMPTY_USER));
+    dispatch(setOpen(false));
+  }
+
+  const handleConfirmOpen = (user) => {
+    dispatch(setSelectedUser(user));  
+    dispatch(setMessage(`Delete User ${user.name}?`));
+    dispatch(setSubmitAction(handleDelete));
+    dispatch(setOpen(true));
   }
 
   const groupSelects = groups.map(group => {
@@ -152,10 +169,9 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     </ListItem>
   ));
 
-  // We don't want admins to be able to unset other admins, since that could be open to abuse by bad actors
-  // TODO Should also prevent deletion of admin users via the UI/REST API. Make it require DB change - 
-  //  that way it could be controlled by a business process (DBA should be different than the app admins)
-  const adminButton = user.isAdmin ? null : (<Button onClick={handleSubmitAdminStatus}>Set User as Admin</Button>);
+  const adminButton = user.isAdmin 
+    ? (<Button onClick={handleSubmitAdminStatus}>Unset User as Admin</Button>) 
+    : (<Button onClick={handleSubmitAdminStatus}>Set User as Admin</Button>);
 
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
@@ -166,7 +182,7 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
           {groupsSettings}
         </List>
         <Button onClick={handleAddGroup}>Add Group</Button>
-        <Button onClick={handleDeleteUser}>Delete User</Button>
+        <Button onClick={() => handleConfirmOpen(user)}>Delete User</Button>
         {adminButton}
         <Button onClick={handleSubmit}>Save Changes</Button>
       </FormControl>
