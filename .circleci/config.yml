@@ -39,7 +39,7 @@ jobs:
           command: |
             TAG=2.0.0.$CIRCLE_BUILD_NUM
             ls
-            docker build -t cerberus:$TAG ./Dockerfile
+            docker build -t cerberus:$TAG .
 workflows:
   test_and_build:
     jobs:
