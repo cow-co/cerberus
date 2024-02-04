@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FormControl, MenuItem, Select, Dialog, DialogTitle, Button, ListItem, Grid, IconButton, List, Typography, InputLabel } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
-import { createErrorAlert } from '../../../common/redux/dispatchers';
+import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
 import conf from "../../../common/config/properties";
@@ -9,6 +9,7 @@ import { setGroups } from '../../../common/redux/groups-slice';
 import { deleteUser, getGroups } from "../../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
+import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/confirmation-slice";
 import { EMPTY_USER } from '../../../common/utils';
 import { setSelectedUser } from '../../../common/redux/users-slice';
 
@@ -135,10 +136,10 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     if (errors.length > 0) {
       createErrorAlert(errors);
     } else {
-      await loadTaskTypes();
       createSuccessAlert("Successfully deleted user");
     }
-    dispatch(setSelectedTaskType(EMPTY_USER));
+    setUser(EMPTY_USER);
+    dispatch(setSelectedUser(EMPTY_USER));  
     dispatch(setOpen(false));
   }
 

@@ -18,19 +18,6 @@ const UsersPane = () => {
     setUser({name: event.target.value});
   }
 
-  const handleSubmitDelete = async () => {
-    const { errors } = await deleteUser(user.id);
-    if (errors.length > 0) {
-      createErrorAlert(errors);
-      setHelpText("Could not delete user");
-      setUser(EMPTY_USER);
-    } else {
-      createSuccessAlert("Successfully deleted user");
-      setHelpText("User deleted");
-      setUser(EMPTY_USER);
-    }
-  }
-
   const handleSearch = async () => {
     const response = await findUserByName(user.name);
     if (response.errors.length > 0) {
