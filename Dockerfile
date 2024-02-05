@@ -20,7 +20,7 @@ RUN npm run build
 #COPY powershellcert.pfx .
 
 WORKDIR /opt/cerberus/frontend
-RUN ls -R
+RUN ls -laR /opt/cerberus/
 RUN mv build ../backend/
 WORKDIR /opt/cerberus/backend
 RUN rm -rf /opt/cerberus/frontend
