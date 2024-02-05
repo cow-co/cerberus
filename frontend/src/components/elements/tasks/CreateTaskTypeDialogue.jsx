@@ -107,7 +107,7 @@ const CreateTaskTypeDialogue = (props) => {
   const paramsSettings = taskType.params.map((param) => (
     <ListItem className="listElement" key={param.id} >
       <Grid item xs={7}>
-        <TextField fullWidth className='text-input' variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamNameUpdate} />
+        <TextField fullWidth className='text-input' label="Param Name" variant="outlined" key={param.id} id={param.id} value={param.name} onChange={handleParamNameUpdate} />
       </Grid>
       <Grid item xs={4}>
         <FormControl sx={{ m: 1, minWidth: 120 }}>
@@ -123,12 +123,11 @@ const CreateTaskTypeDialogue = (props) => {
     </ListItem>
   ));
 
-  // TODO The name input should have a label/placeholder
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Create New Task Type</DialogTitle>
       <FormControl fullWidth>
-        <TextField className='text-input' variant="outlined" id="name-input" value={taskType.name} onChange={handleNameUpdate} />
+        <TextField className='text-input' label="Task Type Name" variant="outlined" id="name-input" value={taskType.name} onChange={handleNameUpdate} />
         <Typography variant="h6">Parameters</Typography>
         <List>
           {paramsSettings}

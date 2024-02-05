@@ -29,7 +29,6 @@ const TaskDialogue = ({open, onClose, onSubmit}) => {
   });
 
   useEffect(() => {
-    // TODO Use the loadTaskTypes() function from dispatchers
     const getData = async () => {
       const types = await fetchTaskTypes();
       if (types.errors.length === 0) {

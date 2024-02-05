@@ -26,5 +26,14 @@ const EMPTY_TASK = {
   taskType: { id: "", name: "" },
   params: [],
 };
+const EMPTY_TASK_TYPE = { _id: "", name: "", params: [] };
+const EMPTY_USER = { id: "", name: "", isAdmin: false, acgs: [] };
 
-export { generateAlert, isLoggedIn, EMPTY_IMPLANT, EMPTY_TASK };
+export {
+  generateAlert,
+  isLoggedIn,
+  EMPTY_IMPLANT,
+  EMPTY_TASK,
+  EMPTY_TASK_TYPE,
+  EMPTY_USER,
+};
