@@ -28,18 +28,6 @@ jobs:
       - run:
           command: mv frontend/build/ backend/
           name: Move built files to backend dir
-  build_docker_image:
-    docker:
-      - image: cimg/base:2024.01
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Build docker image
-          command: |
-            TAG=2.0.0.$CIRCLE_BUILD_NUM
-            ls
-            docker build --progress=plain -t cerberus:$TAG .
 workflows:
   test_and_build:
     jobs:
@@ -47,9 +35,3 @@ workflows:
       - build_frontend:
           requires:
             - test_backend
-  build_image:
-    jobs:
-      - build_docker_image:
-          filters:
-            branches:
-              only: feature/containerise
