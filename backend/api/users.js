@@ -34,9 +34,11 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
       );
 
       if (permitted) {
+        const isAdmin = await adminService.isUserAdmin(result.id);
         response.user = {
           id: result.id,
           name: result.name,
+          isAdmin,
         };
       } else {
         response.errors.push("Not permitted");

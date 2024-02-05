@@ -152,7 +152,6 @@ function TasksPane() {
     createButton = <Button variant='contained' onClick={handleFormOpen}>Create Task</Button>;
   }
 
-  // TODO disable the create-tasks button entirely if user not in the operator groups
   return (
     <Container fixed>
       <Typography align="center" variant="h3">Tasks for {selectedImplant.id}</Typography>
