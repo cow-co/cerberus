@@ -1,0 +1,10 @@
+.git
+.gitignore
+backend/node_modules/
+frontend/node_modules/
+docs/
+.circleci/
+.vscode/
+codecov.yaml
+README.md
+SECURITY.md
