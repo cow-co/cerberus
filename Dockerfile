@@ -7,7 +7,6 @@ WORKDIR /opt/cerberus/backend
 RUN npm install
 WORKDIR /opt/cerberus/frontend
 RUN npm install
-RUN ls -R
 RUN npm run build
 
 #############################
@@ -21,6 +20,7 @@ RUN npm run build
 #COPY powershellcert.pfx .
 
 WORKDIR /opt/cerberus/frontend
+RUN ls -R
 RUN mv build ../backend/
 WORKDIR /opt/cerberus/backend
 RUN rm -rf /opt/cerberus/frontend
