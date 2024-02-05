@@ -7,6 +7,7 @@ WORKDIR /opt/cerberus/backend
 RUN npm install
 WORKDIR /opt/cerberus/frontend
 RUN npm install
+RUN npm run build
 
 #############################
 # SET ENV VARIABLES HERE
