@@ -7,6 +7,7 @@ WORKDIR /opt/cerberus/backend
 RUN npm install
 WORKDIR /opt/cerberus/frontend
 RUN npm install
+RUN ls -R
 RUN npm run build
 
 #############################
