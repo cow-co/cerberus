@@ -88,7 +88,6 @@ function ACGPane() {
       handleFormClose();
       createSuccessAlert("Successfully created ACG");
     }
-    // TODO Also load groups
   }
 
   const handleDelete = async () => {
