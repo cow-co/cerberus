@@ -7,6 +7,7 @@ export const tasksSlice = createSlice({
   initialState: {
     taskTypes: [],
     selected: EMPTY_TASK,
+    selectedType: { _id: "", name: "", params: [] },
   },
   reducers: {
     setTaskTypes: (state, action) => {
@@ -15,8 +16,12 @@ export const tasksSlice = createSlice({
     setSelectedTask: (state, action) => {
       state.selected = action.payload;
     },
+    setSelectedTaskType: (state, action) => {
+      state.selectedType = action.payload;
+    },
   },
 });
 
-export const { setTaskTypes, setSelectedTask } = tasksSlice.actions;
+export const { setTaskTypes, setSelectedTask, setSelectedTaskType } =
+  tasksSlice.actions;
 export default tasksSlice.reducer;
