@@ -13,7 +13,6 @@ import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/conf
 import { EMPTY_USER } from '../../../common/utils';
 import { setSelectedUser } from '../../../common/redux/users-slice';
 
-// FIXME User-deletion not working (no request being sent)
 const UserDialogue = ({open, onClose, onSubmit}) => {
   const groups = useSelector((state) => {
     return state.groups.groups

@@ -14,7 +14,7 @@ const UsersPane = () => {
   const selectedUser = useSelector((state) => {
     return state.users.selectedUser;
   });
-  const [user, setUser] = useState(EMPTY_USER); // TODO Set the redux-state selectedUser to manage all the stuffs instead of this local state
+  const [user, setUser] = useState(EMPTY_USER);
   const [searchError, setSearchError] = useState(false);
   const [userEditOpen, setUserEditOpen] = useState(false);
   const [helpText, setHelpText] = useState("");

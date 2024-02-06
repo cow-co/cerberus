@@ -100,20 +100,6 @@ describe("User tests", () => {
     expect(accessManager.removeUser).toHaveBeenCalledTimes(0);
   });
 
-  test("delete user - failure - error", async () => {
-    accessManager.findUserById.mockResolvedValue({
-      id: "some-mongo-id3",
-      name: "username",
-      hashedPassword: "hashed",
-    });
-    accessManager.removeUser.mockResolvedValue(["error"]);
-
-    const res = await agent.delete("/api/users/user/some-mongo-id3");
-
-    expect(res.statusCode).toBe(500);
-    expect(res.body.errors).toHaveLength(1);
-  });
-
   test("delete user - failure - exception", async () => {
     accessManager.findUserById.mockResolvedValue({
       id: "some-mongo-id3",

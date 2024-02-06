@@ -530,7 +530,6 @@ const isUserAuthorisedForOperationOnUser = async (userId, targetUserId) => {
   return userId === targetUserId;
 };
 
-// TODO Neaten up the signature here
 const authZCheck = async (
   operation,
   targetEntity,

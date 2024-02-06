@@ -1,7 +1,6 @@
 import conf from "./config/properties";
 import store from "./redux/store";
 
-// TODO if receiving a 401, should wipe the login data from redux, and show an alert to request login
 // TODO JSDocs for these
 
 const getToken = () => {
