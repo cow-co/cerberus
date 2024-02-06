@@ -53,19 +53,26 @@ const RegisterDialogue = (props) => {
     setConfirmPassword(event.target.value);
   }
 
-  const pkiExplainer = secConf.pkiEnabled ? <DialogContent><DialogContentText>Since client certificates are enabled, your username is pulled automatically, so just click "Submit".</DialogContentText></DialogContent> : null;
-
-  return (
-    <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
-      <DialogTitle>Register</DialogTitle>
-      {pkiExplainer}
-      <FormControl fullWidth>
+  const pkiExplainer = secConf.pkiEnabled 
+    ? <DialogContent>
+        <DialogContentText>
+          Since client certificates are enabled, your username is pulled automatically, so just click "Submit".
+        </DialogContentText>
+      </DialogContent>
+    : null;
+  
+  const form = secConf.pkiEnabled
+    ? null
+    : <FormControl fullWidth>
         <TextField className='text-input' label="Username" variant="outlined" value={username} onChange={handleUsernameUpdate} disabled={secConf.pkiEnabled} />
         <TextField type="password" className='text-input' label="Password" variant="outlined" value={password} onChange={handlePasswordUpdate} disabled={secConf.pkiEnabled} />
         <TextField type="password" className='text-input' label="Confirm Password" variant="outlined" value={confirmPassword} error={error !== ""} helperText={error} onChange={handleConfirmPasswordUpdate} disabled={secConf.pkiEnabled} />
         <Button onClick={handleSubmit} disabled={error !== ""}>Submit</Button>
-      </FormControl>
-      <DialogContent>
+      </FormControl>;
+  
+  const pwReqsExplainer = secConf.pkiEnabled
+    ? null
+    : <DialogContent>
         <DialogContentText>
           Password Requirements:
         </DialogContentText>        
@@ -74,7 +81,14 @@ const RegisterDialogue = (props) => {
             {JSON.stringify(secConf.passwordReqs)}
           </pre>
         </DialogContentText>
-      </DialogContent>
+      </DialogContent>;
+
+  return (
+    <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
+      <DialogTitle>Register</DialogTitle>
+      {pkiExplainer}
+      {form}
+      {pwReqsExplainer}
     </Dialog>
   );
 }
