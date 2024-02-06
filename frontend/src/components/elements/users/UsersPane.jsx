@@ -5,14 +5,20 @@ import { useState } from 'react';
 import { Button, TextField, Typography, FormGroup, Container } from '@mui/material';
 import { findUserByName } from '../../../common/apiCalls';
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
+import { useSelector, useDispatch } from "react-redux";
+import { setSelectedUser } from '../../../common/redux/users-slice';
 import UserDialogue from './UserDialogue';
 import { EMPTY_USER } from '../../../common/utils';
 
 const UsersPane = () => {
+  const selectedUser = useSelector((state) => {
+    return state.users.selectedUser;
+  });
   const [user, setUser] = useState(EMPTY_USER); // TODO Set the redux-state selectedUser to manage all the stuffs instead of this local state
   const [searchError, setSearchError] = useState(false);
   const [userEditOpen, setUserEditOpen] = useState(false);
   const [helpText, setHelpText] = useState("");
+  const dispatch = useDispatch();
 
   const handleChange = (event) => {
     setUser({name: event.target.value});
@@ -24,14 +30,16 @@ const UsersPane = () => {
       createErrorAlert(response.errors);
       setSearchError(true);
       setHelpText("Could not find user");
+      dispatch(setSelectedUser(EMPTY_USER));
     } else if (response.user.id) {
       createSuccessAlert("Successfully found");
-      setUser({id: response.user.id, name: response.user.name, acgs: response.user.acgs});
+      dispatch(setSelectedUser({id: response.user.id, name: response.user.name, acgs: response.user.acgs, isAdmin: response.user.isAdmin}));
       setSearchError(false);
       setHelpText("Found User");
     } else {
       setSearchError(true);
       setHelpText("Could not find user");
+      dispatch(setSelectedUser(EMPTY_USER));
     }
   }
   
@@ -40,11 +48,11 @@ const UsersPane = () => {
       <Typography align="center" variant="h3">Manage Users</Typography>
       <FormGroup>
         <TextField className="text-input" variant="outlined" value={user.name} label="User to find" type="search" onChange={handleChange} error={searchError} helperText={helpText} />
-        <Typography variant="body1">Selected User ID: {user.id}</Typography>
+        <Typography variant="body1">Selected User ID: {selectedUser.id}</Typography>
         <Button onClick={handleSearch}>Search</Button>
-        <Button onClick={() => setUserEditOpen(true)} disabled={user.id === ""}>Edit User</Button>
+        <Button onClick={() => setUserEditOpen(true)} disabled={selectedUser.id === ""}>Edit User</Button>
       </FormGroup>
-      <UserDialogue open={userEditOpen} onClose={() => setUserEditOpen(false)} onSubmit={() => alert("PLACEHOLDER")} providedUser={user} />
+      <UserDialogue open={userEditOpen} onClose={() => setUserEditOpen(false)} onSubmit={() => alert("PLACEHOLDER")} />
     </Container>
   );
 }

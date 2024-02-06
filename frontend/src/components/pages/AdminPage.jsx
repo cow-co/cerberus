@@ -7,6 +7,7 @@ import { Box, Grid } from '@mui/material';
 import UsersPane from "../elements/users/UsersPane";
 import ACGPane from "../elements/acg/ACGPane";
 import HeaderBar from "../elements/common/HeaderBar";
+import ConfirmationDialogue from "../elements/common/ConfirmationDialogue";
 
 function AdminPage() {
   const [loginOpen, setLoginOpen] = useState(false);
@@ -34,6 +35,7 @@ function AdminPage() {
         </Grid>
       </Box>
       <AlertsBar />
+      <ConfirmationDialogue />
     </>
   )
 }

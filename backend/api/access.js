@@ -51,7 +51,6 @@ router.post("/register", async (req, res) => {
   res.status(responseStatus).json(response);
 });
 
-// TODO Make a security config for whether multiple simultaneous logins are permitted for a given user
 /**
  * Expects request body to contain:
  * - username {String}
@@ -74,7 +73,6 @@ router.post("/login", accessManager.authenticate, (req, res) => {
   });
 });
 
-// TODO Logging out of one sesh logs out of all seshes. Fix as part of the "configure to allow multiple logins" feature
 router.delete("/logout", accessManager.verifyToken, async (req, res) => {
   log(
     "DELETE /access/logout",

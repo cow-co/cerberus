@@ -6,7 +6,6 @@ const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
 // FIXME Make-admin broken
-// TODO Allow admin to add user to group
 
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   const username = req.paramString("username");
@@ -39,6 +38,7 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
           id: result.id,
           name: result.name,
           isAdmin,
+          acgs: result.acgs,
         };
       } else {
         response.errors.push("Not permitted");
@@ -86,11 +86,7 @@ router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
     );
 
     if (permitted) {
-      const errors = await accessManager.removeUser(userId);
-      if (errors.length > 0) {
-        response.errors = errors;
-        status = statusCodes.INTERNAL_SERVER_ERROR;
-      }
+      await accessManager.removeUser(userId);
     } else {
       status = statusCodes.FORBIDDEN;
       response.errors.push("Not permitted");

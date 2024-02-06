@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { FormControl, MenuItem, Select, Dialog, DialogTitle, Button, ListItem, Grid, IconButton, List, Typography, InputLabel } from '@mui/material';
 import { useSelector, useDispatch } from "react-redux";
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
@@ -6,19 +6,22 @@ import useWebSocket from 'react-use-websocket';
 import { entityTypes, eventTypes } from "../../../common/web-sockets";
 import conf from "../../../common/config/properties";
 import { setGroups } from '../../../common/redux/groups-slice';
-import { deleteUser, getGroups } from "../../../common/apiCalls"
+import { deleteUser, getGroups, changeAdminStatus } from "../../../common/apiCalls"
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { v4 as uuidv4 } from "uuid";
 import { setMessage, setOpen, setSubmitAction } from "../../../common/redux/confirmation-slice";
 import { EMPTY_USER } from '../../../common/utils';
 import { setSelectedUser } from '../../../common/redux/users-slice';
 
-const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
+// FIXME User-deletion not working (no request being sent)
+const UserDialogue = ({open, onClose, onSubmit}) => {
   const groups = useSelector((state) => {
     return state.groups.groups
   });
+  const selectedUser = useSelector((state) => {
+    return state.users.selectedUser;
+  });
   const dispatch = useDispatch();
-  const [user, setUser] = useState(EMPTY_USER);
 
   const { lastJsonMessage } = useWebSocket(conf.wsURL, {
     onOpen: () => {
@@ -43,13 +46,13 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
       }
     };
     getData();
-    const userAcgs = providedUser.acgs.map(acg => groups.find(group => group._id === acg));
-    setUser({
-      id: providedUser.id,
-      name: providedUser.name,
-      isAdmin: providedUser.isAdmin,
+    const userAcgs = selectedUser.acgs.map(acg => groups.find(group => group._id === acg));
+    dispatch(setSelectedUser({
+      id: selectedUser.id,
+      name: selectedUser.name,
+      isAdmin: selectedUser.isAdmin,
       acgs: userAcgs
-    });
+    }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,34 +77,36 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
   }, [lastJsonMessage]);
 
   const handleSubmitAdminStatus = async () => {
-    // const { errors } = await changeAdminStatus(user.id, !user.isAdmin); // TODO Pull the new admin status as !user.isAdmin
-    // if (errors.length > 0) {
-    //   createErrorAlert(errors);
-    //   setUser(EMPTY_USER);
-    // } else {
-    //   createSuccessAlert("Successfully changed user admin status");
-    //   setUser(EMPTY_USER);
-    // }
+    const { errors } = await changeAdminStatus(selectedUser.id, !selectedUser.isAdmin);
+    if (errors.length > 0) {
+      createErrorAlert(errors);
+      dispatch(setSelectedUser(EMPTY_USER));
+    } else {
+      createSuccessAlert("Successfully changed user admin status");
+      dispatch(setSelectedUser(EMPTY_USER));
+    }
+    onClose();
   }
 
   const handleAddGroup = () => {
     let updated = {
-      id: user.id,
-      name: user.name,
-      isAdmin: user.isAdmin,
-      acgs: user.acgs,
+      id: selectedUser.id,
+      name: selectedUser.name,
+      isAdmin: selectedUser.isAdmin,
+      acgs: selectedUser.acgs,
     };
     updated.acgs.push({internalId: uuidv4(), _id: "", name: ""});
-    setUser(updated);
+    dispatch(setSelectedUser(updated));
   }
   
   const handleChooseGroup = (event) => {
     const {name, value} = event.target;
 
     let updated = {
-      id: user.id,
-      name: user.name,
-      acgs: user.acgs,
+      id: selectedUser.id,
+      name: selectedUser.name,
+      acgs: selectedUser.acgs,
+      isAdmin: selectedUser.isAdmin
     };
     const selectedACG = groups.find(group => group.name === value);
     updated.acgs.forEach((acg) => {
@@ -110,24 +115,22 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
         acg.name = value;
       }
     });
-    setUser(updated);
+    dispatch(setSelectedUser(updated));
   }
 
   const deleteGroup = (id) => {
     let updated = {
-      id: user.id,
-      name: user.name,
-      acgs: user.acgs.filter(group => group.internalId !== id),
+      id: selectedUser.id,
+      name: selectedUser.name,
+      acgs: selectedUser.acgs.filter(group => group.internalId !== id),
+      isAdmin: selectedUser.isAdmin
     };
-    setUser(updated);
-  }
-
-  const handleClose = () => {
-    onClose();
+    dispatch(setSelectedUser(updated));
   }
 
   const handleSubmit = () => {
-    onSubmit(user);
+    onSubmit();
+    onClose();
   }
 
   const handleDelete = async () => {
@@ -138,23 +141,22 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     } else {
       createSuccessAlert("Successfully deleted user");
     }
-    setUser(EMPTY_USER);
     dispatch(setSelectedUser(EMPTY_USER));  
     dispatch(setOpen(false));
   }
 
-  const handleConfirmOpen = (user) => {
-    dispatch(setSelectedUser(user));  
-    dispatch(setMessage(`Delete User ${user.name}?`));
+  const handleConfirmOpen = () => { 
+    dispatch(setMessage(`Delete User ${selectedUser.name}?`));
     dispatch(setSubmitAction(handleDelete));
     dispatch(setOpen(true));
+    onClose();
   }
 
   const groupSelects = groups.map(group => {
     return <MenuItem value={group.name} key={group.internalId} id={group.internalId}>{group.name}</MenuItem>
   });
   
-  const groupsSettings = user.acgs.map((acg) => (
+  const groupsSettings = selectedUser.acgs.map((acg) => (
     <ListItem className="listElement" key={acg.internalId} >
       <Grid item xs={11}>
         <FormControl sx={{ m: 1, minWidth: 120 }}>
@@ -170,20 +172,20 @@ const UserDialogue = ({open, onClose, onSubmit, providedUser}) => {
     </ListItem>
   ));
 
-  const adminButton = user.isAdmin 
+  const adminButton = selectedUser.isAdmin 
     ? (<Button onClick={handleSubmitAdminStatus}>Unset User as Admin</Button>) 
     : (<Button onClick={handleSubmitAdminStatus}>Set User as Admin</Button>);
 
   return (
-    <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
-      <DialogTitle>Update User {user.name}</DialogTitle>
+    <Dialog className="form-dialog" onClose={onClose} open={open} fullWidth maxWidth="md">
+      <DialogTitle>Update User {selectedUser.name}</DialogTitle>
       <FormControl fullWidth>
         <Typography variant="h6">Groups</Typography>
         <List>
           {groupsSettings}
         </List>
         <Button onClick={handleAddGroup}>Add Group</Button>
-        <Button onClick={() => handleConfirmOpen(user)}>Delete User</Button>
+        <Button onClick={handleConfirmOpen}>Delete User</Button>
         {adminButton}
         <Button onClick={handleSubmit}>Save Changes</Button>
       </FormControl>
