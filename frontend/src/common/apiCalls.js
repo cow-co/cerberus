@@ -3,6 +3,20 @@ import store from "./redux/store";
 
 // TODO JSDocs for these
 
+const getSecurityConfig = async () => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/config`);
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
 const getToken = () => {
   let token = store.getState().users.token;
   if (!token) {
@@ -440,6 +454,7 @@ const editACGs = async (implantId, acgs) => {
 };
 
 export {
+  getSecurityConfig,
   fetchImplants,
   deleteImplant,
   fetchTasks,

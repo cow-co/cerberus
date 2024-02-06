@@ -1,15 +1,23 @@
-import { useState } from 'react';
-import { FormControl, Dialog, DialogTitle, Button, TextField } from '@mui/material';
-import { register } from "../../../common/apiCalls";
+import { useEffect, useState } from 'react';
+import { FormControl, Dialog, DialogTitle, Button, TextField, DialogContent, DialogContentText } from '@mui/material';
+import { getSecurityConfig, register } from "../../../common/apiCalls";
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 
-// TODO If PKI enabled (how will the frontend know this?) just have this be a simple button, and the backend pulls the username from the CN
 const RegisterDialogue = (props) => {
   const {onClose, open} = props;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [secConf, setSecConf] = useState({pkiEnabled: false, passwordReqs: null});
+
+  useEffect(() => {
+    async function getSecConf() {
+      const json = await getSecurityConfig();
+      setSecConf(json);
+    }
+    getSecConf();
+  }, []);
 
   const handleClose = () => {
     setUsername("");
@@ -45,15 +53,28 @@ const RegisterDialogue = (props) => {
     setConfirmPassword(event.target.value);
   }
 
+  const pkiExplainer = secConf.pkiEnabled ? <DialogContent><DialogContentText>Since client certificates are enabled, your username is pulled automatically, so just click "Submit".</DialogContentText></DialogContent> : null;
+
   return (
     <Dialog className="form-dialog" onClose={handleClose} open={open} fullWidth maxWidth="md">
       <DialogTitle>Register</DialogTitle>
+      {pkiExplainer}
       <FormControl fullWidth>
-        <TextField className='text-input' label="Username" variant="outlined" value={username} onChange={handleUsernameUpdate} />
-        <TextField type="password" className='text-input' label="Password" variant="outlined" value={password} onChange={handlePasswordUpdate} />
-        <TextField type="password" className='text-input' label="Confirm Password" variant="outlined" value={confirmPassword} error={error !== ""} helperText={error} onChange={handleConfirmPasswordUpdate} />
+        <TextField className='text-input' label="Username" variant="outlined" value={username} onChange={handleUsernameUpdate} disabled={secConf.pkiEnabled} />
+        <TextField type="password" className='text-input' label="Password" variant="outlined" value={password} onChange={handlePasswordUpdate} disabled={secConf.pkiEnabled} />
+        <TextField type="password" className='text-input' label="Confirm Password" variant="outlined" value={confirmPassword} error={error !== ""} helperText={error} onChange={handleConfirmPasswordUpdate} disabled={secConf.pkiEnabled} />
         <Button onClick={handleSubmit} disabled={error !== ""}>Submit</Button>
       </FormControl>
+      <DialogContent>
+        <DialogContentText>
+          Password Requirements:
+        </DialogContentText>        
+        <DialogContentText>
+          <pre>
+            {JSON.stringify(secConf.passwordReqs)}
+          </pre>
+        </DialogContentText>
+      </DialogContent>
     </Dialog>
   );
 }

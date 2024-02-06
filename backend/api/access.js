@@ -5,6 +5,7 @@ const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 const implantService = require("../db/services/implant-service");
+const securityConfig = require("../config/security-config");
 
 /**
  * Expects request body to contain:
@@ -374,6 +375,14 @@ router.delete("/acgs/:acgId", accessManager.verifyToken, async (req, res) => {
   }
 
   res.status(status).json(response);
+});
+
+router.get("/config", (req, res) => {
+  const response = {
+    pkiEnabled: securityConfig.usePKI,
+    passwordReqs: securityConfig.passwordRequirements,
+  };
+  res.status(statusCodes.OK).json(response);
 });
 
 module.exports = router;
