@@ -661,6 +661,22 @@ describe("Access Manager tests", () => {
     expect(response.errors).toHaveLength(0);
   });
 
+  test("register - failure - validation errors", async () => {
+    userService.findUserByName.mockResolvedValue(null);
+    userService.createUser.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "passId",
+      acgs: [],
+    });
+    validation.validatePassword.mockReturnValue(["TEST"]);
+
+    const response = await accessManager.register("user", "pass");
+
+    expect(response.userId).toBeNull();
+    expect(response.errors).toHaveLength(1);
+  });
+
   test("register - failure - user exists", async () => {
     userService.findUserByName.mockResolvedValue({
       _id: "id",
