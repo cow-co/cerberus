@@ -13,14 +13,18 @@ const securityConfig = require("../config/security-config");
  * - password {String}
  */
 router.post("/register", async (req, res) => {
-  log(
-    "POST /access/register",
-    `User registering with username ${req.body.username}`,
-    levels.DEBUG
-  );
-  const username = req.bodyString("username");
-  const password = req.bodyString("password");
-  const confirmPassword = req.bodyString("confirmPassword");
+  log("POST /access/register", `User registering`, levels.DEBUG);
+  let username = null;
+  let password = null;
+  let confirmPassword = null;
+
+  if (securityConfig.usePKI) {
+    username = accessManager.extractUserDetailsFromCert(req);
+  } else {
+    username = req.bodyString("username");
+    password = req.bodyString("password");
+    confirmPassword = req.bodyString("confirmPassword");
+  }
 
   let responseStatus = statusCodes.OK;
   let response = {

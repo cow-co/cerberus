@@ -237,9 +237,9 @@ const deleteTaskType = async () => {
 
 /**
  * Registers our user
- * @param {string} username
- * @param {string} password
- * @param {string} confirmPassword
+ * @param {string} username Not used by backend if PKI is enabled
+ * @param {string} password Not used by backend if PKI is enabled
+ * @param {string} confirmPassword Not used by backend if PKI is enabled
  * @returns The JSON from the response
  */
 const register = async (username, password, confirmPassword) => {
