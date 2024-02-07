@@ -175,7 +175,6 @@ router.get(
   }
 );
 
-// TODO Write tests
 router.post(
   "/user/:userId/groups",
   accessManager.verifyToken,

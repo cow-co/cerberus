@@ -191,6 +191,16 @@ describe("User tests", () => {
     expect(res.statusCode).toBe(200);
   });
 
+  test("update user's groups - failure - forbidden", async () => {
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent
+      .post("/api/users/user/id/groups")
+      .send({ groups: ["test"] });
+
+    expect(res.statusCode).toBe(403);
+  });
+
   test("update user's groups - failure - exception", async () => {
     accessManager.editUserGroups.mockRejectedValue(new TypeError("TEST"));
 
