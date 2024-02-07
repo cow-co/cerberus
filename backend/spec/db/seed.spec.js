@@ -20,11 +20,11 @@ describe("Seeding tests", () => {
     accessManager.findUserByName.mockResolvedValue({
       user: {
         id: "",
-        name: ""
+        name: "",
       },
       errors: [],
     });
-    accessManager.register.mockResolvedValue({
+    accessManager.registerUsernamePassword.mockResolvedValue({
       _id: "id",
       errors: [],
     });
@@ -32,7 +32,7 @@ describe("Seeding tests", () => {
     await seeding.seedInitialAdmin();
 
     expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
-    expect(accessManager.register).toHaveBeenCalledTimes(1);
+    expect(accessManager.registerUsernamePassword).toHaveBeenCalledTimes(1);
   });
 
   test("should seed admin - no admins, user exists", async () => {
@@ -48,7 +48,7 @@ describe("Seeding tests", () => {
     await seeding.seedInitialAdmin();
 
     expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(1);
-    expect(accessManager.register).toHaveBeenCalledTimes(0);
+    expect(accessManager.registerUsernamePassword).toHaveBeenCalledTimes(0);
   });
 
   test("should not seed admin - admin exists", async () => {
@@ -64,11 +64,11 @@ describe("Seeding tests", () => {
     accessManager.findUserByName.mockResolvedValue({
       user: {
         id: "",
-        name: ""
+        name: "",
       },
       errors: [],
     });
-    accessManager.register.mockResolvedValue({
+    accessManager.registerUsernamePassword.mockResolvedValue({
       _id: null,
       errors: ["error"],
     });

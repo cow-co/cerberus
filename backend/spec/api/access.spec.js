@@ -37,7 +37,7 @@ describe("Access tests", () => {
   });
 
   test("create user - success", async () => {
-    accessManager.register.mockResolvedValue({
+    accessManager.registerUsernamePassword.mockResolvedValue({
       _id: "some-mongo-id",
       errors: [],
     });
@@ -47,11 +47,11 @@ describe("Access tests", () => {
       .send({ username: "user", password: "abcdefghijklmnopqrstuvwxyZ11" });
 
     expect(res.statusCode).toBe(200);
-    expect(accessManager.register).toHaveBeenCalledTimes(1);
+    expect(accessManager.registerUsernamePassword).toHaveBeenCalledTimes(1);
   });
 
   test("create user - success - sanitisation applied to username", async () => {
-    accessManager.register.mockResolvedValue({
+    accessManager.registerUsernamePassword.mockResolvedValue({
       _id: "some-mongo-id",
       errors: [],
     });
@@ -60,15 +60,15 @@ describe("Access tests", () => {
       .post("/api/access/register")
       .send({ username: true, password: "abcdefghijklmnopqrstuvwxyZ11" });
 
-    const args = accessManager.register.mock.calls[0];
+    const args = accessManager.registerUsernamePassword.mock.calls[0];
     expect(res.statusCode).toBe(200);
-    expect(accessManager.register).toHaveBeenCalledTimes(1);
+    expect(accessManager.registerUsernamePassword).toHaveBeenCalledTimes(1);
     expect(args[0]).toBe("true");
     expect(typeof args[0]).toBe("string");
   });
 
   test("create user - success - sanitisation applied to password", async () => {
-    accessManager.register.mockResolvedValue({
+    accessManager.registerUsernamePassword.mockResolvedValue({
       _id: "some-mongo-id",
       errors: [],
     });
@@ -78,15 +78,15 @@ describe("Access tests", () => {
       password: 111,
     });
 
-    const args = accessManager.register.mock.calls[0];
+    const args = accessManager.registerUsernamePassword.mock.calls[0];
     expect(res.statusCode).toBe(200);
-    expect(accessManager.register).toHaveBeenCalledTimes(1);
+    expect(accessManager.registerUsernamePassword).toHaveBeenCalledTimes(1);
     expect(args[1]).toBe("111");
     expect(typeof args[1]).toBe("string");
   });
 
   test("create user - failure - error occurred", async () => {
-    accessManager.register.mockResolvedValue({
+    accessManager.registerUsernamePassword.mockResolvedValue({
       _id: null,
       errors: ["ERROR"],
     });
@@ -99,7 +99,9 @@ describe("Access tests", () => {
   });
 
   test("create user - failure - exception thrown", async () => {
-    accessManager.register.mockRejectedValue(new TypeError("TEST"));
+    accessManager.registerUsernamePassword.mockRejectedValue(
+      new TypeError("TEST")
+    );
 
     const res = await agent
       .post("/api/access/register")

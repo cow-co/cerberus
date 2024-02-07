@@ -655,7 +655,10 @@ describe("Access Manager tests", () => {
       acgs: [],
     });
 
-    const response = await accessManager.register("user", "pass");
+    const response = await accessManager.registerUsernamePassword(
+      "user",
+      "pass"
+    );
 
     expect(response.userId).toBe("id");
     expect(response.errors).toHaveLength(0);
@@ -671,7 +674,10 @@ describe("Access Manager tests", () => {
     });
     validation.validatePassword.mockReturnValue(["TEST"]);
 
-    const response = await accessManager.register("user", "pass");
+    const response = await accessManager.registerUsernamePassword(
+      "user",
+      "pass"
+    );
 
     expect(response.userId).toBeNull();
     expect(response.errors).toHaveLength(1);
@@ -685,7 +691,10 @@ describe("Access Manager tests", () => {
       acgs: [],
     });
 
-    const response = await accessManager.register("user", "pass");
+    const response = await accessManager.registerUsernamePassword(
+      "user",
+      "pass"
+    );
 
     expect(response.userId).toBeNull();
     expect(response.errors).toHaveLength(1);
