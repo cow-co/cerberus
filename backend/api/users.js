@@ -58,6 +58,66 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   res.status(status).json(response);
 });
 
+/**
+ * Updates the user's password
+ */
+router.post("/user/:id", accessManager.verifyToken, async (req, res) => {
+  const userId = req.paramString("id");
+  const newPassword = req.bodyString("password");
+  const newPasswordConfirmation = req.bodyString("confirmPassword");
+
+  log(
+    `POST /users/user/${userId}`,
+    `Changing password for user ${userId}`,
+    levels.INFO
+  );
+  let status = statusCodes.OK;
+  let response = {
+    errors: [],
+  };
+
+  const chosenUser = userId.trim();
+
+  try {
+    const result = await accessManager.findUserById(chosenUser);
+    if (result.id) {
+      const permitted = await accessManager.authZCheck(
+        accessManager.operationType.EDIT,
+        accessManager.targetEntityType.USER,
+        result.id,
+        accessManager.accessControlType.EDIT,
+        req.data.userId
+      );
+
+      if (permitted) {
+        response.errors = await accessManager.changePassword(
+          result.id,
+          newPassword,
+          newPasswordConfirmation
+        );
+        if (response.errors.length > 0) {
+          status = statusCodes.BAD_REQUEST;
+        }
+      } else {
+        log("POST /user/:id", "Not permitted", levels.SECURITY);
+        response.errors.push("Not permitted");
+        status = statusCodes.FORBIDDEN;
+      }
+    } else {
+      log("POST /user/:id", "Could not find user!", levels.WARN);
+      status = statusCodes.BAD_REQUEST;
+      response.errors = ["Could not find user!"];
+    }
+  } catch (err) {
+    log("POST /user/:id", err, levels.ERROR);
+    log("++++++++++++++++++++++++++++++++++++++++++++++++", err, levels.FATAL);
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response.errors = ["Internal Server Error"];
+  }
+
+  res.status(status).json(response);
+});
+
 router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
   const userId = req.paramString("userId");
   log(`DELETE /users/user/${userId}`, `Deleting user ${userId}`, levels.INFO);
