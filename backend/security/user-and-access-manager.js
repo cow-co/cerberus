@@ -619,6 +619,12 @@ const authZCheck = async (
   return permitted;
 };
 
+/**
+ * @param {string} userId
+ * @param {string} newPassword
+ * @param {string} confirmation
+ * @returns {string[]} Any validation errors
+ */
 const changePassword = async (userId, newPassword, confirmation) => {
   const validationErrors = validation.validatePassword(
     newPassword,

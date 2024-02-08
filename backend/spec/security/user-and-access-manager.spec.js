@@ -7,6 +7,7 @@ const acgService = require("../../db/services/acg-service");
 const validation = require("../../validation/security-validation");
 const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
+const HashedPassword = require("../../db/models/HashedPassword");
 let accessManager;
 
 jest.mock("../../db/services/admin-service");
@@ -14,6 +15,7 @@ jest.mock("../../db/services/implant-service");
 jest.mock("../../db/services/user-service");
 jest.mock("../../db/services/acg-service");
 jest.mock("../../validation/security-validation");
+jest.mock("../../db/models/HashedPassword");
 jest.mock("jsonwebtoken");
 jest.mock("argon2");
 
@@ -1180,5 +1182,32 @@ describe("Access Manager tests", () => {
 
     expect(errors).toHaveLength(0);
     expect(acgs).toHaveLength(2);
+  });
+
+  test("change password - success", async () => {
+    validation.validatePassword.mockReturnValue([]);
+    userService.findUserById.mockResolvedValue({
+      id: "id",
+      name: "name",
+      password: { hashedPassword: "hashed" },
+      save: async () => {},
+    });
+    argon2.hash.mockResolvedValue("hashydooey8282");
+    HashedPassword.create.mockResolvedValue({
+      _id: "id",
+      hashedPassword: "hashydooey8282",
+    });
+
+    const errors = await accessManager.changePassword("id", "pass", "pass");
+
+    expect(errors).toHaveLength(0);
+  });
+
+  test("change password - failure - validation error", async () => {
+    validation.validatePassword.mockReturnValue(["TEST"]);
+
+    const errors = await accessManager.changePassword("id", "pass", "pass");
+
+    expect(errors).toHaveLength(1);
   });
 });
