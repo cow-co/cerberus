@@ -43,7 +43,6 @@ const extractUserDetailsFromCert = (req) => {
     "Extracting user details from client certificate",
     levels.DEBUG
   );
-  // TODO When registering, pull these deets from the cert if PKI is enabled (rather than the user setting their own username)
   const clientCert = req.socket.getPeerCertificate();
   let username = null;
 
@@ -78,12 +77,16 @@ const checkCreds = async (username, password) => {
   if (username) {
     const user = await userService.getUserAndPasswordByUsername(username);
     if (user) {
-      if (!securityConfig.usePKI) {
+      // NOTE: We ensure the password exists if we're not using PKI -
+      //  this covers off a vulnerability that would exist if changing from PKI to non-PKI auth
+      //  (PKI auth does not give the user account a password, and therefore after turning off PKI
+      //  all those existing users would otherwise be able to log in without a password)
+      if (!securityConfig.usePKI && user.password.hashedPassword) {
         authenticated = await argon2.verify(
           user.password.hashedPassword,
           password
         );
-      } else {
+      } else if (securityConfig.usePKI) {
         authenticated = true;
       }
     }
@@ -255,16 +258,28 @@ const logout = async (userId) => {
   await userService.generateTokenValidityEntry(userId);
 };
 
+const register = async (username, password, confirmPassword) => {
+  if (securityConfig.usePKI) {
+    return registerPKI(username);
+  } else {
+    return registerUsernamePassword(username, password, confirmPassword);
+  }
+};
+
 /**
- * Creates a user - specifically for DB-backed user management.
- * In a proper environment we'd probably want email verification
+ * Creates a user
  * @param {string} username
  * @param {string} password
+ * @param {string} confirmPassword
  * @returns
  */
-const register = async (username, password, confirmPassword) => {
+const registerUsernamePassword = async (
+  username,
+  password,
+  confirmPassword
+) => {
   log(
-    "user-and-access-manager/register",
+    "user-and-access-manager/registerUsernamePassword",
     `Registering user ${username}`,
     levels.DEBUG
   );
@@ -293,7 +308,7 @@ const register = async (username, password, confirmPassword) => {
       response.userId = userRecord._id;
     } else {
       log(
-        "database-manager/register",
+        "database-manager/registerUsernamePassword",
         "Validation of username/password failed",
         levels.WARN
       );
@@ -301,7 +316,43 @@ const register = async (username, password, confirmPassword) => {
     }
   } else {
     log(
-      "user-and-access-manager/register",
+      "user-and-access-manager/registerUsernamePassword",
+      "A user already exists with that name",
+      levels.WARN
+    );
+
+    response.errors.push("A user already exists with that name");
+  }
+
+  return response;
+};
+
+/**
+ * Creates a user for PKI-backed authentication
+ * @param {string} username
+ * @returns
+ */
+const registerPKI = async (username) => {
+  log(
+    "user-and-access-manager/registerPKI",
+    `Registering user ${username}`,
+    levels.DEBUG
+  );
+
+  username = username.trim();
+  const user = await findUserByName(username);
+
+  let response = {
+    userId: null,
+    errors: [],
+  };
+
+  if (!user.id) {
+    const userRecord = await userService.createUser(username, null);
+    response.userId = userRecord._id;
+  } else {
+    log(
+      "user-and-access-manager/registerPKI",
       "A user already exists with that name",
       levels.WARN
     );
@@ -530,7 +581,6 @@ const isUserAuthorisedForOperationOnUser = async (userId, targetUserId) => {
   return userId === targetUserId;
 };
 
-// TODO Neaten up the signature here
 const authZCheck = async (
   operation,
   targetEntity,
@@ -570,6 +620,7 @@ module.exports = {
   operationType,
   targetEntityType,
   accessControlType,
+  extractUserDetailsFromCert,
   authenticate,
   verifyToken,
   logout,

@@ -32,7 +32,6 @@ function ACGPane() {
   });
 
   const refresh = async () => {
-    console.log("Refresh called")
     const json = await getGroups();
     if (json.errors.length === 0) {
       dispatch(setGroups(json.acgs));
@@ -46,7 +45,6 @@ function ACGPane() {
       await refresh();
     }
     callFetcher()
-    console.log("refreshed")
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

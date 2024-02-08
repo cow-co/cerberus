@@ -90,7 +90,6 @@ function TasksPane() {
   }
 
   const handleFormSubmit = async (data) => {
-    console.log(data)
     const response = await setTask(data);
 
     if (response.errors.length > 0) {

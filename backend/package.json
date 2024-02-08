@@ -1,6 +1,6 @@
 {
   "name": "cerberus-backend",
-  "version": "0.0.1",
+  "version": "2.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,14 +11,13 @@
   "author": "cow-co",
   "license": "ISC",
   "dependencies": {
-    "activedirectory": "^0.7.2",
     "argon2": "^0.31.2",
     "chalk": "^4.1.2",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^3.0.3",
-    "mongoose": "^8.0.4",
+    "mongoose": "^8.1.0",
     "sanitize": "^2.1.2",
     "swagger-themes": "^1.2.30",
     "swagger-ui-express": "^5.0.0",
