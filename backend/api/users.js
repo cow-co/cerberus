@@ -71,8 +71,6 @@ router.post("/user/:id", accessManager.verifyToken, async (req, res) => {
     `Changing password for user ${userId}`,
     levels.INFO
   );
-  console.log(newPassword);
-  console.log(newPasswordConfirmation);
   let status = statusCodes.OK;
   let response = {
     errors: [],
