@@ -61,25 +61,27 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 /**
  * Updates the user's password
  */
-router.post("/user/:username", accessManager.verifyToken, async (req, res) => {
-  const username = req.paramString("username");
+router.post("/user/:id", accessManager.verifyToken, async (req, res) => {
+  const userId = req.paramString("id");
   const newPassword = req.bodyString("password");
   const newPasswordConfirmation = req.bodyString("confirmPassword");
 
   log(
-    `POST /users/user/${username}`,
-    `Changing password for user ${username}`,
+    `POST /users/user/${userId}`,
+    `Changing password for user ${userId}`,
     levels.INFO
   );
+  console.log(newPassword);
+  console.log(newPasswordConfirmation);
   let status = statusCodes.OK;
   let response = {
     errors: [],
   };
 
-  const chosenUser = username.trim();
+  const chosenUser = userId.trim();
 
   try {
-    const result = await accessManager.findUserByName(chosenUser);
+    const result = await accessManager.findUserById(chosenUser);
     if (result.id) {
       const permitted = await accessManager.authZCheck(
         accessManager.operationType.EDIT,
@@ -90,18 +92,27 @@ router.post("/user/:username", accessManager.verifyToken, async (req, res) => {
       );
 
       if (permitted) {
-        await accessManager.changePassword(result.id, newPassword);
+        response.errors = await accessManager.changePassword(
+          result.id,
+          newPassword,
+          newPasswordConfirmation
+        );
+        if (response.errors.length > 0) {
+          status = statusCodes.BAD_REQUEST;
+        }
       } else {
+        log("POST /user/:id", "Not permitted", levels.SECURITY);
         response.errors.push("Not permitted");
         status = statusCodes.FORBIDDEN;
       }
     } else {
-      log("GET /user/:username", "Could not find user!", levels.WARN);
+      log("POST /user/:id", "Could not find user!", levels.WARN);
       status = statusCodes.BAD_REQUEST;
       response.errors = ["Could not find user!"];
     }
   } catch (err) {
-    log("GET /user/:username", err, levels.ERROR);
+    log("POST /user/:id", err, levels.ERROR);
+    log("++++++++++++++++++++++++++++++++++++++++++++++++", err, levels.FATAL);
     status = statusCodes.INTERNAL_SERVER_ERROR;
     response.errors = ["Internal Server Error"];
   }

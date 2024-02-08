@@ -619,16 +619,24 @@ const authZCheck = async (
   return permitted;
 };
 
-const changePassword = async (userId, newPassword) => {
-  const user = await findUserById(userId);
-  const hashed = argon2.hash(newPassword);
-  const newPasswordEntry = await HashedPassword.create({
-    hashedPassword: hashed,
-  });
-  const oldId = user.password;
-  user.password = newPasswordEntry._id;
-  await HashedPassword.findByIdAndDelete(oldId);
-  await user.save();
+const changePassword = async (userId, newPassword, confirmation) => {
+  const validationErrors = validation.validatePassword(
+    newPassword,
+    confirmation,
+    securityConfig.passwordRequirements
+  );
+  if (validationErrors.length === 0) {
+    const user = await findUserById(userId);
+    const hashed = await argon2.hash(newPassword);
+    const newPasswordEntry = await HashedPassword.create({
+      hashedPassword: hashed,
+    });
+    const oldId = user.password;
+    user.password = newPasswordEntry._id;
+    await HashedPassword.findByIdAndDelete(oldId);
+    await user.save();
+  }
+  return validationErrors;
 };
 
 module.exports = {
