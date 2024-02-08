@@ -139,7 +139,10 @@ describe("Access Manager tests", () => {
   test("authenticate - success - no PKI", async () => {
     userService.getUserAndPasswordByUsername.mockResolvedValue({
       name: "ksdah",
-      password: "hashed",
+      password: {
+        _id: "id",
+        hashedPassword: "hashed",
+      },
       acgs: [],
     });
     userService.findUserByName.mockResolvedValue({
@@ -180,7 +183,10 @@ describe("Access Manager tests", () => {
   test("authenticate - failure - empty username", async () => {
     userService.getUserAndPasswordByUsername.mockResolvedValue({
       name: "ksdah",
-      password: "hashed",
+      password: {
+        _id: "id",
+        hashedPassword: "hashed",
+      },
       acgs: [],
     });
     let res;
@@ -216,7 +222,10 @@ describe("Access Manager tests", () => {
   test("authenticate - failure - no username", async () => {
     userService.getUserAndPasswordByUsername.mockResolvedValue({
       name: "ksdah",
-      password: "hashed",
+      password: {
+        _id: "id",
+        hashedPassword: "hashed",
+      },
       acgs: [],
     });
     let res;
@@ -284,7 +293,10 @@ describe("Access Manager tests", () => {
     argon2.verify.mockResolvedValue(false);
     userService.getUserAndPasswordByUsername.mockResolvedValue({
       name: "ksdah",
-      password: "hashed",
+      password: {
+        _id: "id",
+        hashedPassword: "hashed",
+      },
       acgs: [],
     });
     userService.findUserByName.mockResolvedValue({
@@ -655,10 +667,7 @@ describe("Access Manager tests", () => {
       acgs: [],
     });
 
-    const response = await accessManager.registerUsernamePassword(
-      "user",
-      "pass"
-    );
+    const response = await accessManager.register("user", "pass", "pass");
 
     expect(response.userId).toBe("id");
     expect(response.errors).toHaveLength(0);
@@ -674,10 +683,7 @@ describe("Access Manager tests", () => {
     });
     validation.validatePassword.mockReturnValue(["TEST"]);
 
-    const response = await accessManager.registerUsernamePassword(
-      "user",
-      "pass"
-    );
+    const response = await accessManager.register("user", "pass", "notpass");
 
     expect(response.userId).toBeNull();
     expect(response.errors).toHaveLength(1);
@@ -691,10 +697,7 @@ describe("Access Manager tests", () => {
       acgs: [],
     });
 
-    const response = await accessManager.registerUsernamePassword(
-      "user",
-      "pass"
-    );
+    const response = await accessManager.register("user", "pass", "pass");
 
     expect(response.userId).toBeNull();
     expect(response.errors).toHaveLength(1);

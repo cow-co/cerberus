@@ -378,7 +378,6 @@ const changeAdminStatus = async (userId, makeAdmin) => {
  * @returns The JSON from the response
  */
 const deleteUser = async () => {
-  console.log(store.getState().users.selectedUser);
   let json = null;
   try {
     const response = await fetch(

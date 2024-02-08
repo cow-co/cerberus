@@ -258,6 +258,14 @@ const logout = async (userId) => {
   await userService.generateTokenValidityEntry(userId);
 };
 
+const register = async (username, password, confirmPassword) => {
+  if (securityConfig.usePKI) {
+    return registerPKI(username);
+  } else {
+    return registerUsernamePassword(username, password, confirmPassword);
+  }
+};
+
 /**
  * Creates a user
  * @param {string} username
@@ -616,8 +624,7 @@ module.exports = {
   authenticate,
   verifyToken,
   logout,
-  registerUsernamePassword,
-  registerPKI,
+  register,
   removeUser,
   findUserByName,
   findUserById,

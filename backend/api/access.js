@@ -31,9 +31,8 @@ router.post("/register", async (req, res) => {
     errors: [],
   };
 
-  // FIXME Needs to call the appropriate method for PKI/non-PKI
   try {
-    const result = await accessManager.registerUsernamePassword(
+    const result = await accessManager.register(
       username,
       password,
       confirmPassword
