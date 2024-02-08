@@ -2,8 +2,7 @@ openapi: 3.0.0
 info:
   title: CERBERUS API
   description: API definition for the CERBERUS implant-management API.
-  version: 2.0.0
-# TODO Bring this up to date
+  version: 2.1.0
 components:
   securitySchemes:
     jwt:
@@ -15,6 +14,14 @@ components:
         username:
           type: string
         password:
+          type: string
+    registerdetails:
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        confirmPassword:
           type: string
     implant:
       properties:
@@ -132,7 +139,7 @@ paths:
         content:
           application/json:
             schema: 
-              $ref: "#/components/schemas/logindetails"
+              $ref: "#/components/schemas/registerdetails"
       responses:
         "200":
           description: User registered successfully 
@@ -226,20 +233,13 @@ paths:
                     type: array
                     items:
                       type: string
-  /access/logout/{userId}:
+  /access/logout:
     delete: 
       summary: Logs the user out, by invalidating all bearer tokens they possess.
       security: []
       tags:
         - Users
         - Access
-      parameters:
-        - in: path
-          name: userId
-          schema:
-            type: string
-          required: true
-          description: Identifier of the user to delete.
       responses:
         "200":
           description: User logged out successfully 
@@ -326,6 +326,252 @@ paths:
                     type: array
                     items:
                       type: string
+  /implants/{implantId}/acgs:
+    post:
+      security:
+        - jwt: [Admin]
+      summary: Updates the ACG assignment for the given implant
+      tags:
+        - Implants
+        - Access
+      requestBody:
+        description: Details of the new ACG assignments 
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                readOnlyACGs: 
+                  type: array
+                  items:
+                    type: string
+                operatorACGs: 
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: ACG assignments successfully changed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403":
+          description: User not logged in or not an admin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /access/acgs:
+    get:
+      security:
+        - jwt: [Admin]
+      summary: Gets all the ACGs
+      tags:
+        - Access
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id: 
+                          type: string
+                        name: 
+                          type: string
+        "403":
+          description: User not logged in or not an admin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+    post:
+      security:
+        - jwt: [Admin]
+      summary: Creates a new ACG
+      tags:
+        - Access
+      requestBody:
+        description: Name of the new ACG 
+        content:
+          application/json:
+            schema: 
+              type: string
+      responses:
+        "200":
+          description: ACG successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403":
+          description: User not logged in or not an admin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /access/acgs/{acgId}:
+    delete:
+      security:
+        - jwt: [Admin]
+      summary: Deletes an ACG
+      tags:
+        - Access
+      parameters:
+        - in: path
+          name: acgId
+          schema:
+            type: string
+          required: true
+          description: Identifier of the ACG to delete.
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403":
+          description: User not logged in or not an admin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /access/config:
+    get:
+      summary: Gets the (non-sensitive!) security config
+      tags:
+        - Access
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pkiEnabled:
+                    type: boolean
+                  passwordReqs:
+                    type: object
+                    properties:
+                      requireUppercase:
+                        type: boolean
+                      requireLowercase:
+                        type: boolean
+                      requireNumber:
+                        type: boolean
+                      minLength:
+                        type: integer
+        "403":
+          description: User not logged in or not an admin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Exception thrown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+      
 # BEACONS
   /beacon: 
     post: 
@@ -1057,5 +1303,74 @@ paths:
                     type: array
                     items:
                       type: string
+    post:
+      security:
+        - jwt: [Admin]
+      summary: Changes a user's groups. Can only be executed by an admin
+      tags:
+        - Users
+        - Access
+      responses:
+        "200": # status code
+          description: The user's ACGs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: 
+                    type: array
+                    items:
+                      type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "401": # status code
+          description: User is not logged in.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: 
+                    type: array
+                    items:
+                      type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: Calling user is not permitted to change groups for the target user. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: 
+                    type: array
+                    items:
+                      type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups: 
+                    type: array
+                    items:
+                      type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
 
       
