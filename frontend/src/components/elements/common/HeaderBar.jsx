@@ -41,16 +41,19 @@ const HeaderBar = (props) => {
     }
   }
 
-  let loginoutButton = null;
+  let loginoutButton = <Button onClick={props.handleLoginFormOpen}>Log In</Button>;
   if (username) {
     loginoutButton = <Button onClick={handleLogout}>Log Out</Button>
-  } else {
-    loginoutButton = <Button onClick={props.handleLoginFormOpen}>Log In</Button>
   }
 
   let adminButton = null;
   if (isAdmin) {
     adminButton = <Button component={RouterLink} to={"/admin"}>Admin</Button>;
+  }
+
+  let registerButton = <Button onClick={props.handleRegisterFormOpen}>Register</Button>;
+  if (username) {
+    registerButton = <Button onClick={props.handleRegisterFormOpen}>Change Password</Button>
   }
 
   return (
@@ -61,7 +64,7 @@ const HeaderBar = (props) => {
                 Cerberus
             </Button>
           </Typography>
-          <Button onClick={props.handleRegisterFormOpen}>Register</Button>
+          {registerButton}
           {loginoutButton}
           {adminButton}
         </Toolbar>
