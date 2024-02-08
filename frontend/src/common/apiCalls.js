@@ -1,9 +1,29 @@
 import conf from "./config/properties";
 import store from "./redux/store";
 
-// TODO if receiving a 401, should wipe the login data from redux, and show an alert to request login
-// TODO JSDocs for these
+/**
+ * Gets the (non-sensitive) security configuration, including whether PKI is enabled,
+ * and what the password requirements are.
+ * @returns The JSON returned by the request
+ */
+const getSecurityConfig = async () => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}access/config`);
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
 
+/**
+ * Grabs the JWT from local memory
+ * @returns The JWT, if it exists in memory
+ */
 const getToken = () => {
   let token = store.getState().users.token;
   if (!token) {
@@ -12,6 +32,12 @@ const getToken = () => {
   return token;
 };
 
+/**
+ * Grab the list of tasks for the given implant
+ * @param {string} implantId The (implant-determined, *not* database) implant ID
+ * @param {boolean} showSent Should we include sent implants
+ * @returns
+ */
 const fetchTasks = async (implantId, showSent) => {
   let json = null;
   try {
@@ -36,6 +62,10 @@ const fetchTasks = async (implantId, showSent) => {
   return json;
 };
 
+/**
+ * Get the list of available task types
+ * @returns The JSON from the response
+ */
 const fetchTaskTypes = async () => {
   let json = null;
   try {
@@ -54,6 +84,10 @@ const fetchTaskTypes = async () => {
   return json;
 };
 
+/**
+ * Get the list of available implants
+ * @returns The JSON from the response
+ */
 const fetchImplants = async () => {
   let json = null;
   try {
@@ -72,6 +106,10 @@ const fetchImplants = async () => {
   return json;
 };
 
+/**
+ * Deletes the implant selected in Redux
+ * @returns The JSON from the response
+ */
 const deleteImplant = async () => {
   let json = null;
   try {
@@ -94,7 +132,11 @@ const deleteImplant = async () => {
   return json;
 };
 
-const setTask = async (task) => {
+/**
+ * Updates the selected task
+ * @returns The JSON from the response
+ */
+const setTask = async () => {
   let json = null;
   try {
     const response = await fetch(`${conf.apiURL}tasks`, {
@@ -115,6 +157,11 @@ const setTask = async (task) => {
   return json;
 };
 
+/**
+ * Creates a new task type
+ * @param {object} taskType
+ * @returns The JSON from the response
+ */
 const createTaskType = async (taskType) => {
   let json = null;
   try {
@@ -136,6 +183,10 @@ const createTaskType = async (taskType) => {
   return json;
 };
 
+/**
+ * Deletes the selected task
+ * @returns The JSON from the response
+ */
 const deleteTask = async () => {
   let json = null;
   try {
@@ -158,6 +209,10 @@ const deleteTask = async () => {
   return json;
 };
 
+/**
+ * Deletes the task type which is stored in Redux tasks.selectedType
+ * @returns The JSON from the response
+ */
 const deleteTaskType = async () => {
   let json = null;
   try {
@@ -180,6 +235,13 @@ const deleteTaskType = async () => {
   return json;
 };
 
+/**
+ * Registers our user
+ * @param {string} username Not used by backend if PKI is enabled
+ * @param {string} password Not used by backend if PKI is enabled
+ * @param {string} confirmPassword Not used by backend if PKI is enabled
+ * @returns The JSON from the response
+ */
 const register = async (username, password, confirmPassword) => {
   let json = null;
   try {
@@ -205,6 +267,12 @@ const register = async (username, password, confirmPassword) => {
   return json;
 };
 
+/**
+ * Logs us in
+ * @param {string} username
+ * @param {string} password
+ * @returns The JSON from the response
+ */
 const login = async (username, password) => {
   let json = null;
   try {
@@ -229,6 +297,10 @@ const login = async (username, password) => {
   return json; // Because we will want to extract the returned username (which will have been trimmed etc) as well as the errors
 };
 
+/**
+ * Logs the user out
+ * @returns The JSON from the response
+ */
 const logout = async () => {
   let json = null;
   try {
@@ -248,6 +320,11 @@ const logout = async () => {
   return json;
 };
 
+/**
+ * Finds the given user
+ * @param {string} username
+ * @returns The JSON from the response
+ */
 const findUserByName = async (username) => {
   let json = null;
   try {
@@ -266,6 +343,12 @@ const findUserByName = async (username) => {
   return json;
 };
 
+/**
+ * Changes whether the given user is an admin
+ * @param {string} userId
+ * @param {boolean} makeAdmin
+ * @returns The JSON from the response
+ */
 const changeAdminStatus = async (userId, makeAdmin) => {
   let json = null;
   try {
@@ -290,6 +373,10 @@ const changeAdminStatus = async (userId, makeAdmin) => {
   return json;
 };
 
+/**
+ * Deletes the user stored in the redux state
+ * @returns The JSON from the response
+ */
 const deleteUser = async () => {
   let json = null;
   try {
@@ -312,6 +399,10 @@ const deleteUser = async () => {
   return json;
 };
 
+/**
+ * Checks that our JWT is valid
+ * @returns The JSON from the response
+ */
 const checkToken = async () => {
   let json = null;
 
@@ -331,6 +422,10 @@ const checkToken = async () => {
   return json;
 };
 
+/**
+ * Get the list of available parameter types
+ * @returns The JSON from the response
+ */
 const getParamTypes = async () => {
   let json = null;
   try {
@@ -349,6 +444,10 @@ const getParamTypes = async () => {
   return json;
 };
 
+/**
+ * Get the list of available groups
+ * @returns The JSON from the response
+ */
 const getGroups = async () => {
   let json = null;
   try {
@@ -394,6 +493,11 @@ const deleteGroup = async () => {
   return json;
 };
 
+/**
+ * Create a new access control group
+ * @param {object} acg
+ * @returns The JSON from the response
+ */
 const createGroup = async (acg) => {
   let json = null;
   try {
@@ -415,6 +519,12 @@ const createGroup = async (acg) => {
   return json;
 };
 
+/**
+ * Change the access control groups for the given implant
+ * @param {string} implantId
+ * @param {array} acgs
+ * @returns The JSON from the response
+ */
 const editACGs = async (implantId, acgs) => {
   let json = null;
   try {
@@ -440,6 +550,7 @@ const editACGs = async (implantId, acgs) => {
 };
 
 export {
+  getSecurityConfig,
   fetchImplants,
   deleteImplant,
   fetchTasks,

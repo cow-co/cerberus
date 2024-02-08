@@ -20,7 +20,7 @@ describe("Seeding tests", () => {
     accessManager.findUserByName.mockResolvedValue({
       user: {
         id: "",
-        name: ""
+        name: "",
       },
       errors: [],
     });
@@ -64,7 +64,7 @@ describe("Seeding tests", () => {
     accessManager.findUserByName.mockResolvedValue({
       user: {
         id: "",
-        name: ""
+        name: "",
       },
       errors: [],
     });

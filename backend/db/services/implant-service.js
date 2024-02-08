@@ -34,7 +34,6 @@ const addImplant = async (details) => {
 /**
  * @param {Implant} details The implant to update with
  */
-// TODO Verify that we are passing the ACGs when calling this
 const updateImplant = async (details) => {
   log("updateImplant", `Updating implant ${details.id}`, levels.DEBUG);
   const updatedEntity = {

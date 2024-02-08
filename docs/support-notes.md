@@ -1,5 +1,11 @@
 # Notes for Supporters/Maintainers of Deployed CERBERUS Instances
 
+## Security Note:
+
+If you are changing from PKI-based to non-PKI authentication, it is *crucial* that you drop *all* users from the database.
+
+This is because users created while PKI is enabled will *not* have any password entries in the database. The code has a catch for this issue, but you will still need to get the users to re-register anyway so that they can create a password.
+
 ## Logging
 
 - CERBERUS logs to the console, so you may want to wrap this in a command which will redirect `stdout` to a file of your choosing.
