@@ -58,6 +58,57 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   res.status(status).json(response);
 });
 
+/**
+ * Updates the user's password
+ */
+router.post("/user/:username", accessManager.verifyToken, async (req, res) => {
+  const username = req.paramString("username");
+  const newPassword = req.bodyString("password");
+  const newPasswordConfirmation = req.bodyString("confirmPassword");
+
+  log(
+    `POST /users/user/${username}`,
+    `Changing password for user ${username}`,
+    levels.INFO
+  );
+  let status = statusCodes.OK;
+  let response = {
+    errors: [],
+  };
+
+  const chosenUser = username.trim();
+
+  try {
+    const result = await accessManager.findUserByName(chosenUser);
+    if (result.id) {
+      const permitted = await accessManager.authZCheck(
+        accessManager.operationType.EDIT,
+        accessManager.targetEntityType.USER,
+        result.id,
+        accessManager.accessControlType.EDIT,
+        req.data.userId
+      );
+
+      if (permitted) {
+        await accessManager.changePassword(result.id, newPassword);
+      } else {
+        response.errors.push("Not permitted");
+        status = statusCodes.FORBIDDEN;
+      }
+    } else {
+      log("GET /user/:username", "Could not find user!", levels.WARN);
+      status = statusCodes.BAD_REQUEST;
+      response.errors = ["Could not find user!"];
+    }
+  } catch (err) {
+    log("GET /user/:username", err, levels.ERROR);
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response.errors = ["Internal Server Error"];
+  }
+
+  res.status(status).json(response);
+});
+
 router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
   const userId = req.paramString("userId");
   log(`DELETE /users/user/${userId}`, `Deleting user ${userId}`, levels.INFO);

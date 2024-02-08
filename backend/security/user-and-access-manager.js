@@ -13,6 +13,7 @@ const validation = require("../validation/security-validation");
 const sanitize = require("sanitize");
 const argon2 = require("argon2");
 const jwt = require("jsonwebtoken");
+const HashedPassword = require("../db/models/HashedPassword");
 
 const sanitizer = sanitize();
 
@@ -581,6 +582,8 @@ const isUserAuthorisedForOperationOnUser = async (userId, targetUserId) => {
   return userId === targetUserId;
 };
 
+// TODO add a field for whether admins override this check (if false, even admins get the usual checks)
+// TODO Condense some of the fields into a single object (eg. targetDetails, containing targetEntity and targetEntityId)
 const authZCheck = async (
   operation,
   targetEntity,
@@ -616,6 +619,18 @@ const authZCheck = async (
   return permitted;
 };
 
+const changePassword = async (userId, newPassword) => {
+  const user = await findUserById(userId);
+  const hashed = argon2.hash(newPassword);
+  const newPasswordEntry = await HashedPassword.create({
+    hashedPassword: hashed,
+  });
+  const oldId = user.password;
+  user.password = newPasswordEntry._id;
+  await HashedPassword.findByIdAndDelete(oldId);
+  await user.save();
+};
+
 module.exports = {
   operationType,
   targetEntityType,
@@ -635,4 +650,5 @@ module.exports = {
   createGroup,
   deleteGroup,
   authZCheck,
+  changePassword,
 };
