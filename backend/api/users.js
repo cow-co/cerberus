@@ -61,6 +61,7 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 /**
  * Updates the user's password
  */
+// TODO Should also require the user's current password, and check that pw is correct
 router.post("/user/:id", accessManager.verifyToken, async (req, res) => {
   const userId = req.paramString("id");
   const newPassword = req.bodyString("password");
