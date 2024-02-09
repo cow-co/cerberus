@@ -45,13 +45,16 @@ router.delete("/:implantId", accessManager.verifyToken, async (req, res) => {
   let status = statusCodes.OK;
 
   try {
-    const isAuthed = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.IMPLANT,
-      implantId,
-      accessManager.accessControlType.ADMIN,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: implantId,
+    };
+    const isAuthed = await accessManager.authZCheck(operation, target);
 
     if (isAuthed) {
       const implant = await implantService.findImplantById(implantId);

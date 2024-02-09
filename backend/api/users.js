@@ -24,13 +24,16 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   try {
     const result = await accessManager.findUserByName(chosenUser);
     if (result.id) {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.READ,
-        accessManager.targetEntityType.USER,
-        result.id,
-        accessManager.accessControlType.READ,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.READ,
+        accessControlType: accessManager.accessControlType.READ,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.USER,
+        entityId: result.id,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
         const isAdmin = await adminService.isUserAdmin(result.id);
@@ -80,13 +83,16 @@ router.post("/user", accessManager.verifyToken, async (req, res) => {
   try {
     const result = await accessManager.findUserById(req.data.userId);
     if (result.id) {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.EDIT,
-        accessManager.targetEntityType.USER,
-        req.data.userId,
-        accessManager.accessControlType.EDIT,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.EDIT,
+        accessControlType: accessManager.accessControlType.EDIT,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.USER,
+        entityId: req.data.userId,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
         response.errors = await accessManager.changePassword(
@@ -136,13 +142,16 @@ router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
       );
     }
 
-    const permitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.USER,
-      userId,
-      accessManager.accessControlType.ADMIN,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.READ,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.USER,
+      entityId: userId,
+    };
+    const permitted = await accessManager.authZCheck(operation, target);
 
     if (permitted) {
       await accessManager.removeUser(userId);
@@ -210,13 +219,16 @@ router.get(
     let status = statusCodes.OK;
 
     try {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.READ,
-        accessManager.targetEntityType.USER,
-        userId,
-        accessManager.accessControlType.READ,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.READ,
+        accessControlType: accessManager.accessControlType.READ,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.USER,
+        entityId: userId,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
         const { groups, errors } = await accessManager.getGroupsForUser(userId);
@@ -254,13 +266,16 @@ router.post(
     let status = statusCodes.OK;
 
     try {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.EDIT,
-        accessManager.targetEntityType.USER,
-        userId,
-        accessManager.accessControlType.ADMIN,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.EDIT,
+        accessControlType: accessManager.accessControlType.ADMIN,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.USER,
+        entityId: userId,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
         await accessManager.editUserGroups(req.body.groups, userId);

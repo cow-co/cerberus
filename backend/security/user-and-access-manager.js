@@ -584,34 +584,38 @@ const isUserAuthorisedForOperationOnUser = async (userId, targetUserId) => {
   return userId === targetUserId;
 };
 
-// TODO add a field for whether admins override this check (if false, even admins get the usual checks)
-// TODO Condense some of the fields into a single object (eg. targetDetails, containing targetEntity and targetEntityId)
-const authZCheck = async (
-  operation,
-  targetEntity,
-  targetEntityId,
-  accessControl,
-  userId
-) => {
+/**
+ * @typedef operation
+ * @property {string} userId
+ * @property {'READ' | 'EDIT'} type
+ * @property {string} accessControlType
+ * @typedef target
+ * @property {'IMPLANT' | 'USER'} entityType
+ * @property {string} entityId
+ * @param {operation} operation
+ * @param {target} target
+ * @returns
+ */
+const authZCheck = async (operation, target) => {
   let permitted = false;
 
-  const isAdmin = await adminService.isUserAdmin(userId);
+  const isAdmin = await adminService.isUserAdmin(operation.userId);
 
   if (isAdmin) {
     permitted = true;
-  } else if (accessControl !== accessControlType.ADMIN) {
-    switch (targetEntity) {
+  } else if (operation.accessControlType !== accessControlType.ADMIN) {
+    switch (target.entityType) {
       case targetEntityType.IMPLANT:
         permitted = await isUserAuthorisedForOperationOnImplant(
-          userId,
-          targetEntityId,
-          operation
+          operation.userId,
+          target.entityId,
+          operation.type
         );
         break;
       case targetEntityType.USER:
         permitted = await isUserAuthorisedForOperationOnUser(
-          userId,
-          targetEntityId
+          operation.userId,
+          target.entityId
         );
         break;
       default:
