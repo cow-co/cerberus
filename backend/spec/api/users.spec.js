@@ -210,4 +210,48 @@ describe("User tests", () => {
 
     expect(res.statusCode).toBe(500);
   });
+
+  test("update user's password - success", async () => {
+    accessManager.findUserById.mockResolvedValue({ id: "id", name: "name" });
+    accessManager.changePassword.mockResolvedValue([]);
+
+    const res = await agent
+      .post("/api/users/user")
+      .send({ oldPassword: "old", password: "pass", confirmPassword: "pass" });
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  test("update user's password - failure - validation error", async () => {
+    accessManager.findUserById.mockResolvedValue({ id: "id", name: "name" });
+    accessManager.changePassword.mockResolvedValue(["TEST"]);
+
+    const res = await agent
+      .post("/api/users/user")
+      .send({ oldPassword: "old", password: "pass", confirmPassword: "pass" });
+
+    expect(res.statusCode).toBe(400);
+  });
+
+  test("update user's password - failure - not authorised", async () => {
+    accessManager.findUserById.mockResolvedValue({ id: "id", name: "name" });
+    accessManager.authZCheck.mockResolvedValue(false);
+
+    const res = await agent
+      .post("/api/users/user")
+      .send({ oldPassword: "old", password: "pass", confirmPassword: "pass" });
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  test("update user's password - failure - exception", async () => {
+    accessManager.findUserById.mockResolvedValue({ id: "id", name: "name" });
+    accessManager.changePassword.mockRejectedValue(new TypeError("TEST"));
+
+    const res = await agent
+      .post("/api/users/user")
+      .send({ oldPassword: "old", password: "pass", confirmPassword: "pass" });
+
+    expect(res.statusCode).toBe(500);
+  });
 });

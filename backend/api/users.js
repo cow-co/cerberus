@@ -24,13 +24,16 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   try {
     const result = await accessManager.findUserByName(chosenUser);
     if (result.id) {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.READ,
-        accessManager.targetEntityType.USER,
-        result.id,
-        accessManager.accessControlType.READ,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.READ,
+        accessControlType: accessManager.accessControlType.READ,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.USER,
+        entityId: result.id,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
         const isAdmin = await adminService.isUserAdmin(result.id);
@@ -58,6 +61,68 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   res.status(status).json(response);
 });
 
+/**
+ * Updates the user's password
+ */
+// TODO Make a little short-circuit if PKI is enabled
+router.post("/user", accessManager.verifyToken, async (req, res) => {
+  const oldPassword = req.bodyString("oldPassword");
+  const newPassword = req.bodyString("password");
+  const newPasswordConfirmation = req.bodyString("confirmPassword");
+
+  log(
+    `POST /users/user`,
+    `Changing password for user ${req.data.userId}`,
+    levels.INFO
+  );
+  let status = statusCodes.OK;
+  let response = {
+    errors: [],
+  };
+
+  try {
+    const result = await accessManager.findUserById(req.data.userId);
+    if (result.id) {
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.EDIT,
+        accessControlType: accessManager.accessControlType.EDIT,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.USER,
+        entityId: req.data.userId,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
+
+      if (permitted) {
+        response.errors = await accessManager.changePassword(
+          result.name,
+          oldPassword,
+          newPassword,
+          newPasswordConfirmation
+        );
+        if (response.errors.length > 0) {
+          status = statusCodes.BAD_REQUEST;
+        }
+      } else {
+        log("POST /users/user", "Not permitted", levels.SECURITY);
+        response.errors.push("Not permitted");
+        status = statusCodes.FORBIDDEN;
+      }
+    } else {
+      log("POST /users/user", "Could not find user!", levels.WARN);
+      status = statusCodes.BAD_REQUEST;
+      response.errors = ["Could not find user!"];
+    }
+  } catch (err) {
+    log("POST /users/user", err, levels.ERROR);
+    status = statusCodes.INTERNAL_SERVER_ERROR;
+    response.errors = ["Internal Server Error"];
+  }
+
+  res.status(status).json(response);
+});
+
 router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
   const userId = req.paramString("userId");
   log(`DELETE /users/user/${userId}`, `Deleting user ${userId}`, levels.INFO);
@@ -77,13 +142,16 @@ router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
       );
     }
 
-    const permitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.USER,
-      userId,
-      accessManager.accessControlType.ADMIN,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.READ,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.USER,
+      entityId: userId,
+    };
+    const permitted = await accessManager.authZCheck(operation, target);
 
     if (permitted) {
       await accessManager.removeUser(userId);
@@ -151,13 +219,16 @@ router.get(
     let status = statusCodes.OK;
 
     try {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.READ,
-        accessManager.targetEntityType.USER,
-        userId,
-        accessManager.accessControlType.READ,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.READ,
+        accessControlType: accessManager.accessControlType.READ,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.USER,
+        entityId: userId,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
         const { groups, errors } = await accessManager.getGroupsForUser(userId);
@@ -195,13 +266,16 @@ router.post(
     let status = statusCodes.OK;
 
     try {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.EDIT,
-        accessManager.targetEntityType.USER,
-        userId,
-        accessManager.accessControlType.ADMIN,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.EDIT,
+        accessControlType: accessManager.accessControlType.ADMIN,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.USER,
+        entityId: userId,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
         await accessManager.editUserGroups(req.body.groups, userId);

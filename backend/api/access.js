@@ -129,13 +129,16 @@ router.put("/admin", accessManager.verifyToken, async (req, res) => {
   };
 
   try {
-    const permitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.USER,
-      userId,
-      accessManager.accessControlType.ADMIN,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.USER,
+      entityId: userId,
+    };
+    const permitted = await accessManager.authZCheck(operation, target);
     if (permitted) {
       const result = await accessManager.findUserById(userId);
       if (result.id) {
@@ -189,13 +192,16 @@ router.post(
     };
 
     try {
-      const permitted = await accessManager.authZCheck(
-        accessManager.operationType.EDIT,
-        accessManager.targetEntityType.IMPLANT,
-        implantId,
-        accessManager.accessControlType.ADMIN,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.EDIT,
+        accessControlType: accessManager.accessControlType.ADMIN,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.IMPLANT,
+        entityId: implantId,
+      };
+      const permitted = await accessManager.authZCheck(operation, target);
       if (permitted) {
         const updated = await implantService.updateACGs(
           implantId,
@@ -244,13 +250,16 @@ router.post("/acgs", accessManager.verifyToken, async (req, res) => {
   let status = statusCodes.OK;
 
   try {
-    const permitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.USER,
-      null,
-      accessManager.accessControlType.ADMIN,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.USER,
+      entityId: null,
+    };
+    const permitted = await accessManager.authZCheck(operation, target);
 
     if (permitted) {
       response.errors = await accessManager.createGroup(req.bodyString("name"));
@@ -290,13 +299,16 @@ router.get("/acgs", accessManager.verifyToken, async (req, res) => {
   let status = statusCodes.OK;
 
   try {
-    const permitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.USER,
-      null,
-      accessManager.accessControlType.ADMIN,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.READ,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.USER,
+      entityId: null,
+    };
+    const permitted = await accessManager.authZCheck(operation, target);
 
     if (permitted) {
       response = await accessManager.getAllGroups();
@@ -336,13 +348,16 @@ router.delete("/acgs/:acgId", accessManager.verifyToken, async (req, res) => {
   let status = statusCodes.OK;
 
   try {
-    const permitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.USER,
-      null,
-      accessManager.accessControlType.ADMIN,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.USER,
+      entityId: null,
+    };
+    const permitted = await accessManager.authZCheck(operation, target);
 
     if (permitted) {
       response = await accessManager.deleteGroup(acgId);

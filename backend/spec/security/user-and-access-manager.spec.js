@@ -7,6 +7,7 @@ const acgService = require("../../db/services/acg-service");
 const validation = require("../../validation/security-validation");
 const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
+const HashedPassword = require("../../db/models/HashedPassword");
 let accessManager;
 
 jest.mock("../../db/services/admin-service");
@@ -14,6 +15,7 @@ jest.mock("../../db/services/implant-service");
 jest.mock("../../db/services/user-service");
 jest.mock("../../db/services/acg-service");
 jest.mock("../../validation/security-validation");
+jest.mock("../../db/models/HashedPassword");
 jest.mock("jsonwebtoken");
 jest.mock("argon2");
 
@@ -712,13 +714,16 @@ describe("Access Manager tests", () => {
     });
     adminService.isUserAdmin.mockResolvedValue(true);
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.READ,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.READ,
+      accessControlType: accessManager.accessControlType.READ,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeTruthy();
   });
@@ -732,13 +737,16 @@ describe("Access Manager tests", () => {
     });
     adminService.isUserAdmin.mockResolvedValue(true);
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.EDIT,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.EDIT,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeTruthy();
   });
@@ -752,13 +760,16 @@ describe("Access Manager tests", () => {
     });
     adminService.isUserAdmin.mockResolvedValue(false);
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.READ,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.READ,
+      accessControlType: accessManager.accessControlType.READ,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeTruthy();
   });
@@ -778,13 +789,16 @@ describe("Access Manager tests", () => {
       acgs: ["read", "read2"],
     });
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.READ,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.READ,
+      accessControlType: accessManager.accessControlType.READ,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeTruthy();
   });
@@ -803,13 +817,17 @@ describe("Access Manager tests", () => {
       password: "passId",
       acgs: ["operator", "read2"],
     });
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.READ,
-      "id"
-    );
+
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.READ,
+      accessControlType: accessManager.accessControlType.READ,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeTruthy();
   });
@@ -829,13 +847,16 @@ describe("Access Manager tests", () => {
       acgs: ["read", "read2"],
     });
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.EDIT,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.EDIT,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeTruthy();
   });
@@ -855,13 +876,16 @@ describe("Access Manager tests", () => {
       acgs: ["operator", "read"],
     });
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.EDIT,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.EDIT,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeTruthy();
   });
@@ -881,13 +905,16 @@ describe("Access Manager tests", () => {
       acgs: ["read2"],
     });
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.READ,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.READ,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.READ,
+      accessControlType: accessManager.accessControlType.READ,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeFalsy();
   });
@@ -907,13 +934,16 @@ describe("Access Manager tests", () => {
       acgs: ["read", "read2"],
     });
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.EDIT,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.EDIT,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeFalsy();
   });
@@ -933,13 +963,16 @@ describe("Access Manager tests", () => {
       acgs: ["read", "read2"],
     });
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.IMPLANT,
-      "implant",
-      accessManager.accessControlType.EDIT,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.EDIT,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: "implant",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeFalsy();
   });
@@ -953,28 +986,33 @@ describe("Access Manager tests", () => {
     });
     adminService.isUserAdmin.mockRejectedValue(new TypeError("TEST"));
 
-    expect(
-      async () =>
-        await accessManager.authZCheck(
-          accessManager.operationType.EDIT,
-          accessManager.targetEntityType.IMPLANT,
-          "implant",
-          accessManager.accessControlType.EDIT,
-          "id"
-        )
-    ).rejects.toThrow(TypeError);
+    expect(async () => {
+      const operation = {
+        userId: "id",
+        type: accessManager.operationType.EDIT,
+        accessControlType: accessManager.accessControlType.EDIT,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.IMPLANT,
+        entityId: "implant",
+      };
+      await accessManager.authZCheck(operation, target);
+    }).rejects.toThrow(TypeError);
   });
 
   test("User authorisation - success - operation is on a user entity", async () => {
     adminService.isUserAdmin.mockResolvedValue(false);
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.USER,
-      "id",
-      accessManager.accessControlType.EDIT,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.EDIT,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.USER,
+      entityId: "id",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeTruthy();
   });
@@ -982,13 +1020,16 @@ describe("Access Manager tests", () => {
   test("User authorisation - failure - invalid entity type", async () => {
     adminService.isUserAdmin.mockResolvedValue(false);
 
-    const isPermitted = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      "FAKE",
-      "id",
-      accessManager.accessControlType.EDIT,
-      "id"
-    );
+    const operation = {
+      userId: "id",
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.EDIT,
+    };
+    const target = {
+      entityType: "FAKE",
+      entityId: "id",
+    };
+    const isPermitted = await accessManager.authZCheck(operation, target);
 
     expect(isPermitted).toBeFalsy();
   });
@@ -1180,5 +1221,77 @@ describe("Access Manager tests", () => {
 
     expect(errors).toHaveLength(0);
     expect(acgs).toHaveLength(2);
+  });
+
+  test("change password - success", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      id: "id",
+      name: "name",
+      password: {
+        hashedPassword: "hashed",
+      },
+    });
+    validation.validatePassword.mockReturnValue([]);
+    userService.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "name",
+      save: async () => {},
+    });
+    argon2.verify.mockResolvedValue(true);
+    argon2.hash.mockResolvedValue("hashydooey8282");
+    HashedPassword.create.mockResolvedValue({
+      _id: "id",
+      hashedPassword: "hashydooey8282",
+    });
+
+    const errors = await accessManager.changePassword(
+      "name",
+      "old",
+      "pass",
+      "pass"
+    );
+
+    expect(errors).toHaveLength(0);
+  });
+
+  test("change password - failure - validation error", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      id: "id",
+      name: "name",
+      password: {
+        hashedPassword: "hashed",
+      },
+    });
+    argon2.verify.mockResolvedValue(true);
+    validation.validatePassword.mockReturnValue(["TEST"]);
+
+    const errors = await accessManager.changePassword(
+      "name",
+      "old",
+      "pass",
+      "pass"
+    );
+
+    expect(errors).toHaveLength(1);
+  });
+
+  test("change password - failure - authentication error", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      id: "id",
+      name: "name",
+      password: {
+        hashedPassword: "hashed",
+      },
+    });
+    argon2.verify.mockResolvedValue(false);
+
+    const errors = await accessManager.changePassword(
+      "name",
+      "old",
+      "pass",
+      "pass"
+    );
+
+    expect(errors).toHaveLength(1);
   });
 });

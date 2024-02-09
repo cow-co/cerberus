@@ -22,13 +22,16 @@ router.get("/tasks/:implantId", accessManager.verifyToken, async (req, res) => {
 
   try {
     if (implantId) {
-      const isAuthed = await accessManager.authZCheck(
-        accessManager.operationType.READ,
-        accessManager.targetEntityType.IMPLANT,
-        implantId,
-        accessManager.accessControlType.READ,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.READ,
+        accessControlType: accessManager.accessControlType.READ,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.IMPLANT,
+        entityId: implantId,
+      };
+      const isAuthed = await accessManager.authZCheck(operation, target);
 
       if (!isAuthed) {
         status = statusCodes.FORBIDDEN;
@@ -96,13 +99,16 @@ router.post("/task-types", accessManager.verifyToken, async (req, res) => {
   let status = statusCodes.OK;
 
   try {
-    const isAuthed = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      null,
-      null,
-      accessManager.accessControlType.ADMIN,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: null,
+      entityId: null,
+    };
+    const isAuthed = await accessManager.authZCheck(operation, target);
 
     if (isAuthed) {
       const validity = validateTaskType(req.body);
@@ -132,13 +138,16 @@ router.post("/tasks", accessManager.verifyToken, async (req, res) => {
   let response = { errors: [] };
 
   try {
-    const isAuthed = await accessManager.authZCheck(
-      accessManager.operationType.EDIT,
-      accessManager.targetEntityType.IMPLANT,
-      req.bodyString("implantId"),
-      accessManager.accessControlType.EDIT,
-      req.data.userId
-    );
+    const operation = {
+      userId: req.data.userId,
+      type: accessManager.operationType.EDIT,
+      accessControlType: accessManager.accessControlType.ADMIN,
+    };
+    const target = {
+      entityType: accessManager.targetEntityType.IMPLANT,
+      entityId: req.bodyString("implantId"),
+    };
+    const isAuthed = await accessManager.authZCheck(operation, target);
 
     if (isAuthed) {
       const validationResult = await validateTask(req.body);
@@ -183,13 +192,16 @@ router.delete("/tasks/:taskId", accessManager.verifyToken, async (req, res) => {
     const task = await tasksService.getTaskById(taskId);
 
     if (task) {
-      const isAuthed = await accessManager.authZCheck(
-        accessManager.operationType.EDIT,
-        accessManager.targetEntityType.IMPLANT,
-        req.bodyString("implantId"),
-        accessManager.accessControlType.EDIT,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.EDIT,
+        accessControlType: accessManager.accessControlType.EDIT,
+      };
+      const target = {
+        entityType: accessManager.targetEntityType.IMPLANT,
+        entityId: req.bodyString("implantId"),
+      };
+      const isAuthed = await accessManager.authZCheck(operation, target);
 
       if (isAuthed && !task.sent) {
         await tasksService.deleteTask(taskId);
@@ -238,13 +250,16 @@ router.delete(
     let status = statusCodes.OK;
 
     try {
-      const isAuthed = await accessManager.authZCheck(
-        accessManager.operationType.EDIT,
-        null,
-        null,
-        accessManager.accessControlType.ADMIN,
-        req.data.userId
-      );
+      const operation = {
+        userId: req.data.userId,
+        type: accessManager.operationType.EDIT,
+        accessControlType: accessManager.accessControlType.ADMIN,
+      };
+      const target = {
+        entityType: null,
+        entityId: null,
+      };
+      const isAuthed = await accessManager.authZCheck(operation, target);
       if (isAuthed) {
         const taskType = await tasksService.getTaskTypeById(taskTypeId);
         if (taskType) {
