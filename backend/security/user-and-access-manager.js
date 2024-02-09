@@ -380,6 +380,7 @@ const removeUser = async (userId) => {
  * @param {string} username
  * @returns
  */
+// TODO Should probably revert to using _id rather than id
 const findUserByName = async (username) => {
   log(
     "user-and-access-manager/findUserByName",
@@ -632,17 +633,19 @@ const changePassword = async (
   newPassword,
   confirmation
 ) => {
-  let allErrors = [];
+  let validationErrors = [];
   const { authenticated, errors } = await checkCreds(username, oldPassword);
 
   if (errors.length === 0 && authenticated) {
-    const validationErrors = validation.validatePassword(
+    validationErrors = validation.validatePassword(
       newPassword,
       confirmation,
       securityConfig.passwordRequirements
     );
     if (validationErrors.length === 0) {
-      const user = await findUserById(userId);
+      // We know the user exists, so we don't need the extra safety the manager.findUserByName wrapper provides
+      // Also we require the password field, which the wrapper function scrubs out
+      const user = await userService.findUserByName(username);
       const hashed = await argon2.hash(newPassword);
       const newPasswordEntry = await HashedPassword.create({
         hashedPassword: hashed,
@@ -651,14 +654,10 @@ const changePassword = async (
       user.password = newPasswordEntry._id;
       await HashedPassword.findByIdAndDelete(oldId);
       await user.save();
-    } else {
-      allErrors.concat(validationErrors);
     }
-  } else {
-    allErrors.concat(errors);
   }
 
-  return allErrors;
+  return errors.concat(validationErrors);
 };
 
 module.exports = {

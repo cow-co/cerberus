@@ -216,8 +216,8 @@ describe("User tests", () => {
     accessManager.changePassword.mockResolvedValue([]);
 
     const res = await agent
-      .post("/api/users/user/id")
-      .send({ password: "pass", confirmPassword: "pass" });
+      .post("/api/users/user")
+      .send({ oldPassword: "old", password: "pass", confirmPassword: "pass" });
 
     expect(res.statusCode).toBe(200);
   });
@@ -227,8 +227,8 @@ describe("User tests", () => {
     accessManager.changePassword.mockResolvedValue(["TEST"]);
 
     const res = await agent
-      .post("/api/users/user/id")
-      .send({ password: "pass", confirmPassword: "pass" });
+      .post("/api/users/user")
+      .send({ oldPassword: "old", password: "pass", confirmPassword: "pass" });
 
     expect(res.statusCode).toBe(400);
   });
@@ -238,8 +238,8 @@ describe("User tests", () => {
     accessManager.authZCheck.mockResolvedValue(false);
 
     const res = await agent
-      .post("/api/users/user/id")
-      .send({ password: "pass", confirmPassword: "pass" });
+      .post("/api/users/user")
+      .send({ oldPassword: "old", password: "pass", confirmPassword: "pass" });
 
     expect(res.statusCode).toBe(403);
   });
@@ -249,8 +249,8 @@ describe("User tests", () => {
     accessManager.changePassword.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent
-      .post("/api/users/user/id")
-      .send({ password: "pass", confirmPassword: "pass" });
+      .post("/api/users/user")
+      .send({ oldPassword: "old", password: "pass", confirmPassword: "pass" });
 
     expect(res.statusCode).toBe(500);
   });

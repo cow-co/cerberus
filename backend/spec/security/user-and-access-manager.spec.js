@@ -1185,28 +1185,73 @@ describe("Access Manager tests", () => {
   });
 
   test("change password - success", async () => {
-    validation.validatePassword.mockReturnValue([]);
-    userService.findUserById.mockResolvedValue({
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
       id: "id",
       name: "name",
-      password: { hashedPassword: "hashed" },
+      password: {
+        hashedPassword: "hashed",
+      },
+    });
+    validation.validatePassword.mockReturnValue([]);
+    userService.findUserByName.mockResolvedValue({
+      id: "id",
+      name: "name",
       save: async () => {},
     });
+    argon2.verify.mockResolvedValue(true);
     argon2.hash.mockResolvedValue("hashydooey8282");
     HashedPassword.create.mockResolvedValue({
       _id: "id",
       hashedPassword: "hashydooey8282",
     });
 
-    const errors = await accessManager.changePassword("id", "pass", "pass");
+    const errors = await accessManager.changePassword(
+      "name",
+      "old",
+      "pass",
+      "pass"
+    );
 
     expect(errors).toHaveLength(0);
   });
 
   test("change password - failure - validation error", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      id: "id",
+      name: "name",
+      password: {
+        hashedPassword: "hashed",
+      },
+    });
+    argon2.verify.mockResolvedValue(true);
     validation.validatePassword.mockReturnValue(["TEST"]);
 
-    const errors = await accessManager.changePassword("id", "pass", "pass");
+    const errors = await accessManager.changePassword(
+      "name",
+      "old",
+      "pass",
+      "pass"
+    );
+
+    expect(errors).toHaveLength(1);
+  });
+
+  test("change password - failure - authentication error", async () => {
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
+      id: "id",
+      name: "name",
+      password: {
+        hashedPassword: "hashed",
+      },
+    });
+    argon2.verify.mockResolvedValue(false);
+
+    const errors = await accessManager.changePassword(
+      "name",
+      "old",
+      "pass",
+      "pass"
+    );
 
     expect(errors).toHaveLength(1);
   });
