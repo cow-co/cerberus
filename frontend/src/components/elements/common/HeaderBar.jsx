@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { createErrorAlert, createSuccessAlert } from '../../../common/redux/dispatchers';
 
-const HeaderBar = (props) => {
+const HeaderBar = ({handleLoginFormOpen, handleRegisterFormOpen, handlePWChangeOpen}) => {
   const dispatch = useDispatch();
   const username = useSelector((state) => state.users.username);
   const isAdmin = useSelector((state) => state.users.isAdmin);
@@ -41,16 +41,19 @@ const HeaderBar = (props) => {
     }
   }
 
-  let loginoutButton = null;
+  let loginoutButton = <Button onClick={handleLoginFormOpen}>Log In</Button>;
   if (username) {
     loginoutButton = <Button onClick={handleLogout}>Log Out</Button>
-  } else {
-    loginoutButton = <Button onClick={props.handleLoginFormOpen}>Log In</Button>
   }
 
   let adminButton = null;
   if (isAdmin) {
     adminButton = <Button component={RouterLink} to={"/admin"}>Admin</Button>;
+  }
+
+  let registerButton = <Button onClick={handleRegisterFormOpen}>Register</Button>;
+  if (username) {
+    registerButton = <Button onClick={handlePWChangeOpen}>Change Password</Button>
   }
 
   return (
@@ -61,7 +64,7 @@ const HeaderBar = (props) => {
                 Cerberus
             </Button>
           </Typography>
-          <Button onClick={props.handleRegisterFormOpen}>Register</Button>
+          {registerButton}
           {loginoutButton}
           {adminButton}
         </Toolbar>

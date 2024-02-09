@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: CERBERUS API
   description: API definition for the CERBERUS implant-management API.
-  version: 2.1.0
+  version: 2.2.0
 components:
   securitySchemes:
     jwt:
@@ -1164,6 +1164,70 @@ paths:
                       type: string
         "403": # status code
           description: Calling user not logged in or not an admin.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "500": # status code
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /users/user:
+    post: 
+      security:
+        - jwt: [Write]
+      summary: Changes a user's password
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                password: 
+                  type: string
+                confirmPassword:
+                  type: string
+      responses:
+        "200": # status code
+          description: User updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "400": # status code
+          description: Validation errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+        "403": # status code
+          description: Calling user not logged in or not authorised.
           content:
             application/json:
               schema:

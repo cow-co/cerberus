@@ -333,6 +333,7 @@ const registerUsernamePassword = async (
  * @param {string} username
  * @returns
  */
+// TODO Test this
 const registerPKI = async (username) => {
   log(
     "user-and-access-manager/registerPKI",
@@ -380,6 +381,7 @@ const removeUser = async (userId) => {
  * @param {string} username
  * @returns
  */
+// TODO Should probably revert to using _id rather than id
 const findUserByName = async (username) => {
   log(
     "user-and-access-manager/findUserByName",
@@ -582,34 +584,38 @@ const isUserAuthorisedForOperationOnUser = async (userId, targetUserId) => {
   return userId === targetUserId;
 };
 
-// TODO add a field for whether admins override this check (if false, even admins get the usual checks)
-// TODO Condense some of the fields into a single object (eg. targetDetails, containing targetEntity and targetEntityId)
-const authZCheck = async (
-  operation,
-  targetEntity,
-  targetEntityId,
-  accessControl,
-  userId
-) => {
+/**
+ * @typedef operation
+ * @property {string} userId
+ * @property {'READ' | 'EDIT'} type
+ * @property {string} accessControlType
+ * @typedef target
+ * @property {'IMPLANT' | 'USER'} entityType
+ * @property {string} entityId
+ * @param {operation} operation
+ * @param {target} target
+ * @returns
+ */
+const authZCheck = async (operation, target) => {
   let permitted = false;
 
-  const isAdmin = await adminService.isUserAdmin(userId);
+  const isAdmin = await adminService.isUserAdmin(operation.userId);
 
   if (isAdmin) {
     permitted = true;
-  } else if (accessControl !== accessControlType.ADMIN) {
-    switch (targetEntity) {
+  } else if (operation.accessControlType !== accessControlType.ADMIN) {
+    switch (target.entityType) {
       case targetEntityType.IMPLANT:
         permitted = await isUserAuthorisedForOperationOnImplant(
-          userId,
-          targetEntityId,
-          operation
+          operation.userId,
+          target.entityId,
+          operation.type
         );
         break;
       case targetEntityType.USER:
         permitted = await isUserAuthorisedForOperationOnUser(
-          userId,
-          targetEntityId
+          operation.userId,
+          target.entityId
         );
         break;
       default:
@@ -620,29 +626,43 @@ const authZCheck = async (
 };
 
 /**
- * @param {string} userId
+ * @param {string} username
+ * @param {string} oldPassword
  * @param {string} newPassword
  * @param {string} confirmation
- * @returns {string[]} Any validation errors
+ * @returns {string[]} Any errors
  */
-const changePassword = async (userId, newPassword, confirmation) => {
-  const validationErrors = validation.validatePassword(
-    newPassword,
-    confirmation,
-    securityConfig.passwordRequirements
-  );
-  if (validationErrors.length === 0) {
-    const user = await findUserById(userId);
-    const hashed = await argon2.hash(newPassword);
-    const newPasswordEntry = await HashedPassword.create({
-      hashedPassword: hashed,
-    });
-    const oldId = user.password;
-    user.password = newPasswordEntry._id;
-    await HashedPassword.findByIdAndDelete(oldId);
-    await user.save();
+const changePassword = async (
+  username,
+  oldPassword,
+  newPassword,
+  confirmation
+) => {
+  let validationErrors = [];
+  const { authenticated, errors } = await checkCreds(username, oldPassword);
+
+  if (errors.length === 0 && authenticated) {
+    validationErrors = validation.validatePassword(
+      newPassword,
+      confirmation,
+      securityConfig.passwordRequirements
+    );
+    if (validationErrors.length === 0) {
+      // We know the user exists, so we don't need the extra safety the manager.findUserByName wrapper provides
+      // Also we require the password field, which the wrapper function scrubs out
+      const user = await userService.findUserByName(username);
+      const hashed = await argon2.hash(newPassword);
+      const newPasswordEntry = await HashedPassword.create({
+        hashedPassword: hashed,
+      });
+      const oldId = user.password;
+      user.password = newPasswordEntry._id;
+      await HashedPassword.findByIdAndDelete(oldId);
+      await user.save();
+    }
   }
-  return validationErrors;
+
+  return errors.concat(validationErrors);
 };
 
 module.exports = {
