@@ -1184,25 +1184,21 @@ paths:
                     type: array
                     items:
                       type: string
+  /users/user:
     post: 
       security:
         - jwt: [Write]
       summary: Changes a user's password
       tags:
         - Users
-      parameters:
-        - in: path
-          name: userId
-          schema:
-            type: string
-          required: true
-          description: Identifier of the user to update.
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
+                oldPassword:
+                  type: string
                 password: 
                   type: string
                 confirmPassword:

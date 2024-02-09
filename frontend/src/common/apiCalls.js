@@ -549,6 +549,31 @@ const editACGs = async (implantId, acgs) => {
   return json;
 };
 
+const changePassword = async (oldPassword, password, confirmPassword) => {
+  let json = null;
+  try {
+    const response = await fetch(`${conf.apiURL}users/user`, {
+      method: "POST",
+      headers: new Headers({
+        "content-type": "application/json",
+        authorization: `Bearer ${getToken()}`,
+      }),
+      body: JSON.stringify({
+        oldPassword,
+        password,
+        confirmPassword,
+      }),
+    });
+    json = await response.json();
+  } catch (err) {
+    console.error(err);
+    json = {
+      errors: ["Error when calling API. Check console for details."],
+    };
+  }
+  return json;
+};
+
 export {
   getSecurityConfig,
   fetchImplants,
@@ -571,4 +596,5 @@ export {
   createGroup,
   deleteGroup,
   editACGs,
+  changePassword,
 };

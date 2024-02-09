@@ -61,15 +61,15 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 /**
  * Updates the user's password
  */
-// TODO Should also require the user's current password, and check that pw is correct
-router.post("/user/:id", accessManager.verifyToken, async (req, res) => {
-  const userId = req.paramString("id");
+// TODO Make a little short-circuit if PKI is enabled
+router.post("/user", accessManager.verifyToken, async (req, res) => {
+  const oldPassword = req.bodyString("oldPassword");
   const newPassword = req.bodyString("password");
   const newPasswordConfirmation = req.bodyString("confirmPassword");
 
   log(
-    `POST /users/user/${userId}`,
-    `Changing password for user ${userId}`,
+    `POST /users/user`,
+    `Changing password for user ${req.data.userId}`,
     levels.INFO
   );
   let status = statusCodes.OK;
@@ -77,22 +77,21 @@ router.post("/user/:id", accessManager.verifyToken, async (req, res) => {
     errors: [],
   };
 
-  const chosenUser = userId.trim();
-
   try {
-    const result = await accessManager.findUserById(chosenUser);
+    const result = await accessManager.findUserById(req.data.userId);
     if (result.id) {
       const permitted = await accessManager.authZCheck(
         accessManager.operationType.EDIT,
         accessManager.targetEntityType.USER,
-        result.id,
+        req.data.userId,
         accessManager.accessControlType.EDIT,
         req.data.userId
       );
 
       if (permitted) {
         response.errors = await accessManager.changePassword(
-          result.id,
+          result.name,
+          oldPassword,
           newPassword,
           newPasswordConfirmation
         );
@@ -100,18 +99,17 @@ router.post("/user/:id", accessManager.verifyToken, async (req, res) => {
           status = statusCodes.BAD_REQUEST;
         }
       } else {
-        log("POST /user/:id", "Not permitted", levels.SECURITY);
+        log("POST /users/user", "Not permitted", levels.SECURITY);
         response.errors.push("Not permitted");
         status = statusCodes.FORBIDDEN;
       }
     } else {
-      log("POST /user/:id", "Could not find user!", levels.WARN);
+      log("POST /users/user", "Could not find user!", levels.WARN);
       status = statusCodes.BAD_REQUEST;
       response.errors = ["Could not find user!"];
     }
   } catch (err) {
-    log("POST /user/:id", err, levels.ERROR);
-    log("++++++++++++++++++++++++++++++++++++++++++++++++", err, levels.FATAL);
+    log("POST /users/user", err, levels.ERROR);
     status = statusCodes.INTERNAL_SERVER_ERROR;
     response.errors = ["Internal Server Error"];
   }

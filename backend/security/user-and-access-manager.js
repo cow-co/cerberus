@@ -620,29 +620,45 @@ const authZCheck = async (
 };
 
 /**
- * @param {string} userId
+ * @param {string} username
+ * @param {string} oldPassword
  * @param {string} newPassword
  * @param {string} confirmation
- * @returns {string[]} Any validation errors
+ * @returns {string[]} Any errors
  */
-const changePassword = async (userId, newPassword, confirmation) => {
-  const validationErrors = validation.validatePassword(
-    newPassword,
-    confirmation,
-    securityConfig.passwordRequirements
-  );
-  if (validationErrors.length === 0) {
-    const user = await findUserById(userId);
-    const hashed = await argon2.hash(newPassword);
-    const newPasswordEntry = await HashedPassword.create({
-      hashedPassword: hashed,
-    });
-    const oldId = user.password;
-    user.password = newPasswordEntry._id;
-    await HashedPassword.findByIdAndDelete(oldId);
-    await user.save();
+const changePassword = async (
+  username,
+  oldPassword,
+  newPassword,
+  confirmation
+) => {
+  let allErrors = [];
+  const { authenticated, errors } = await checkCreds(username, oldPassword);
+
+  if (errors.length === 0 && authenticated) {
+    const validationErrors = validation.validatePassword(
+      newPassword,
+      confirmation,
+      securityConfig.passwordRequirements
+    );
+    if (validationErrors.length === 0) {
+      const user = await findUserById(userId);
+      const hashed = await argon2.hash(newPassword);
+      const newPasswordEntry = await HashedPassword.create({
+        hashedPassword: hashed,
+      });
+      const oldId = user.password;
+      user.password = newPasswordEntry._id;
+      await HashedPassword.findByIdAndDelete(oldId);
+      await user.save();
+    } else {
+      allErrors.concat(validationErrors);
+    }
+  } else {
+    allErrors.concat(errors);
   }
-  return validationErrors;
+
+  return allErrors;
 };
 
 module.exports = {
