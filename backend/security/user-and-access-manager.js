@@ -333,6 +333,7 @@ const registerUsernamePassword = async (
  * @param {string} username
  * @returns
  */
+// TODO Test this
 const registerPKI = async (username) => {
   log(
     "user-and-access-manager/registerPKI",
