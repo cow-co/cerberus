@@ -4,6 +4,7 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
+const securityConfig = require("../config/security-config");
 
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   const username = req.paramString("username");
@@ -62,11 +63,17 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 /**
  * Updates the user's password
  */
-// TODO Make a little short-circuit if PKI is enabled
 router.post("/user", accessManager.verifyToken, async (req, res) => {
   const oldPassword = req.bodyString("oldPassword");
   const newPassword = req.bodyString("password");
   const newPasswordConfirmation = req.bodyString("confirmPassword");
+
+  if (securityConfig.usePKI) {
+    res
+      .status(statusCodes.BAD_REQUEST)
+      .json({ errors: ["Cannot change password when PKI is enabled!"] });
+    return;
+  }
 
   log(
     `POST /users/user`,
