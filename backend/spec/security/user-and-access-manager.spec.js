@@ -675,6 +675,37 @@ describe("Access Manager tests", () => {
     expect(response.errors).toHaveLength(0);
   });
 
+  test("register - success - PKI", async () => {
+    securityConfig.usePKI = true;
+    userService.findUserByName.mockResolvedValue(null);
+    userService.createUser.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "passId",
+      acgs: [],
+    });
+
+    const response = await accessManager.register("user", undefined, undefined);
+
+    expect(response.userId).toBe("id");
+    expect(response.errors).toHaveLength(0);
+  });
+
+  test("register - failure - user already exists with PKI", async () => {
+    securityConfig.usePKI = true;
+    userService.findUserByName.mockResolvedValue({
+      _id: "id",
+      name: "user",
+      password: "passId",
+      acgs: [],
+    });
+
+    const response = await accessManager.register("user", undefined, undefined);
+
+    expect(response.userId).toBe(null);
+    expect(response.errors).toHaveLength(1);
+  });
+
   test("register - failure - validation errors", async () => {
     userService.findUserByName.mockResolvedValue(null);
     userService.createUser.mockResolvedValue({
