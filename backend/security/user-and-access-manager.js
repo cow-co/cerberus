@@ -95,7 +95,7 @@ const checkCreds = async (username, password) => {
 
   if (!authenticated) {
     log(
-      "user-and-access-manager/authenticate",
+      "user-and-access-manager/checkCreds",
       `Incorrect Credentials: username = ${username}`,
       levels.SECURITY
     );
@@ -114,7 +114,7 @@ const generateJWT = async (username) => {
   log("user-and-access-manager/generateJWT", "generating JWT...", levels.DEBUG);
   let data = {};
   const user = await findUserByName(username);
-  if (user.id) {
+  if (user._id) {
     data.userId = user._id;
     data.username = user.name;
     data.isAdmin = await adminService.isUserAdmin(user._id);
@@ -170,6 +170,11 @@ const authenticate = async (req, res, next) => {
     authenticated = credsResult.authenticated;
 
     if (!authenticated) {
+      log(
+        "user-and-access-manager/authenticate",
+        `User ${username} not authenticated!`,
+        levels.SECURITY
+      );
       status = statusCodes.UNAUTHENTICATED;
       res.status(status).json({ errors });
     } else {

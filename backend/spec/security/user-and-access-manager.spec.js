@@ -339,9 +339,10 @@ describe("Access Manager tests", () => {
 
   test("authenticate - success - PKI", async () => {
     securityConfig.usePKI = true;
-    userService.findUserByName.mockResolvedValue({
+    userService.getUserAndPasswordByUsername.mockResolvedValue({
       _id: "id",
       name: "user",
+      password: null,
       acgs: [],
     });
     adminService.isUserAdmin.mockResolvedValue(false);
