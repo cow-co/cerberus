@@ -37,7 +37,7 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
       if (permitted) {
         const isAdmin = await adminService.isUserAdmin(result._id);
         response.user = {
-          id: result._id,
+          _id: result._id,
           name: result.name,
           isAdmin,
           acgs: result.acgs,
@@ -185,7 +185,7 @@ router.get("/whoami", accessManager.verifyToken, async (req, res) => {
     status = statusCodes.OK;
     response = {
       user: {
-        id: req.data.userId,
+        _id: req.data.userId,
         name: user.name,
         isAdmin: isAdmin,
       },
