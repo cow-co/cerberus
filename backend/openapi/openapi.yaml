@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: CERBERUS API
   description: API definition for the CERBERUS implant-management API.
-  version: 2.2.0
+  version: 3.0.0
 components:
   securitySchemes:
     jwt:
