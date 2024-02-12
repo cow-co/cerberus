@@ -95,7 +95,7 @@ const checkCreds = async (username, password) => {
 
   if (!authenticated) {
     log(
-      "user-and-access-manager/authenticate",
+      "user-and-access-manager/checkCreds",
       `Incorrect Credentials: username = ${username}`,
       levels.SECURITY
     );
@@ -114,10 +114,10 @@ const generateJWT = async (username) => {
   log("user-and-access-manager/generateJWT", "generating JWT...", levels.DEBUG);
   let data = {};
   const user = await findUserByName(username);
-  if (user.id) {
-    data.userId = user.id;
+  if (user._id) {
+    data.userId = user._id;
     data.username = user.name;
-    data.isAdmin = await adminService.isUserAdmin(user.id);
+    data.isAdmin = await adminService.isUserAdmin(user._id);
 
     const token = jwt.sign(
       {
@@ -170,6 +170,11 @@ const authenticate = async (req, res, next) => {
     authenticated = credsResult.authenticated;
 
     if (!authenticated) {
+      log(
+        "user-and-access-manager/authenticate",
+        `User ${username} not authenticated!`,
+        levels.SECURITY
+      );
       status = statusCodes.UNAUTHENTICATED;
       res.status(status).json({ errors });
     } else {
@@ -293,7 +298,7 @@ const registerUsernamePassword = async (
     errors: [],
   };
 
-  if (!user.id) {
+  if (!user._id) {
     let validationErrors = validation.validatePassword(
       password,
       confirmPassword,
@@ -333,7 +338,6 @@ const registerUsernamePassword = async (
  * @param {string} username
  * @returns
  */
-// TODO Test this
 const registerPKI = async (username) => {
   log(
     "user-and-access-manager/registerPKI",
@@ -349,7 +353,7 @@ const registerPKI = async (username) => {
     errors: [],
   };
 
-  if (!user.id) {
+  if (!user._id) {
     const userRecord = await userService.createUser(username, null);
     response.userId = userRecord._id;
   } else {
@@ -381,7 +385,6 @@ const removeUser = async (userId) => {
  * @param {string} username
  * @returns
  */
-// TODO Should probably revert to using _id rather than id
 const findUserByName = async (username) => {
   log(
     "user-and-access-manager/findUserByName",
@@ -391,15 +394,13 @@ const findUserByName = async (username) => {
   let user = await userService.findUserByName(username);
   if (!user) {
     user = {
-      id: "",
+      _id: "",
       name: "",
       acgs: [],
     };
   } else {
     // This is only the ID of the hashed password, not the hash itself, but is still sensitive
     delete user.password;
-    user.id = user._id;
-    delete user._id;
   }
   return user;
 };
@@ -417,15 +418,13 @@ const findUserById = async (userId) => {
   let user = await userService.findUserById(userId);
   if (!user) {
     user = {
-      id: "",
+      _id: "",
       name: "",
       acgs: [],
     };
   } else {
     // This is only the ID of the hashed password, not the hash itself, but is still sensitive
     delete user.password;
-    user.id = user._id;
-    delete user._id;
   }
   return user;
 };

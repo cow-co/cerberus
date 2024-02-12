@@ -28,7 +28,7 @@ const seedInitialAdmin = async () => {
     let existing = await accessManager.findUserByName(
       securityConfig.initialAdmin.username
     );
-    if (!existing.user.id) {
+    if (!existing._id) {
       existing = await accessManager.register(
         securityConfig.initialAdmin.username,
         securityConfig.initialAdmin.password
@@ -48,12 +48,8 @@ const seedInitialAdmin = async () => {
         );
       }
     } else {
-      log(
-        "seedInitialAdmin",
-        `setting ${existing.user.id} to admin`,
-        levels.DEBUG
-      );
-      await adminService.changeAdminStatus(existing.user.id, true);
+      log("seedInitialAdmin", `setting ${existing._id} to admin`, levels.DEBUG);
+      await adminService.changeAdminStatus(existing._id, true);
       log("seedInitialAdmin", "Initial admin set to admin", levels.INFO);
     }
   }

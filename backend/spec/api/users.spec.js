@@ -36,7 +36,7 @@ describe("User tests", () => {
 
   test("get user - success", async () => {
     accessManager.findUserByName.mockResolvedValue({
-      id: "some-mongo-id3",
+      _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
@@ -66,7 +66,7 @@ describe("User tests", () => {
 
   test("get user - success - does not include password hash", async () => {
     accessManager.findUserByName.mockResolvedValue({
-      id: "some-mongo-id3",
+      _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
@@ -79,7 +79,7 @@ describe("User tests", () => {
 
   test("delete user - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      id: "some-mongo-id3",
+      _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
@@ -102,7 +102,7 @@ describe("User tests", () => {
 
   test("delete user - failure - exception", async () => {
     accessManager.findUserById.mockResolvedValue({
-      id: "some-mongo-id3",
+      _id: "some-mongo-id3",
       name: "username",
       hashedPassword: "hashed",
     });
@@ -116,7 +116,7 @@ describe("User tests", () => {
 
   test("delete user - success - user does not exist", async () => {
     accessManager.findUserById.mockResolvedValue({
-      id: "",
+      _id: "",
       name: "",
       acgs: [],
     });
@@ -129,7 +129,7 @@ describe("User tests", () => {
 
   test("whoami - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      id: "id",
+      _id: "id",
       name: "user",
     });
     adminService.isUserAdmin.mockResolvedValue(false);
@@ -212,7 +212,7 @@ describe("User tests", () => {
   });
 
   test("update user's password - success", async () => {
-    accessManager.findUserById.mockResolvedValue({ id: "id", name: "name" });
+    accessManager.findUserById.mockResolvedValue({ _id: "id", name: "name" });
     accessManager.changePassword.mockResolvedValue([]);
 
     const res = await agent
@@ -223,7 +223,7 @@ describe("User tests", () => {
   });
 
   test("update user's password - failure - validation error", async () => {
-    accessManager.findUserById.mockResolvedValue({ id: "id", name: "name" });
+    accessManager.findUserById.mockResolvedValue({ _id: "id", name: "name" });
     accessManager.changePassword.mockResolvedValue(["TEST"]);
 
     const res = await agent
@@ -234,7 +234,7 @@ describe("User tests", () => {
   });
 
   test("update user's password - failure - not authorised", async () => {
-    accessManager.findUserById.mockResolvedValue({ id: "id", name: "name" });
+    accessManager.findUserById.mockResolvedValue({ _id: "id", name: "name" });
     accessManager.authZCheck.mockResolvedValue(false);
 
     const res = await agent
@@ -245,7 +245,7 @@ describe("User tests", () => {
   });
 
   test("update user's password - failure - exception", async () => {
-    accessManager.findUserById.mockResolvedValue({ id: "id", name: "name" });
+    accessManager.findUserById.mockResolvedValue({ _id: "id", name: "name" });
     accessManager.changePassword.mockRejectedValue(new TypeError("TEST"));
 
     const res = await agent
