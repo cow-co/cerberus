@@ -2,10 +2,8 @@ const seeding = require("../../db/seed");
 const { purgeCache } = require("../utils");
 const adminService = require("../../db/services/admin-service");
 const accessManager = require("../../security/user-and-access-manager");
-const dbStateService = require("../../db/services/db-state-service");
 const taskTypeService = require("../../db/services/tasks-service");
 
-jest.mock("../../db/services/db-state-service");
 jest.mock("../../db/services/tasks-service");
 jest.mock("../../db/services/admin-service");
 jest.mock("../../security/user-and-access-manager");
@@ -78,11 +76,27 @@ describe("Seeding tests", () => {
     expect(adminService.changeAdminStatus).toHaveBeenCalledTimes(0);
   });
 
-  test("should seed tasktypes", async () => {
-    dbStateService.getNumDbVersions.mockResolvedValue(0);
+  test("seed tasktypes - success - empty existing-list", async () => {
+    taskTypeService.getTaskTypes.mockResolvedValue([]);
 
     await seeding.seedTaskTypes();
 
     expect(taskTypeService.createTaskType).toHaveBeenCalledTimes(3);
+  });
+
+  test("seed tasktypes - success - null existing-list", async () => {
+    taskTypeService.getTaskTypes.mockResolvedValue(null);
+
+    await seeding.seedTaskTypes();
+
+    expect(taskTypeService.createTaskType).toHaveBeenCalledTimes(3);
+  });
+
+  test("seed tasktypes - success - taktypes not seeded", async () => {
+    taskTypeService.getTaskTypes.mockResolvedValue(["TEST"]);
+
+    await seeding.seedTaskTypes();
+
+    expect(taskTypeService.createTaskType).toHaveBeenCalledTimes(0);
   });
 });
