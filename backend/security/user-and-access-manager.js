@@ -385,7 +385,6 @@ const removeUser = async (userId) => {
  * @param {string} username
  * @returns
  */
-// TODO Should probably revert to using _id rather than id
 const findUserByName = async (username) => {
   log(
     "user-and-access-manager/findUserByName",
