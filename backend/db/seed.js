@@ -1,20 +1,23 @@
-const dbStateService = require("./services/db-state-service");
 const taskTypeService = require("./services/tasks-service");
 const adminService = require("./services/admin-service");
 const accessManager = require("../security/user-and-access-manager");
 const securityConfig = require("../config/security-config");
 const { log, levels } = require("../utils/logger");
 
+/**
+ * This sets up the default task types, if the database has no task types in it.
+ * That way, if all the task types accidentally get deleted, a quick restart of the
+ * app will get the defaults seeded again.
+ */
 const seedTaskTypes = async () => {
   const defaultTaskTypes =
     require("../config/default-task-types.json").taskTypes;
 
-  const numDbVersions = await dbStateService.getNumDbVersions();
-  if (numDbVersions === 0) {
+  const taskTypes = await taskTypeService.getTaskTypes();
+  if (!taskTypes || taskTypes.length === 0) {
     defaultTaskTypes.forEach(
       async (taskType) => await taskTypeService.createTaskType(taskType)
     );
-    await dbStateService.updateDBVersion();
   }
 };
 

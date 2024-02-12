@@ -5,8 +5,6 @@ const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
 
-// TODO A Password-change capability?
-
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   const username = req.paramString("username");
   log(`GET /users/user/${username}`, `Getting user ${username}`, levels.INFO);
