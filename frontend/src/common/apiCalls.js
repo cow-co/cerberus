@@ -381,7 +381,7 @@ const deleteUser = async () => {
   let json = null;
   try {
     const response = await fetch(
-      `${conf.apiURL}users/user/${store.getState().users.selectedUser.id}`,
+      `${conf.apiURL}users/user/${store.getState().users.selectedUser._id}`,
       {
         method: "DELETE",
         headers: {

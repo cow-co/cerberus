@@ -4,6 +4,7 @@ const statusCodes = require("../config/statusCodes");
 const accessManager = require("../security/user-and-access-manager");
 const adminService = require("../db/services/admin-service");
 const { log, levels } = require("../utils/logger");
+const securityConfig = require("../config/security-config");
 
 router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   const username = req.paramString("username");
@@ -11,7 +12,7 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   let status = statusCodes.OK;
   let response = {
     user: {
-      id: "",
+      _id: "",
       name: "",
     },
     errors: [],
@@ -21,7 +22,7 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 
   try {
     const result = await accessManager.findUserByName(chosenUser);
-    if (result.id) {
+    if (result._id) {
       const operation = {
         userId: req.data.userId,
         type: accessManager.operationType.READ,
@@ -29,14 +30,14 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
       };
       const target = {
         entityType: accessManager.targetEntityType.USER,
-        entityId: result.id,
+        entityId: result._id,
       };
       const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
-        const isAdmin = await adminService.isUserAdmin(result.id);
+        const isAdmin = await adminService.isUserAdmin(result._id);
         response.user = {
-          id: result.id,
+          _id: result._id,
           name: result.name,
           isAdmin,
           acgs: result.acgs,
@@ -62,11 +63,17 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 /**
  * Updates the user's password
  */
-// TODO Make a little short-circuit if PKI is enabled
 router.post("/user", accessManager.verifyToken, async (req, res) => {
   const oldPassword = req.bodyString("oldPassword");
   const newPassword = req.bodyString("password");
   const newPasswordConfirmation = req.bodyString("confirmPassword");
+
+  if (securityConfig.usePKI) {
+    res
+      .status(statusCodes.BAD_REQUEST)
+      .json({ errors: ["Cannot change password when PKI is enabled!"] });
+    return;
+  }
 
   log(
     `POST /users/user`,
@@ -80,7 +87,7 @@ router.post("/user", accessManager.verifyToken, async (req, res) => {
 
   try {
     const result = await accessManager.findUserById(req.data.userId);
-    if (result.id) {
+    if (result._id) {
       const operation = {
         userId: req.data.userId,
         type: accessManager.operationType.EDIT,
@@ -132,7 +139,7 @@ router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
   try {
     const result = await accessManager.findUserById(userId);
 
-    if (!result.id) {
+    if (!result._id) {
       log(
         `DELETE /users/user/${userId}`,
         `User with ID ${userId} does not exist`,
@@ -178,7 +185,7 @@ router.get("/whoami", accessManager.verifyToken, async (req, res) => {
     status = statusCodes.OK;
     response = {
       user: {
-        id: req.data.userId,
+        _id: req.data.userId,
         name: user.name,
         isAdmin: isAdmin,
       },

@@ -31,9 +31,9 @@ const UsersPane = () => {
       setSearchError(true);
       setHelpText("Could not find user");
       dispatch(setSelectedUser(EMPTY_USER));
-    } else if (response.user.id) {
+    } else if (response.user._id) {
       createSuccessAlert("Successfully found");
-      dispatch(setSelectedUser({id: response.user.id, name: response.user.name, acgs: response.user.acgs, isAdmin: response.user.isAdmin}));
+      dispatch(setSelectedUser({_id: response.user._id, name: response.user.name, acgs: response.user.acgs, isAdmin: response.user.isAdmin}));
       setSearchError(false);
       setHelpText("Found User");
     } else {
@@ -48,9 +48,9 @@ const UsersPane = () => {
       <Typography align="center" variant="h3">Manage Users</Typography>
       <FormGroup>
         <TextField className="text-input" variant="outlined" value={user.name} label="User to find" type="search" onChange={handleChange} error={searchError} helperText={helpText} />
-        <Typography variant="body1">Selected User ID: {selectedUser.id}</Typography>
+        <Typography variant="body1">Selected User ID: {selectedUser._id}</Typography>
         <Button onClick={handleSearch}>Search</Button>
-        <Button onClick={() => setUserEditOpen(true)} disabled={selectedUser.id === ""}>Edit User</Button>
+        <Button onClick={() => setUserEditOpen(true)} disabled={selectedUser._id === ""}>Edit User</Button>
       </FormGroup>
       <UserDialogue open={userEditOpen} onClose={() => setUserEditOpen(false)} onSubmit={() => alert("PLACEHOLDER")} />
     </Container>

@@ -27,7 +27,7 @@ const EMPTY_TASK = {
   params: [],
 };
 const EMPTY_TASK_TYPE = { _id: "", name: "", params: [] };
-const EMPTY_USER = { id: "", name: "", isAdmin: false, acgs: [] };
+const EMPTY_USER = { _id: "", name: "", isAdmin: false, acgs: [] };
 
 export {
   generateAlert,

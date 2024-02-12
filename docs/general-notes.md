@@ -12,3 +12,18 @@
   - Changing users' passwords
   - Changing users' groups
   - Changing access groups for implants
+- Versioning is somewhat based on semantic versioning:
+  - Version numbers aare of form `X.Y.Z`
+  - `X` is the major version, indicating
+    - Major functionality changes
+    - Core architecture changes
+    - Breaking (ie. backwards-incompatible) changes to the API
+  - `Y` is the minor version, indicating
+    - Additions/Backwards-compatible changes to the API
+    - DB Schema changes that are transparent to external users
+    - General UI spruce-ups/tweaks
+  - `Z` is the patch version, indicating
+    - Dependency updates
+    - Changes to documentation, comments, etc
+    - Refactors that don't change functionality
+    - ie. a new patch version generally indicates that no functionality is changed

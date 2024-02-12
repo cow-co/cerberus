@@ -16,11 +16,8 @@ describe("Seeding tests", () => {
   test("should seed admin - no admins, no users", async () => {
     adminService.numAdmins.mockResolvedValue(0);
     accessManager.findUserByName.mockResolvedValue({
-      user: {
-        id: "",
-        name: "",
-      },
-      errors: [],
+      _id: "",
+      name: "",
     });
     accessManager.register.mockResolvedValue({
       _id: "id",
@@ -36,11 +33,8 @@ describe("Seeding tests", () => {
   test("should seed admin - no admins, user exists", async () => {
     adminService.numAdmins.mockResolvedValue(0);
     accessManager.findUserByName.mockResolvedValue({
-      user: {
-        id: "id",
-        name: "user",
-      },
-      errors: [],
+      _id: "id",
+      name: "user",
     });
 
     await seeding.seedInitialAdmin();
@@ -60,11 +54,8 @@ describe("Seeding tests", () => {
   test("should not seed admin - error", async () => {
     adminService.numAdmins.mockResolvedValue(0);
     accessManager.findUserByName.mockResolvedValue({
-      user: {
-        id: "",
-        name: "",
-      },
-      errors: [],
+      _id: "",
+      name: "",
     });
     accessManager.register.mockResolvedValue({
       _id: null,

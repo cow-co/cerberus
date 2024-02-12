@@ -47,7 +47,7 @@ const UserDialogue = ({open, onClose, onSubmit}) => {
     getData();
     const userAcgs = selectedUser.acgs.map(acg => groups.find(group => group._id === acg));
     dispatch(setSelectedUser({
-      id: selectedUser.id,
+      _id: selectedUser._id,
       name: selectedUser.name,
       isAdmin: selectedUser.isAdmin,
       acgs: userAcgs
@@ -76,7 +76,7 @@ const UserDialogue = ({open, onClose, onSubmit}) => {
   }, [lastJsonMessage]);
 
   const handleSubmitAdminStatus = async () => {
-    const { errors } = await changeAdminStatus(selectedUser.id, !selectedUser.isAdmin);
+    const { errors } = await changeAdminStatus(selectedUser._id, !selectedUser.isAdmin);
     if (errors.length > 0) {
       createErrorAlert(errors);
       dispatch(setSelectedUser(EMPTY_USER));
@@ -89,7 +89,7 @@ const UserDialogue = ({open, onClose, onSubmit}) => {
 
   const handleAddGroup = () => {
     let updated = {
-      id: selectedUser.id,
+      _id: selectedUser._id,
       name: selectedUser.name,
       isAdmin: selectedUser.isAdmin,
       acgs: selectedUser.acgs,
@@ -102,7 +102,7 @@ const UserDialogue = ({open, onClose, onSubmit}) => {
     const {name, value} = event.target;
 
     let updated = {
-      id: selectedUser.id,
+      _id: selectedUser._id,
       name: selectedUser.name,
       acgs: selectedUser.acgs,
       isAdmin: selectedUser.isAdmin
@@ -119,7 +119,7 @@ const UserDialogue = ({open, onClose, onSubmit}) => {
 
   const deleteGroup = (id) => {
     let updated = {
-      id: selectedUser.id,
+      _id: selectedUser._id,
       name: selectedUser.name,
       acgs: selectedUser.acgs.filter(group => group.internalId !== id),
       isAdmin: selectedUser.isAdmin
