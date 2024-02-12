@@ -12,7 +12,7 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
   let status = statusCodes.OK;
   let response = {
     user: {
-      id: "",
+      _id: "",
       name: "",
     },
     errors: [],
@@ -22,7 +22,7 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
 
   try {
     const result = await accessManager.findUserByName(chosenUser);
-    if (result.id) {
+    if (result._id) {
       const operation = {
         userId: req.data.userId,
         type: accessManager.operationType.READ,
@@ -30,14 +30,14 @@ router.get("/user/:username", accessManager.verifyToken, async (req, res) => {
       };
       const target = {
         entityType: accessManager.targetEntityType.USER,
-        entityId: result.id,
+        entityId: result._id,
       };
       const permitted = await accessManager.authZCheck(operation, target);
 
       if (permitted) {
-        const isAdmin = await adminService.isUserAdmin(result.id);
+        const isAdmin = await adminService.isUserAdmin(result._id);
         response.user = {
-          id: result.id,
+          id: result._id,
           name: result.name,
           isAdmin,
           acgs: result.acgs,
@@ -87,7 +87,7 @@ router.post("/user", accessManager.verifyToken, async (req, res) => {
 
   try {
     const result = await accessManager.findUserById(req.data.userId);
-    if (result.id) {
+    if (result._id) {
       const operation = {
         userId: req.data.userId,
         type: accessManager.operationType.EDIT,
@@ -139,7 +139,7 @@ router.delete("/user/:userId", accessManager.verifyToken, async (req, res) => {
   try {
     const result = await accessManager.findUserById(userId);
 
-    if (!result.id) {
+    if (!result._id) {
       log(
         `DELETE /users/user/${userId}`,
         `User with ID ${userId} does not exist`,

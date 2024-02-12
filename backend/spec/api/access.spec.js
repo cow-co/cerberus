@@ -110,11 +110,8 @@ describe("Access tests", () => {
 
   test("login - success", async () => {
     accessManager.findUserByName.mockResolvedValue({
-      user: {
-        id: "id",
-        name: "user",
-      },
-      errors: [],
+      _id: "id",
+      name: "user",
     });
     accessManager.authenticate.mockImplementation(async (req, res, next) => {
       req.data = {
@@ -153,7 +150,7 @@ describe("Access tests", () => {
 
   test("add admin - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      id: "650a3a2a7dcd3241ecee2d70",
+      _id: "650a3a2a7dcd3241ecee2d70",
       name: "user",
       acgs: [],
     });
@@ -168,7 +165,7 @@ describe("Access tests", () => {
 
   test("remove admin - success", async () => {
     accessManager.findUserById.mockResolvedValue({
-      id: "650a3a2a7dcd3241ecee2d70",
+      _id: "650a3a2a7dcd3241ecee2d70",
       name: "user",
       acgs: [],
     });
@@ -183,7 +180,7 @@ describe("Access tests", () => {
 
   test("add admin - failure - user does not exist", async () => {
     accessManager.findUserById.mockResolvedValue({
-      id: "",
+      _id: "",
       name: "",
       acgs: [],
     });

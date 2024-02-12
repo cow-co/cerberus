@@ -115,9 +115,9 @@ const generateJWT = async (username) => {
   let data = {};
   const user = await findUserByName(username);
   if (user.id) {
-    data.userId = user.id;
+    data.userId = user._id;
     data.username = user.name;
-    data.isAdmin = await adminService.isUserAdmin(user.id);
+    data.isAdmin = await adminService.isUserAdmin(user._id);
 
     const token = jwt.sign(
       {
@@ -293,7 +293,7 @@ const registerUsernamePassword = async (
     errors: [],
   };
 
-  if (!user.id) {
+  if (!user._id) {
     let validationErrors = validation.validatePassword(
       password,
       confirmPassword,
@@ -348,7 +348,7 @@ const registerPKI = async (username) => {
     errors: [],
   };
 
-  if (!user.id) {
+  if (!user._id) {
     const userRecord = await userService.createUser(username, null);
     response.userId = userRecord._id;
   } else {
@@ -390,15 +390,13 @@ const findUserByName = async (username) => {
   let user = await userService.findUserByName(username);
   if (!user) {
     user = {
-      id: "",
+      _id: "",
       name: "",
       acgs: [],
     };
   } else {
     // This is only the ID of the hashed password, not the hash itself, but is still sensitive
     delete user.password;
-    user.id = user._id;
-    delete user._id;
   }
   return user;
 };
@@ -416,15 +414,13 @@ const findUserById = async (userId) => {
   let user = await userService.findUserById(userId);
   if (!user) {
     user = {
-      id: "",
+      _id: "",
       name: "",
       acgs: [],
     };
   } else {
     // This is only the ID of the hashed password, not the hash itself, but is still sensitive
     delete user.password;
-    user.id = user._id;
-    delete user._id;
   }
   return user;
 };
