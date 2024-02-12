@@ -128,7 +128,7 @@ components:
           type: "string"
 paths:
 # ACCESS
-  /access/register:
+  /api/access/register:
     post: 
       summary: Creates a user, when user management is backed by the database (rather than AD, for example).
       security: []
@@ -174,7 +174,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /access/login:
+  /api/access/login:
     post: 
       summary: Logs the user in.
       security: []
@@ -201,7 +201,7 @@ paths:
                   user:
                     type: object
                     properties:
-                      id: 
+                      _id: 
                         type: string
                       name:
                         type: string
@@ -233,7 +233,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /access/logout:
+  /api/access/logout:
     delete: 
       summary: Logs the user out, by invalidating all bearer tokens they possess.
       security: []
@@ -263,7 +263,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /access/admin:
+  /api/access/admin:
     put: 
       security:
         - jwt: [Admin]
@@ -326,7 +326,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /implants/{implantId}/acgs:
+  /api/implants/{implantId}/acgs:
     post:
       security:
         - jwt: [Admin]
@@ -383,7 +383,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /access/acgs:
+  /api/access/acgs:
     get:
       security:
         - jwt: [Admin]
@@ -475,7 +475,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /access/acgs/{acgId}:
+  /api/access/acgs/{acgId}:
     delete:
       security:
         - jwt: [Admin]
@@ -523,7 +523,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /access/config:
+  /api/access/config:
     get:
       summary: Gets the (non-sensitive!) security config
       tags:
@@ -573,7 +573,7 @@ paths:
                       type: string
       
 # BEACONS
-  /beacon: 
+  /api/beacon: 
     post: 
       summary: Checks in from an implant, and retrieves tasks. 
       security: []
@@ -646,7 +646,7 @@ paths:
                     items:
                       type: string
 # IMPLANTS
-  /implants:
+  /api/implants:
     get:
       security:
         - jwt: [Read]
@@ -699,7 +699,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /implants/{implantId}:
+  /api/implants/{implantId}:
     delete:
       security:
         - jwt: [Admin]
@@ -748,7 +748,7 @@ paths:
                     items:
                       type: string
 # TASKS
-  /tasks/{implantId}:
+  /api/tasks/{implantId}:
     get:
       security:
         - jwt: [Read]
@@ -805,7 +805,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /task-types:
+  /api/task-types:
     get:
       security:
         - jwt: [Read]
@@ -908,7 +908,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /task-types/{taskTypeId}:
+  /api/task-types/{taskTypeId}:
     delete:
       security:
         - jwt: [Admin]
@@ -956,7 +956,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /task-types/param-data-types:
+  /api/task-types/param-data-types:
     get:
       security: []
       summary: Gets the list of all the data types that params can use (eg. Number, String)
@@ -971,7 +971,7 @@ paths:
                 type: array
                 items:
                   type: string
-  /tasks: 
+  /api/tasks: 
     post: 
       security:
         - jwt: [Operator]
@@ -1088,7 +1088,7 @@ paths:
                     items:
                       type: string
 # USERS
-  /users/user/{username}: 
+  /api/users/user/{username}: 
     get: 
       security:
         - jwt: [Read]
@@ -1110,6 +1110,17 @@ paths:
               schema:
                 type: object
                 properties:
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      name:
+                        type: string
+                      acgs:
+                        type: array
+                        items:
+                          type: string
                   errors:
                     type: array
                     items:
@@ -1136,7 +1147,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /users/user/{userId}: 
+  /api/users/user/{userId}: 
     delete: 
       security:
         - jwt: [Admin]
@@ -1184,7 +1195,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /users/user:
+  /api/users/user:
     post: 
       security:
         - jwt: [Write]
@@ -1248,7 +1259,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /users/whoami:
+  /api/users/whoami:
     get:
       security:
         - jwt: [Read]
@@ -1266,7 +1277,7 @@ paths:
                   user: 
                     type: object
                     properties:
-                      id: 
+                      _id: 
                         type: string
                       name:
                         type: string
@@ -1298,7 +1309,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /users/user/{userId}/groups:
+  /api/users/user/{userId}/groups:
     get:
       security:
         - jwt: [Read]
