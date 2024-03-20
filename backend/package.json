@@ -19,7 +19,7 @@
     "node-cron": "^3.0.3",
     "mongoose": "^8.2.0",
     "sanitize": "^2.1.2",
-    "swagger-themes": "^1.2.30",
+    "swagger-themes": "^1.4.2",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",
     "ws": "^8.16.0",
